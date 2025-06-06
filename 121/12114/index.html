@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>點擊小球遊戲</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    #gameArea {
+      position: relative;
+      margin: 0 auto;
+      margin-top: 30px;
+      width: 600px;
+      height: 400px;
+      background-color: #222;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+    #ball {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: yellow;
+      cursor: pointer;
+    }
+    #timer {
+      font-size: 24px;
+      margin-top: 10px;
+    }
+    #result {
+      font-size: 28px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>點擊移動球遊戲</h1>
+  <div id="timer">倒數計時：10 秒</div>
+  <div id="gameArea">
+    <div id="ball"></div>
+  </div>
+  <div id="result"></div>
+
+  <script>
+    const gameArea = document.getElementById('gameArea');
+    const ball = document.getElementById('ball');
+    const timer = document.getElementById('timer');
+    const result = document.getElementById('result');
+
+    const areaWidth = gameArea.clientWidth;
+    const areaHeight = gameArea.clientHeight;
+    const ballSize = 40;
+
+    let x = Math.random() * (areaWidth - ballSize);
+    let y = Math.random() * (areaHeight - ballSize);
+    let angle = Math.random() * 2 * Math.PI;
+    let speed = getRandomSpeed();
+    let dx = Math.cos(angle) * speed / 60;
+    let dy = Math.sin(angle) * speed / 60;
+
+    let clicks = 0;
+    let timeLeft = 10;
+    let gameRunning = true;
+
+    function getRandomSpeed() {
+      return 300+ Math.random() * 250; // 300~550 px/s
+    }
+
+    ball.style.left = x + 'px';
+    ball.style.top = y + 'px';
+
+    ball.addEventListener('click', () => {
+      if (!gameRunning) return;
+      clicks++;
+      ball.style.backgroundColor = getRandomColor();
+    });
+
+    function getRandomColor() {
+      const colors = ['orange', 'lime', 'cyan', 'pink', 'magenta', 'red'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function moveBall() {
+      if (!gameRunning) return;
+
+      x += dx;
+      y += dy;
+
+      let bounced = false;
+
+      if (x <= 0 || x >= areaWidth - ballSize) {
+        dx = -dx;
+        bounced = true;
+        x = Math.max(0, Math.min(areaWidth - ballSize, x));
+      }
+
+      if (y <= 0 || y >= areaHeight - ballSize) {
+        dy = -dy;
+        bounced = true;
+        y = Math.max(0, Math.min(areaHeight - ballSize, y));
+      }
+
+      if (bounced) {
+        speed = getRandomSpeed();
+        const angle = Math.atan2(dy, dx);
+        dx = Math.cos(angle) * speed / 60;
+        dy = Math.sin(angle) * speed / 60;
+      }
+
+      ball.style.left = x + 'px';
+      ball.style.top = y + 'px';
+
+      requestAnimationFrame(moveBall);
+    }
+
+    moveBall();
+
+    const countdown = setInterval(() => {
+      timeLeft--;
+      timer.textContent = `倒數計時：${timeLeft} 秒`;
+      if (timeLeft <= 0) {
+        clearInterval(countdown);
+        gameRunning = false;
+        result.innerHTML = clicks === 0 ? "Poor you" : `你點擊了 ${clicks} 次<br>Congrats!`;
+        ball.style.display = 'none';
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
+
