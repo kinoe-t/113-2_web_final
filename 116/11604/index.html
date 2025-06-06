@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>午餐轉盤</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      padding: 30px;
+    }
+
+    input {
+      font-size: 16px;
+      padding: 10px;
+      width: 260px;
+    }
+
+    .food-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 15px;
+      gap: 8px;
+    }
+
+    .food-item {
+      background: #4CAF50;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+    }
+
+    #wheel-container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      margin: 40px auto 10px;
+      display: none;
+    }
+
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    #pointer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 4px;
+      height: 180px;
+      background: red;
+      transform-origin: bottom center;
+      transform: rotate(0deg) translate(-50%, -100%);
+      z-index: 10;
+    }
+
+    #message {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    #result {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>輸入你想吃的東西（最多10個，每輸入一個按 Enter）</h1>
+  <input type="text" id="foodInput" placeholder="例如：牛肉麵、火鍋、壽司">
+  <div class="food-grid" id="foodGrid"></div>
+  <div id="message"></div>
+
+  <div id="wheel-container">
+    <div id="pointer"></div>
+    <canvas id="wheel" width="400" height="400"></canvas>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    const foodInput = document.getElementById('foodInput');
+    const foodGrid = document.getElementById('foodGrid');
+    const message = document.getElementById('message');
+    const wheelContainer = document.getElementById('wheel-container');
+    const wheelCanvas = document.getElementById('wheel');
+    const ctx = wheelCanvas.getContext('2d');
+    const result = document.getElementById('result');
+
+    let foodList = [];
+    let currentRotation = 0;
+
+    foodInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && foodInput.value.trim() !== '' && foodList.length < 10) {
+        const food = foodInput.value.trim();
+        foodList.push(food);
+
+        const div = document.createElement('div');
+        div.className = 'food-item';
+        div.textContent = food;
+        foodGrid.appendChild(div);
+
+        foodInput.value = '';
+
+        if (foodList.length >= 2) {
+          message.textContent = '按下空白鍵即可轉動轉盤';
+          drawWheel();
+          wheelContainer.style.display = 'block';
+        }
+
+        if (foodList.length === 10) {
+          foodInput.disabled = true;
+        }
+      }
+    });
+
+    function drawWheel() {
+      const radius = wheelCanvas.width / 2;
+      const anglePerSlice = 2 * Math.PI / foodList.length;
+      ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+
+      for (let i = 0; i < foodList.length; i++) {
+        const startAngle = i * anglePerSlice;
+        const endAngle = startAngle + anglePerSlice;
+
+        ctx.beginPath();
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, startAngle, endAngle);
+        ctx.fillStyle = `hsl(${(i * 360 / foodList.length)}, 70%, 70%)`;
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(startAngle + anglePerSlice / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "16px sans-serif";
+        ctx.fillText(foodList[i], radius - 10, 5);
+        ctx.restore();
+      }
+    }
+
+    function spinWheel() {
+      const count = foodList.length;
+      const anglePerSlice = 360 / count;
+      const randomAngle = Math.random() * 360;
+      const extraSpins = 5;
+      const targetAngle = 360 * extraSpins + randomAngle;
+      currentRotation += targetAngle;
+
+      wheelCanvas.style.transform = `rotate(${currentRotation}deg)`;
+
+      setTimeout(() => {
+        const pointerAngle = (360 - (currentRotation % 360)) % 360;
+        const rawIndex = pointerAngle / anglePerSlice;
+        const index = Math.floor(rawIndex);
+        const decimal = rawIndex - index;
+
+        if (decimal < 0.03 || decimal > 0.97) {
+          result.textContent = '🎯 指到邊界，再按一下空白鍵';
+        } else {
+          const selected = foodList[index % count];
+          result.textContent = `🍽️「${selected}」這是今天的午餐`;
+        }
+
+        result.style.display = 'block';
+      }, 5200);
+    }
+
+    window.addEventListener('keydown', function (e) {
+      if (e.code === 'Space' && foodList.length >= 2) {
+        result.style.display = 'none';
+        spinWheel();
+      }
+    });
+  </script>
+
+</body>
+</html>

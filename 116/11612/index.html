@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>今日午餐拉霸機</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #f0f8ff;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    .slot-machine {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .slot {
+      width: 120px;
+      height: 50px;
+      line-height: 50px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      font-size: 20px;
+      background-color: #fff;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>今日午餐拉霸機</h1>
+  <div class="slot-machine">
+    <div class="slot" id="slot1">--</div>
+    <div class="slot" id="slot2">--</div>
+    <div class="slot" id="slot3">--</div>
+  </div>
+  <button onclick="spin()">開始拉霸</button>
+  <div id="result">今日午餐：請點擊「開始拉霸」</div>
+
+  <script>
+    const mains = ["牛肉麵", "壽司", "漢堡", "炒飯", "義大利麵", "便當", "拉麵", "炸雞"];
+    const drinks = ["珍珠奶茶", "綠茶", "可樂", "咖啡", "果汁", "汽水", "冰沙"];
+    const desserts = ["蛋糕", "冰淇淋", "紅豆餅", "甜甜圈", "布丁", "草莓派"];
+
+    function getRandomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function spin() {
+      const main = getRandomItem(mains);
+      const drink = getRandomItem(drinks);
+      const dessert = getRandomItem(desserts);
+
+      document.getElementById("slot1").innerText = main;
+      document.getElementById("slot2").innerText = drink;
+      document.getElementById("slot3").innerText = dessert;
+
+      document.getElementById("result").innerText = `今日午餐：${main} + ${drink} + ${dessert}`;
+    }
+  </script>
+</body>
+</html>

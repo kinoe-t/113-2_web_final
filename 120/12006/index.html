@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>打字練習網頁</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+      background-color: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #mode-select {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #sentence {
+      font-size: 1.5em;
+      margin: 20px 0;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      min-height: 60px;
+    }
+
+    #input-area {
+      width: 100%;
+      height: 100px;
+      font-size: 1.2em;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 1.1em;
+      background: #e6f7e6;
+      padding: 15px;
+      border: 1px solid #b4deb4;
+      display: none;
+    }
+
+    .correct {
+      color: green;
+    }
+
+    .incorrect {
+      color: red;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>打字練習網頁</h1>
+
+  <div id="mode-select">
+    <label><input type="radio" name="mode" value="zh" checked> 中文</label>
+    <label><input type="radio" name="mode" value="en"> English</label>
+    <button onclick="startPractice()">開始練習</button>
+  </div>
+
+  <div id="sentence"></div>
+
+  <textarea id="input-area" placeholder="開始打字..." disabled oninput="checkTyping()"></textarea>
+
+  <div id="result"></div>
+
+  <script>
+    const chineseSentences = [
+      "今天天氣很好，適合出門散步。",
+      "學習程式設計可以培養邏輯思維。",
+      "請保持安靜，圖書館內禁止喧嘩。",
+      "生活就像一盒巧克力，你永遠不知道會拿到什麼。",
+      "成功沒有捷徑，只有不斷努力。"
+    ];
+
+    const englishSentences = [
+      "The quick brown fox jumps over the lazy dog.",
+      "Practice makes perfect in everything you do.",
+      "Life is short, so make the most of every moment.",
+      "Coding is like solving a puzzle with logic.",
+      "Never stop learning, because life never stops teaching."
+    ];
+
+    let target = "";
+    let startTime = 0;
+    let ended = false;
+
+    function startPractice() {
+      ended = false;
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const sentences = mode === "zh" ? chineseSentences : englishSentences;
+      target = sentences[Math.floor(Math.random() * sentences.length)];
+      document.getElementById("sentence").innerText = target;
+      document.getElementById("input-area").value = "";
+      document.getElementById("input-area").disabled = false;
+      document.getElementById("input-area").focus();
+      document.getElementById("result").style.display = "none";
+      startTime = 0;
+    }
+
+    function checkTyping() {
+      const input = document.getElementById("input-area").value;
+      if (startTime === 0 && input.length > 0) {
+        startTime = new Date().getTime(); // start timer on first key
+      }
+
+      if (input === target) {
+        const endTime = new Date().getTime();
+        const timeTaken = (endTime - startTime) / 1000; // in seconds
+        const correctChars = countCorrectCharacters(input, target);
+        const accuracy = ((correctChars / target.length) * 100).toFixed(2);
+        const wpm = ((target.split(" ").length) / (timeTaken / 60)).toFixed(2);
+
+        document.getElementById("result").innerHTML = `
+          ✅ 完成輸入！<br>
+          ⏱️ 花費時間：<strong>${timeTaken.toFixed(2)}</strong> 秒<br>
+          🎯 正確率：<strong>${accuracy}%</strong><br>
+          📝 每分鐘字數 (WPM)：<strong>${wpm}</strong>
+        `;
+        document.getElementById("result").style.display = "block";
+        document.getElementById("input-area").disabled = true;
+        ended = true;
+      }
+    }
+
+    function countCorrectCharacters(input, target) {
+      let count = 0;
+      for (let i = 0; i < target.length; i++) {
+        if (input[i] === target[i]) {
+          count++;
+        }
+      }
+      return count;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>小恐龍遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    canvas {
+      background: #fff;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+<canvas id="game" width="800" height="250"></canvas>
+<script>
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  const dino = {
+    x: 50,
+    y: 180,
+    width: 40,
+    height: 40,
+    yVelocity: 0,
+    isJumping: false,
+    isDucking: false
+  };
+
+  const gravity = 0.6;
+  let score = 0;
+  let highScore = parseInt(localStorage.getItem("highScore") || "0");
+  let gameOver = false;
+
+  const cactusList = [];
+  const birdList = [];
+
+  function createCactus() {
+    cactusList.push({
+      x: 800,
+      y: 210,
+      width: 20,
+      height: 40,
+      passed: false
+    });
+  }
+
+  function createBird() {
+    birdList.push({
+      x: 800,
+      y: 140 + Math.random() * 30, // 隨機飛高一點
+      width: 30,
+      height: 20,
+      passed: false
+    });
+  }
+
+  setInterval(() => {
+    if (!gameOver) {
+      createCactus();
+      if (Math.random() < 0.5) createBird();
+    }
+  }, 2000);
+
+  function drawDino() {
+    ctx.fillStyle = "#444";
+    if (dino.isDucking) {
+      ctx.fillRect(dino.x, dino.y + 20, dino.width, dino.height - 20); // 矮一點
+    } else {
+      ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+    }
+  }
+
+  function drawObstacles() {
+    ctx.fillStyle = "green";
+    cactusList.forEach(c => ctx.fillRect(c.x, c.y, c.width, c.height));
+    ctx.fillStyle = "red";
+    birdList.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
+  }
+
+  function drawScore() {
+    ctx.fillStyle = "#000";
+    ctx.font = "16px Arial";
+    ctx.fillText("分數: " + score, 650, 30);
+    ctx.fillText("最高分: " + highScore, 650, 50);
+  }
+
+  function updateObstacles() {
+    cactusList.forEach(c => {
+      c.x -= 6;
+      if (!c.passed && c.x + c.width < dino.x) {
+        score += 10;
+        c.passed = true;
+      }
+    });
+    birdList.forEach(b => {
+      b.x -= 8;
+      if (!b.passed && b.x + b.width < dino.x) {
+        score += 10;
+        b.passed = true;
+      }
+    });
+
+    // 移除畫面外的障礙物
+    while (cactusList.length && cactusList[0].x + cactusList[0].width < 0) cactusList.shift();
+    while (birdList.length && birdList[0].x + birdList[0].width < 0) birdList.shift();
+  }
+
+  function checkCollision(rect) {
+    const dx = dino.x;
+    const dy = dino.isDucking ? dino.y + 20 : dino.y;
+    const dh = dino.isDucking ? dino.height - 20 : dino.height;
+
+    return (
+      dx < rect.x + rect.width &&
+      dx + dino.width > rect.x &&
+      dy < rect.y + rect.height &&
+      dy + dh > rect.y
+    );
+  }
+
+  function checkGameOver() {
+    for (let c of cactusList) {
+      if (checkCollision(c)) {
+        return true;
+      }
+    }
+    for (let b of birdList) {
+      if (checkCollision(b)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function resetGame() {
+    dino.y = 180;
+    dino.yVelocity = 0;
+    dino.isJumping = false;
+    dino.isDucking = false;
+    cactusList.length = 0;
+    birdList.length = 0;
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem("highScore", highScore);
+    }
+    score = 0;
+    gameOver = false;
+    loop();
+  }
+
+  document.addEventListener("keydown", e => {
+    if ((e.code === "Space" || e.code === "ArrowUp") && !dino.isJumping) {
+      dino.yVelocity = -12;
+      dino.isJumping = true;
+    }
+    if (e.code === "ArrowDown") {
+      dino.isDucking = true;
+    }
+    if (e.code === "Enter" && gameOver) {
+      resetGame();
+    }
+  });
+
+  document.addEventListener("keyup", e => {
+    if (e.code === "ArrowDown") {
+      dino.isDucking = false;
+    }
+  });
+
+  function loop() {
+    if (gameOver) {
+      ctx.fillStyle = "red";
+      ctx.font = "30px Arial";
+      ctx.fillText("遊戲結束！分數: " + score, 250, 100);
+      ctx.font = "20px Arial";
+      ctx.fillText("按 Enter 重新開始", 290, 140);
+      return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    dino.yVelocity += gravity;
+    dino.y += dino.yVelocity;
+
+    if (dino.y >= 180) {
+      dino.y = 180;
+      dino.yVelocity = 0;
+      dino.isJumping = false;
+    }
+
+    updateObstacles();
+    drawDino();
+    drawObstacles();
+    drawScore();
+
+    if (checkGameOver()) {
+      gameOver = true;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  loop();
+</script>
+</body>
+</html>

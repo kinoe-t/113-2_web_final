@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>貓咪跑酷遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+      background-color: #d0f0f6;
+    }
+    canvas {
+      display: block;
+      background: #a3d977;
+    }
+    #gameOverText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      font-weight: bold;
+      color: red;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameOverText">－－ＧＡＭＥ　ＯＶＥＲ－－</div>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // 遊戲角色設定
+    const cat = {
+      x: 100,
+      y: 300,
+      width: 50,
+      height: 50,
+      color: "#c19a6b",
+      vy: 0,
+      jumpPower: -12,
+      gravity: 0.6,
+      isOnGround: true
+    };
+
+    const obstacles = [];
+    let gameOver = false;
+    let frameCount = 0;
+
+    function drawCat() {
+      ctx.fillStyle = cat.color;
+      ctx.fillRect(cat.x, cat.y, cat.width, cat.height);
+    }
+
+    function drawObstacle(obstacle) {
+      ctx.fillStyle = "black";
+      ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    }
+
+    function updateCat() {
+      cat.vy += cat.gravity;
+      cat.y += cat.vy;
+
+      if (cat.y >= 300) {
+        cat.y = 300;
+        cat.vy = 0;
+        cat.isOnGround = true;
+      } else {
+        cat.isOnGround = false;
+      }
+    }
+
+    function spawnObstacle() {
+      if (frameCount % 100 === 0) {
+        obstacles.push({
+          x: canvas.width,
+          y: 320,
+          width: 30,
+          height: 80
+        });
+      }
+    }
+
+    function updateObstacles() {
+      for (let i = 0; i < obstacles.length; i++) {
+        obstacles[i].x -= 6;
+      }
+      // 移除畫面外的障礙物
+      while (obstacles.length > 0 && obstacles[0].x + obstacles[0].width < 0) {
+        obstacles.shift();
+      }
+    }
+
+    function checkCollision() {
+      for (const obs of obstacles) {
+        if (
+          cat.x < obs.x + obs.width &&
+          cat.x + cat.width > obs.x &&
+          cat.y < obs.y + obs.height &&
+          cat.y + cat.height > obs.y
+        ) {
+          gameOver = true;
+          document.getElementById("gameOverText").style.display = "block";
+        }
+      }
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+
+      frameCount++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      updateCat();
+      spawnObstacle();
+      updateObstacles();
+      checkCollision();
+
+      drawCat();
+      for (const obs of obstacles) {
+        drawObstacle(obs);
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.code === "Space" && cat.isOnGround && !gameOver) {
+        cat.vy = cat.jumpPower;
+      }
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>

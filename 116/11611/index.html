@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>晚餐轉盤</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: #f5f5f5;
+    }
+    canvas {
+      border: 10px solid #333;
+      border-radius: 50%;
+      background-color: #fff;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+    }
+    #result {
+      font-size: 24px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="wheelCanvas" width="500" height="500"></canvas>
+  <br>
+  <button id="spinBtn">轉盤</button>
+  <button id="retryBtn" style="display: none;">再來一次</button>
+  <div id="result"></div>
+
+  <script>
+    const items = [
+      "壽司", "火鍋", "牛肉麵", "炒飯", "義大利麵",
+      "燒烤", "炸雞", "拉麵", "便當", "漢堡",
+      "披薩", "粥", "燴飯", "鐵板燒", "素食"
+    ];
+
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spinBtn");
+    const retryBtn = document.getElementById("retryBtn");
+    const result = document.getElementById("result");
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 200;
+    let currentAngle = 0;
+    let spinning = false;
+    let finalIndex = 0;
+
+    function drawWheel() {
+      const anglePerSlice = 2 * Math.PI / items.length;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < items.length; i++) {
+        const startAngle = currentAngle + i * anglePerSlice;
+        const endAngle = startAngle + anglePerSlice;
+
+        // Segment color
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.fillStyle = `hsl(${i * (360 / items.length)}, 70%, 80%)`;
+        ctx.fill();
+        ctx.stroke();
+
+        // Text
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + anglePerSlice / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 16px sans-serif";
+        ctx.fillText(items[i], radius - 10, 5);
+        ctx.restore();
+      }
+    }
+
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      result.textContent = "";
+
+      const anglePerSlice = 360 / items.length;
+      finalIndex = Math.floor(Math.random() * items.length);
+      const finalAngle = 360 - (finalIndex * anglePerSlice + anglePerSlice / 2);
+      const spins = 10; // full spins before stopping
+      const totalRotation = spins * 360 + finalAngle;
+
+      let spinTime = 4000;
+      let start = null;
+
+      function animate(timestamp) {
+        if (!start) start = timestamp;
+        let progress = timestamp - start;
+        let ease = (1 - Math.cos((progress / spinTime) * Math.PI)) / 2; // ease-out
+        let angle = totalRotation * ease;
+        currentAngle = angle * Math.PI / 180;
+        drawWheel();
+
+        if (progress < spinTime) {
+          requestAnimationFrame(animate);
+        } else {
+          result.textContent = `今晚吃：${items[finalIndex]}`;
+          spinBtn.style.display = "none";
+          retryBtn.style.display = "inline-block";
+          spinning = false;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function resetWheel() {
+      result.textContent = "";
+      spinBtn.style.display = "inline-block";
+      retryBtn.style.display = "none";
+    }
+
+    drawWheel();
+    spinBtn.addEventListener("click", spinWheel);
+    retryBtn.addEventListener("click", resetWheel);
+  </script>
+
+</body>
+</html>

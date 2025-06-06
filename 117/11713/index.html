@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>踩地雷 - 中等難度</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    #board {
+      display: inline-block;
+      border: 2px solid #555;
+      margin-top: 10px;
+    }
+    .row {
+      display: flex;
+    }
+    .cell {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #999;
+      line-height: 32px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .revealed {
+      background-color: #ddd;
+      cursor: default;
+    }
+    .flag {
+      background-color: #ffe066;
+    }
+    .mine {
+      background-color: #ff6b6b;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>踩地雷</h1>
+  <p>中等難度（16 × 16，40 顆地雷）</p>
+  <div id="board"></div>
+  <br>
+  <button onclick="newGame()">重新開始</button>
+
+  <script>
+    const rows = 16;
+    const cols = 16;
+    const mines = 40;
+
+    let board = [];
+    let revealed = [];
+    let flags = [];
+
+    const boardEl = document.getElementById('board');
+
+    function saveGame() {
+      localStorage.setItem('minesweeper_medium', JSON.stringify({
+        board,
+        revealed,
+        flags
+      }));
+    }
+
+    function loadGame() {
+      const data = localStorage.getItem('minesweeper_medium');
+      if (data) {
+        const saved = JSON.parse(data);
+        board = saved.board;
+        revealed = saved.revealed;
+        flags = saved.flags;
+        return true;
+      }
+      return false;
+    }
+
+    function newGame() {
+      board = Array.from({ length: rows }, () => Array(cols).fill(0));
+      revealed = Array.from({ length: rows }, () => Array(cols).fill(false));
+      flags = Array.from({ length: rows }, () => Array(cols).fill(false));
+
+      let count = 0;
+      while (count < mines) {
+        const r = Math.floor(Math.random() * rows);
+        const c = Math.floor(Math.random() * cols);
+        if (board[r][c] !== 'M') {
+          board[r][c] = 'M';
+          count++;
+        }
+      }
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (board[r][c] === 'M') continue;
+          let num = 0;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = r + dr, nc = c + dc;
+              if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                if (board[nr][nc] === 'M') num++;
+              }
+            }
+          }
+          board[r][c] = num;
+        }
+      }
+
+      saveGame();
+      render();
+    }
+
+    function render() {
+      boardEl.innerHTML = '';
+      for (let r = 0; r < rows; r++) {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'row';
+        for (let c = 0; c < cols; c++) {
+          const cellEl = document.createElement('div');
+          cellEl.className = 'cell';
+          if (revealed[r][c]) {
+            cellEl.classList.add('revealed');
+            if (board[r][c] === 'M') {
+              cellEl.classList.add('mine');
+              cellEl.textContent = '💣';
+            } else if (board[r][c] > 0) {
+              cellEl.textContent = board[r][c];
+            }
+          } else if (flags[r][c]) {
+            cellEl.classList.add('flag');
+            cellEl.textContent = '🚩';
+          }
+
+          cellEl.addEventListener('click', () => handleLeftClick(r, c));
+          cellEl.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            handleRightClick(r, c);
+          });
+
+          rowEl.appendChild(cellEl);
+        }
+        boardEl.appendChild(rowEl);
+      }
+    }
+
+    function handleLeftClick(r, c) {
+      if (revealed[r][c] || flags[r][c]) return;
+      if (board[r][c] === 'M') {
+        revealed[r][c] = true;
+        alert('💥 BOOM! 遊戲結束');
+        revealAll();
+      } else {
+        floodReveal(r, c);
+      }
+      saveGame();
+      render();
+    }
+
+    function handleRightClick(r, c) {
+      if (revealed[r][c]) return;
+      flags[r][c] = !flags[r][c];
+      saveGame();
+      render();
+    }
+
+    function floodReveal(r, c) {
+      if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+      if (revealed[r][c] || flags[r][c]) return;
+
+      revealed[r][c] = true;
+      if (board[r][c] === 0) {
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr !== 0 || dc !== 0) {
+              floodReveal(r + dr, c + dc);
+            }
+          }
+        }
+      }
+    }
+
+    function revealAll() {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          revealed[r][c] = true;
+        }
+      }
+    }
+
+    // 初始化
+    if (!loadGame()) newGame();
+    else render();
+  </script>
+</body>
+</html>

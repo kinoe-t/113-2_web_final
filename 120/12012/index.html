@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>今日運勢轉盤</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      background-color: #fef6e4;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 30px auto;
+    }
+
+    svg {
+      transform: rotate(0deg);
+      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    .pointer {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid #e63946;
+      position: absolute;
+      top: -30px;
+      left: calc(50% - 20px);
+      z-index: 10;
+    }
+
+    button {
+      padding: 12px 24px;
+      margin: 20px;
+      font-size: 16px;
+      background-color: #2a9d8f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #21867a;
+    }
+
+    .result {
+      font-size: 20px;
+      margin-top: 30px;
+    }
+
+    a {
+      color: #e76f51;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .label-text {
+      font-size: 14px;
+      fill: white;
+      text-anchor: middle;
+      alignment-baseline: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 今日運勢圓餅轉盤</h1>
+  <div class="wheel-container">
+    <div class="pointer"></div>
+    <svg id="wheel" viewBox="0 0 320 320" width="320" height="320">
+      <g transform="translate(160,160)" id="wheel-group"></g>
+    </svg>
+  </div>
+
+  <button onclick="spin()">轉出今日運勢</button>
+  <div class="result" id="result"></div>
+  <button onclick="reset()" style="display:none;" id="resetBtn">重新轉一次</button>
+
+  <script>
+    const fortunes = ["大吉", "中吉", "小吉", "普", "兇", "大兇", "不宜做事"];
+    const colors = ["#e76f51", "#f4a261", "#e9c46a", "#2a9d8f", "#264653", "#8d99ae", "#6d6875"];
+    const radius = 160;
+    const anglePer = 360 / fortunes.length;
+    const svgGroup = document.getElementById("wheel-group");
+
+    // 調整起始角度：-90 度（從上方開始）
+    const START_OFFSET = -90;
+
+    // 建立圓餅圖
+    fortunes.forEach((fortune, index) => {
+      const startAngle = START_OFFSET + anglePer * index;
+      const endAngle = startAngle + anglePer;
+
+      const x1 = radius * Math.cos((Math.PI / 180) * startAngle);
+      const y1 = radius * Math.sin((Math.PI / 180) * startAngle);
+      const x2 = radius * Math.cos((Math.PI / 180) * endAngle);
+      const y2 = radius * Math.sin((Math.PI / 180) * endAngle);
+      const largeArc = anglePer > 180 ? 1 : 0;
+
+      const pathData = `
+        M0,0 
+        L${x1},${y1}
+        A${radius},${radius} 0 ${largeArc},1 ${x2},${y2} 
+        Z
+      `;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", pathData);
+      path.setAttribute("fill", colors[index]);
+
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      const angleForText = startAngle + anglePer / 2;
+      const textX = 100 * Math.cos((Math.PI / 180) * angleForText);
+      const textY = 100 * Math.sin((Math.PI / 180) * angleForText);
+      text.setAttribute("x", textX);
+      text.setAttribute("y", textY);
+      text.setAttribute("class", "label-text");
+      text.setAttribute("transform", `rotate(${angleForText}, ${textX}, ${textY})`);
+      text.textContent = fortune;
+
+      svgGroup.appendChild(path);
+      svgGroup.appendChild(text);
+    });
+
+    const songs = [
+      { title: "五月天 - 你不是真正的快樂", url: "https://www.youtube.com/watch?v=8mQbYPOgZEs" },
+      { title: "陳奕迅 - K歌之王", url: "https://www.youtube.com/watch?v=bqGTRmW9ecc" },
+      { title: "田馥甄 - 小幸運", url: "https://www.youtube.com/watch?v=QXY2jPyBfKE" },
+      { title: "周杰倫 - 稻香", url: "https://www.youtube.com/watch?v=9bZkp7q19f0" },
+      { title: "林俊傑 - 江南", url: "https://www.youtube.com/watch?v=KDRi0XqRQnI" },
+      { title: "張惠妹 - 聽海", url: "https://www.youtube.com/watch?v=quyf1jX2hxg" },
+      { title: "光良 - 童話", url: "https://www.youtube.com/watch?v=52wjr7wJQkw" },
+      { title: "A-Lin - 給我一個理由忘記", url: "https://www.youtube.com/watch?v=kfmsY0XdfJw" },
+      { title: "林宥嘉 - 成全", url: "https://www.youtube.com/watch?v=qBn-4W9E5Fc" },
+      { title: "王菲 - 紅豆", url: "https://www.youtube.com/watch?v=eEyj2qVn7hc" },
+      { title: "蘇打綠 - 小情歌", url: "https://www.youtube.com/watch?v=4tmL6BbsR4s" },
+      { title: "張震嶽 - 愛我別走", url: "https://www.youtube.com/watch?v=zy4knz5wXcA" },
+      { title: "李宗盛 - 山丘", url: "https://www.youtube.com/watch?v=Awf45u6zrP0" }
+    ];
+
+    let spinning = false;
+
+    function getRandomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+
+      const selectedIndex = Math.floor(Math.random() * fortunes.length);
+      const selectedFortune = fortunes[selectedIndex];
+      const selectedSong = getRandomItem(songs);
+
+      // 重點修正：加上起始角度偏移（-90 度）
+      const selectedAngle = anglePer * selectedIndex + anglePer / 2;
+      const finalRotation = 360 * (Math.floor(Math.random() * 5) + 5) + (360 - selectedAngle + START_OFFSET);
+
+      const svg = document.getElementById("wheel");
+      svg.style.transform = `rotate(${finalRotation}deg)`;
+
+      setTimeout(() => {
+        document.getElementById("result").innerHTML = 
+          `✨ 今日運勢是：<strong>${selectedFortune}</strong><br><br>🎵 推薦歌曲：<a href="${selectedSong.url}" target="_blank">${selectedSong.title}</a>`;
+        document.getElementById("resetBtn").style.display = "inline-block";
+        spinning = false;
+      }, 4000);
+    }
+
+    function reset() {
+      document.getElementById("result").innerHTML = "";
+      spin();
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>命運擲銅板：買還是不買！？</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      text-align: center;
+      background-color: #fff6f9;
+      padding: 50px;
+    }
+
+    h1 {
+      font-size: 2em;
+      color: #d6336c;
+      margin-bottom: 0.2em;
+    }
+
+    h2 {
+      font-weight: normal;
+      font-size: 1.2em;
+      color: #555;
+      margin-bottom: 2em;
+    }
+
+    img {
+      width: 200px;
+      height: auto;
+      margin: 20px auto;
+    }
+
+    #cry-wallet {
+      width: 100px;
+      display: none;
+      animation: shake 0.5s infinite;
+    }
+
+    @keyframes shake {
+      0% { transform: translate(0px, 0px); }
+      25% { transform: translate(-2px, 2px); }
+      50% { transform: translate(2px, -2px); }
+      75% { transform: translate(-2px, 2px); }
+      100% { transform: translate(2px, 0px); }
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 10px 25px;
+      background-color: #ff85a2;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #e06b8b;
+    }
+
+    #result {
+      font-size: 1.5em;
+      margin-top: 30px;
+      color: #333;
+    }
+
+    #message, #count {
+      font-size: 1.2em;
+      color: #666;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>命運擲銅板：買還是不買！？</h1>
+  <h2>（又名：錢包的試煉 🔥）</h2>
+
+  <img id="coin-img" src="https://emojicdn.elk.sh/🪙" alt="硬幣圖片">
+  <br>
+  <img id="cry-wallet" src="https://media.giphy.com/media/3o7aCVp3QwYpW6CqZ6/giphy.gif" alt="錢包在哭">
+
+  <br>
+  <button onclick="flipCoin()">擲下去吧！</button>
+
+  <div id="result"></div>
+  <div id="message"></div>
+  <div id="count"></div>
+
+  <audio id="bgm" loop autoplay>
+    <source src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Beep-beep-beep.mp3" type="audio/mpeg">
+    您的瀏覽器不支援音訊播放。
+  </audio>
+
+  <script>
+    let count = 0;
+
+    function flipCoin() {
+      count++;
+      const isHeads = Math.random() < 0.5;
+      const coinImg = document.getElementById("coin-img");
+      const cryWallet = document.getElementById("cry-wallet");
+      const resultText = document.getElementById("result");
+      const messageText = document.getElementById("message");
+      const countText = document.getElementById("count");
+
+      if (isHeads) {
+        coinImg.src = "https://emojicdn.elk.sh/✨"; // 正面
+        resultText.textContent = "結果是：正面！";
+        messageText.textContent = "買啦！支持是愛的一種方式 💖";
+        cryWallet.style.display = "none";
+      } else {
+        coinImg.src = "https://emojicdn.elk.sh/😭"; // 反面
+        resultText.textContent = "結果是：反面！";
+        messageText.textContent = "先忍忍，月底還要吃飯欸… 🍙";
+        cryWallet.style.display = "inline-block";
+      }
+
+      countText.textContent = "你已經擲了 " + count + " 次，還是買下去了嗎？";
+    }
+
+    // 自動播放音樂
+    window.addEventListener("load", () => {
+      const bgm = document.getElementById("bgm");
+      bgm.volume = 0.2;
+      bgm.play().catch(() => {
+        // 有些瀏覽器需要使用者互動才能播放
+        document.body.addEventListener("click", () => bgm.play(), { once: true });
+      });
+    });
+  </script>
+</body>
+</html>

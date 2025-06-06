@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>午餐拉霸機</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to bottom right, #FEF3C7, #FBCFE8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+      color: #C2410C;
+    }
+
+    .card {
+      width: 320px;
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .name {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #374151;
+      min-height: 2.5rem;
+    }
+
+    .btn {
+      margin-top: 2rem;
+      font-size: 1.25rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #F97316;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:disabled {
+      background-color: #E5E7EB;
+      color: #9CA3AF;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>今天午餐吃什麼？</h1>
+  <div class="card">
+    <div class="name" id="lunch-name">午餐選項</div>
+  </div>
+  <button class="btn" id="spin-btn">拉一下！</button>
+
+  <script>
+    const options = [
+      "牛肉麵", "滷肉飯", "雞排便當", "火鍋", "壽司", "鐵板燒", "韓式炸雞", "越南河粉", "義大利麵", "燒臘飯",
+      "泰式打拋豬", "燒肉飯", "烤雞腿飯", "蔥抓餅", "鍋貼", "餛飩麵", "涼麵", "炒米粉", "三明治", "豬腳飯",
+      "鹽酥雞", "滷味", "肉圓", "蛋包飯", "關東煮", "牛丼", "韓式石鍋拌飯", "牛排", "親子丼", "叉燒飯",
+      "拉麵", "炒飯", "炒烏龍", "牛肉燴飯", "雞肉飯", "生魚片丼", "咖哩飯", "雞絲麵", "酥炸雞腿", "水餃",
+      "豆花套餐", "蚵仔煎", "燒烤便當", "蘿蔔糕", "廣東粥", "小籠包", "上海湯包", "蔬食便當", "麻辣燙", "香腸飯",
+      "味噌拉麵", "泡菜鍋", "肉燥麵", "蒸餃", "豬排飯", "涼拌雞絲", "炒青菜便當", "蒸蛋飯", "煎餃", "漢堡",
+      "炸豬排", "炙燒鯖魚", "酸辣湯麵", "烏龍麵", "燒餅油條", "牛肉燴飯", "泡菜炒飯", "起司豬排", "肉醬義大利麵", "鍋燒意麵",
+      "滷雞腿", "燴飯便當", "炒年糕", "乾麵", "蚵仔麵線", "韓式冷麵", "牛筋飯", "魯肉乾麵", "飯糰", "麻醬麵",
+      "鹹酥雞飯", "鴨肉飯", "起司蛋餅", "章魚燒", "炒泡麵", "日式便當", "蔬菜燴飯", "泡菜豆腐鍋", "炸物拼盤", "起司焗飯",
+      "酸白菜火鍋", "港式燒賣", "香酥雞翅", "海鮮粥", "雞腿漢堡", "藥膳排骨湯", "魷魚羹麵", "蔬菜咖哩飯", "豬腩飯", "番茄義大利麵"
+    ];
+
+    const name = document.getElementById("lunch-name");
+    const button = document.getElementById("spin-btn");
+
+    let spinning = false;
+
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+      button.disabled = true;
+      button.textContent = "拉霸中...";
+
+      let count = 0;
+      const interval = setInterval(() => {
+        const randomName = options[Math.floor(Math.random() * options.length)];
+        name.textContent = randomName;
+        count++;
+        if (count > 20) {
+          clearInterval(interval);
+          button.disabled = false;
+          button.textContent = "拉一下！";
+          spinning = false;
+        }
+      }, 100);
+    }
+
+    button.addEventListener("click", spin);
+    name.textContent = options[0];
+  </script>
+</body>
+</html>

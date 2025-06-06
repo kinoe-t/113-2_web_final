@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>輕鬆小遊戲</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f0f0f0; overflow: hidden; font-family: sans-serif; }
+    canvas { display: block; margin: 0 auto; background: #fff; border: 3px solid #000; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // 地面
+    const groundY = 350;
+
+    // 主角
+    const player = {
+      x: 50,
+      y: groundY,
+      width: 50,
+      height: 50,
+      color: "blue",
+      vy: 0,
+      gravity: 0.8,
+      jumpPower: -12,
+      onGround: true,
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+      },
+      update() {
+        this.vy += this.gravity;
+        this.y += this.vy;
+
+        if (this.y >= groundY) {
+          this.y = groundY;
+          this.vy = 0;
+          this.onGround = true;
+        }
+      },
+      jump() {
+        if (this.onGround) {
+          this.vy = this.jumpPower;
+          this.onGround = false;
+        }
+      }
+    };
+
+    // 障礙物
+    const obstacles = [];
+    function createObstacle() {
+      const height = 30 + Math.random() * 40;
+      obstacles.push({
+        x: canvas.width,
+        y: groundY + 50 - height,
+        width: 30 + Math.random() * 30,
+        height,
+        color: "red",
+        speed: 5
+      });
+    }
+
+    let frame = 0;
+
+    // 遊戲主迴圈
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 背景與地面
+      ctx.fillStyle = "#ccc";
+      ctx.fillRect(0, groundY + 50, canvas.width, 5);
+
+      // 玩家更新與繪製
+      player.update();
+      player.draw();
+
+      // 建立障礙
+      if (frame % 100 === 0) {
+        createObstacle();
+      }
+
+      // 更新障礙
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.x -= obs.speed;
+        ctx.fillStyle = obs.color;
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+        // 撞到也沒事（邏輯保留但無處罰）
+        if (
+          player.x < obs.x + obs.width &&
+          player.x + player.width > obs.x &&
+          player.y < obs.y + obs.height &&
+          player.y + player.height > obs.y
+        ) {
+          // 只是顯示碰撞（不會死）
+          ctx.fillStyle = "rgba(255,0,0,0.3)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 移除出界障礙
+        if (obs.x + obs.width < 0) {
+          obstacles.splice(i, 1);
+        }
+      }
+
+      frame++;
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 控制鍵
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp" || e.key === "ArrowRight") {
+        player.jump();
+      }
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>

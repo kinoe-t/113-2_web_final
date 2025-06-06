@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>貪吃蛇遊戲</title>
+  <style>
+    body {
+      background-color: #222;
+      color: #fff;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin: 20px 0;
+    }
+
+    canvas {
+      background-color: #000;
+      display: block;
+      margin: 0 auto;
+      border: 3px solid #fff;
+    }
+
+    #score {
+      font-size: 24px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>貪吃蛇</h1>
+  <div id="score">分數：0</div>
+  <canvas id="game" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const box = 20;
+    const rows = canvas.height / box;
+    const cols = canvas.width / box;
+
+    let snake = [{ x: 9 * box, y: 9 * box }];
+    let direction = "RIGHT";
+    let score = 0;
+    let apple = spawnApple();
+
+    document.addEventListener("keydown", changeDirection);
+
+    function changeDirection(event) {
+      const key = event.key;
+      if (key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      else if (key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+      else if (key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      else if (key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+    }
+
+    function spawnApple() {
+      return {
+        x: Math.floor(Math.random() * cols) * box,
+        y: Math.floor(Math.random() * rows) * box
+      };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 畫蛇
+      ctx.fillStyle = "lime";
+      for (let part of snake) {
+        ctx.fillRect(part.x, part.y, box, box);
+      }
+
+      // 畫蘋果
+      ctx.fillStyle = "red";
+      ctx.fillRect(apple.x, apple.y, box, box);
+
+      // 移動
+      let head = { ...snake[0] };
+      if (direction === "LEFT") head.x -= box;
+      else if (direction === "RIGHT") head.x += box;
+      else if (direction === "UP") head.y -= box;
+      else if (direction === "DOWN") head.y += box;
+
+      // 碰撞牆壁
+      if (
+        head.x < 0 || head.x >= canvas.width ||
+        head.y < 0 || head.y >= canvas.height
+      ) {
+        return gameOver();
+      }
+
+      // 碰撞自己
+      for (let part of snake) {
+        if (head.x === part.x && head.y === part.y) {
+          return gameOver();
+        }
+      }
+
+      snake.unshift(head);
+
+      // 吃蘋果
+      if (head.x === apple.x && head.y === apple.y) {
+        score += 10;
+        document.getElementById("score").textContent = "分數：" + score;
+        apple = spawnApple();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function gameOver() {
+      clearInterval(game);
+      setTimeout(() => {
+        const again = confirm("你死了！分數：" + score + "\n要再玩一次嗎？");
+        if (again) {
+          resetGame();
+        }
+      }, 100);
+    }
+
+    function resetGame() {
+      snake = [{ x: 9 * box, y: 9 * box }];
+      direction = "RIGHT";
+      score = 0;
+      apple = spawnApple();
+      document.getElementById("score").textContent = "分數：0";
+      game = setInterval(draw, 150); // 這裡速度設為 150ms
+    }
+
+    let game = setInterval(draw, 150); // 初始速度也設為 150ms
+  </script>
+</body>
+</html>

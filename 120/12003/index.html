@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>背單字小幫手</title>
+  <style>
+    body {
+      background-color: #f4f8ff;
+      font-family: "DFKai-SB", "Microsoft JhengHei", sans-serif;
+      color: #2a4d8f;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    .note {
+      font-size: 0.9em;
+      margin-bottom: 20px;
+      color: #5577aa;
+    }
+    input {
+      margin: 5px;
+      padding: 8px;
+      border: 1px solid #2a4d8f;
+      border-radius: 5px;
+      width: 250px;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      background-color: #2a4d8f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+      background-color: #ffffff;
+    }
+    th, td {
+      border: 1px solid #2a4d8f;
+      padding: 8px;
+      text-align: center;
+    }
+    .correct {
+      color: green;
+      font-weight: bold;
+    }
+    .wrong {
+      color: red;
+      font-weight: bold;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>背單字小幫手</h1>
+  <p class="note">※ 若要輸入新的要背的單字，請刷新網頁！</p>
+
+  <!-- 輸入區 -->
+  <div id="input-area">
+    <input type="text" id="english" placeholder="請輸入您要背的英文單字">
+    <input type="text" id="pos" placeholder="請輸入單字的詞性">
+    <input type="text" id="chinese" placeholder="請輸入單字的中文">
+    <br>
+    <button onclick="addWord()">Enter</button>
+  </div>
+
+  <!-- 單字列表區 -->
+  <table id="word-table">
+    <thead>
+      <tr>
+        <th colspan="4">要背的單字列表</th>
+      </tr>
+      <tr>
+        <th>英文</th>
+        <th>詞性</th>
+        <th>中文</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="word-list">
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4"><button onclick="startQuiz()">輸入完畢</button></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- 測驗區 -->
+  <div id="quiz-area" class="hidden">
+    <table id="quiz-table">
+      <thead>
+        <tr>
+          <th>題目</th>
+          <th>詞性</th>
+          <th>您的答案</th>
+          <th>結果</th>
+        </tr>
+      </thead>
+      <tbody id="quiz-list">
+      </tbody>
+    </table>
+    <button onclick="reshuffle()">重新打亂</button>
+  </div>
+
+  <script>
+    const wordData = [];
+    let shuffledData = [];
+
+    function addWord() {
+      const english = document.getElementById('english').value.trim();
+      const pos = document.getElementById('pos').value.trim();
+      const chinese = document.getElementById('chinese').value.trim();
+
+      if (!english || !pos || !chinese) {
+        alert("請完整填寫三個欄位！");
+        return;
+      }
+
+      wordData.push({ english, pos, chinese });
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${english}</td><td>${pos}</td><td>${chinese}</td><td><button onclick="removeWord(this)">刪除</button></td>`;
+      document.getElementById('word-list').appendChild(row);
+
+      document.getElementById('english').value = '';
+      document.getElementById('pos').value = '';
+      document.getElementById('chinese').value = '';
+    }
+
+    function removeWord(btn) {
+      const row = btn.parentElement.parentElement;
+      const index = row.rowIndex - 2;
+      wordData.splice(index, 1);
+      row.remove();
+    }
+
+    function shuffleArray(arr) {
+      const result = [...arr];
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function startQuiz() {
+      if (wordData.length === 0) {
+        alert("請先輸入至少一個單字！");
+        return;
+      }
+
+      shuffledData = shuffleArray(wordData);
+      document.getElementById('input-area').classList.add('hidden');
+      document.getElementById('word-table').classList.add('hidden');
+      document.getElementById('quiz-area').classList.remove('hidden');
+      generateQuizTable();
+    }
+
+    function generateQuizTable() {
+      const quizList = document.getElementById('quiz-list');
+      quizList.innerHTML = '';
+
+      shuffledData.forEach((item, index) => {
+        const showEnglish = Math.random() < 0.5;
+        const question = showEnglish ? item.english : item.chinese;
+        const answerType = showEnglish ? 'chinese' : 'english';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${question}</td>
+          <td>${item.pos}</td>
+          <td><input type="text" id="answer-${index}"></td>
+          <td id="result-${index}"></td>
+        `;
+        quizList.appendChild(row);
+      });
+
+      const submitBtn = document.createElement('button');
+      submitBtn.textContent = '提交答案';
+      submitBtn.onclick = checkAnswers;
+      quizList.parentElement.appendChild(submitBtn);
+    }
+
+    function checkAnswers() {
+      shuffledData.forEach((item, index) => {
+        const input = document.getElementById(`answer-${index}`);
+        const result = document.getElementById(`result-${index}`);
+        const question = document.querySelectorAll("#quiz-list tr")[index].cells[0].textContent;
+
+        const isEngToCh = item.english === question;
+        const correctAnswer = isEngToCh ? item.chinese : item.english;
+
+        if (input.value.trim().toLowerCase() === correctAnswer.toLowerCase()) {
+          result.innerHTML = '<span class="correct">✔ 正確</span>';
+        } else {
+          result.innerHTML = `<span class="wrong">✘ 錯誤</span>，正確答案：${correctAnswer}`;
+        }
+      });
+    }
+
+    function reshuffle() {
+      shuffledData = shuffleArray(wordData);
+      generateQuizTable();
+    }
+  </script>
+</body>
+</html>
+
+
+

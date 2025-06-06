@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>小恐龍牛仔冒險</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #87CEEB;
+      text-align: center;
+    }
+    canvas {
+      background: #87CEEB;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid #333;
+    }
+    #scoreboard {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+    #game-over {
+      display: none;
+      margin-top: 20px;
+    }
+    #restart {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>小恐龍牛仔冒險</h1>
+  <canvas id="gameCanvas" width="800" height="300"></canvas>
+  <div id="scoreboard">得分：0</div>
+  <div id="game-over">
+    <div id="final-score"></div>
+    <button id="restart">重新開始</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const dino = {
+      x: 50,
+      y: 250,
+      vy: 0,
+      gravity: 1.5,
+      jumpPower: -20,
+      isJumping: false,
+    };
+
+    let obstacles = [];
+    let coins = [];
+    let clouds = [];
+    let frame = 0;
+    let score = 0;
+    let gameOver = false;
+
+    function drawBackground() {
+      ctx.fillStyle = "#87CEEB";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#fff";
+      clouds.forEach(cloud => {
+        ctx.beginPath();
+        ctx.arc(cloud.x, cloud.y, 20, 0, Math.PI * 2);
+        ctx.arc(cloud.x + 25, cloud.y + 5, 15, 0, Math.PI * 2);
+        ctx.arc(cloud.x - 25, cloud.y + 5, 15, 0, Math.PI * 2);
+        ctx.fill();
+
+        cloud.x -= 0.5;
+        if (cloud.x < -50) {
+          cloud.x = canvas.width + Math.random() * 100;
+          cloud.y = 30 + Math.random() * 50;
+        }
+      });
+
+      // 草皮
+      ctx.fillStyle = "#228B22";
+      ctx.fillRect(0, 290, canvas.width, 10);
+    }
+
+    function drawDino() {
+      const baseY = dino.y;
+
+      // 身體
+      ctx.fillStyle = "#4CAF50";
+      ctx.fillRect(dino.x, baseY, 30, 30);
+
+      // 頭
+      ctx.fillStyle = "#66BB6A";
+      ctx.fillRect(dino.x + 20, baseY - 20, 20, 20);
+
+      // 眼睛
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(dino.x + 35, baseY - 15, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 手腳
+      ctx.fillStyle = "#81C784";
+      ctx.fillRect(dino.x + 25, baseY + 5, 10, 5);
+      ctx.fillRect(dino.x + 5, baseY + 25, 8, 5);
+      ctx.fillRect(dino.x + 20, baseY + 25, 8, 5);
+
+      // 尾巴
+      ctx.beginPath();
+      ctx.moveTo(dino.x, baseY + 10);
+      ctx.lineTo(dino.x - 15, baseY + 5);
+      ctx.lineTo(dino.x, baseY + 20);
+      ctx.closePath();
+      ctx.fill();
+
+      // 👗 牛仔吊帶裙（深藍色）
+      ctx.fillStyle = "#1E3F66";
+      ctx.fillRect(dino.x + 5, baseY + 5, 20, 25); // 裙身
+      ctx.fillStyle = "#1E3F66";
+      ctx.fillRect(dino.x + 5, baseY - 5, 4, 10); // 左吊帶
+      ctx.fillRect(dino.x + 20, baseY - 5, 4, 10); // 右吊帶
+
+      // 🤠 牛仔帽
+      ctx.fillStyle = "#8B4513";
+      ctx.beginPath();
+      ctx.moveTo(dino.x + 18, baseY - 22);
+      ctx.lineTo(dino.x + 42, baseY - 22);
+      ctx.lineTo(dino.x + 36, baseY - 32);
+      ctx.lineTo(dino.x + 24, baseY - 32);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#A0522D"; // 帽檐
+      ctx.fillRect(dino.x + 16, baseY - 20, 28, 3);
+    }
+
+    function drawObstacle(obs) {
+      const x = obs.x;
+      const y = obs.y;
+
+      ctx.fillStyle = "#A0522D";
+      ctx.fillRect(x, y, obs.width, obs.height);
+
+      ctx.fillStyle = "#8B0000";
+      ctx.beginPath();
+      ctx.moveTo(x - 5, y);
+      ctx.lineTo(x + obs.width / 2, y - 20);
+      ctx.lineTo(x + obs.width + 5, y);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#555";
+      ctx.fillRect(x + obs.width - 10, y - 25, 6, 15);
+
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(x + 8, y + obs.height - 20, 12, 20);
+      ctx.fillStyle = "#ADD8E6";
+      ctx.fillRect(x + 20, y + obs.height - 30, 10, 10);
+    }
+
+    function drawCoin(coin) {
+      ctx.beginPath();
+      ctx.fillStyle = "gold";
+      ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#d4af37";
+      ctx.stroke();
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      drawBackground();
+      drawDino();
+
+      dino.vy += dino.gravity;
+      dino.y += dino.vy;
+      if (dino.y >= 250) {
+        dino.y = 250;
+        dino.isJumping = false;
+        dino.vy = 0;
+      }
+
+      if (frame % 100 === 0) {
+        const obs = {
+          x: canvas.width,
+          y: 260,
+          width: 40,
+          height: 40,
+          scored: false,
+        };
+        obstacles.push(obs);
+
+        const coin = {
+          x: obs.x + 50,
+          y: 180 + Math.random() * 20,
+          radius: 8,
+          collected: false,
+        };
+        coins.push(coin);
+      }
+
+      obstacles.forEach((obs, i) => {
+        obs.x -= 6;
+        drawObstacle(obs);
+
+        if (
+          dino.x < obs.x + obs.width &&
+          dino.x + 30 > obs.x &&
+          dino.y < obs.y + obs.height &&
+          dino.y + 30 > obs.y
+        ) {
+          endGame();
+        }
+
+        if (!obs.scored && obs.x + obs.width < dino.x) {
+          score += 5;
+          obs.scored = true;
+          document.getElementById("scoreboard").innerText = "得分：" + score;
+        }
+
+        if (obs.x + obs.width < 0) {
+          obstacles.splice(i, 1);
+        }
+      });
+
+      for (let i = coins.length - 1; i >= 0; i--) {
+        const coin = coins[i];
+        coin.x -= 6;
+        if (!coin.collected) drawCoin(coin);
+
+        const dx = (dino.x + 15) - coin.x;
+        const dy = (dino.y + 15) - coin.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (!coin.collected && distance < coin.radius + 15) {
+          coin.collected = true;
+          score += 3;
+          document.getElementById("scoreboard").innerText = "得分：" + score;
+        }
+
+        if (coin.collected || coin.x + coin.radius < 0) {
+          coins.splice(i, 1);
+        }
+      }
+
+      frame++;
+      requestAnimationFrame(update);
+    }
+
+    function jump() {
+      if (!dino.isJumping && !gameOver) {
+        dino.vy = dino.jumpPower;
+        dino.isJumping = true;
+      }
+    }
+
+    function endGame() {
+      gameOver = true;
+      document.getElementById("game-over").style.display = "block";
+      document.getElementById("final-score").innerText = "遊戲結束！最終得分：" + score;
+    }
+
+    function restartGame() {
+      obstacles = [];
+      coins = [];
+      score = 0;
+      frame = 0;
+      gameOver = false;
+      dino.y = 250;
+      dino.vy = 0;
+      dino.isJumping = false;
+      document.getElementById("scoreboard").innerText = "得分：0";
+      document.getElementById("game-over").style.display = "none";
+      update();
+    }
+
+    for (let i = 0; i < 5; i++) {
+      clouds.push({
+        x: Math.random() * canvas.width,
+        y: 30 + Math.random() * 50,
+      });
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        jump();
+      }
+    });
+
+    document.getElementById("restart").addEventListener("click", restartGame);
+
+    update();
+  </script>
+</body>
+</html>

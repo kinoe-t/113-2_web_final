@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>隨機圖片二選一</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f9f9f9;
+      user-select: none;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+    img {
+      max-width: 45vw;
+      max-height: 80vh;
+      border: 4px solid #ccc;
+      border-radius: 10px;
+      transition: transform 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img id="leftImg" src="" alt="左圖">
+    <img id="rightImg" src="" alt="右圖">
+  </div>
+
+  <script>
+    const totalImages = 10; // 圖片數量，請根據你實際圖片數量調整
+    const imageExtension = ".jpg"; // 圖片副檔名（可改為 .png、.webp 等）
+
+    const imageList = Array.from({ length: totalImages }, (_, i) => `img${i + 1}${imageExtension}`);
+    let imageQueue = [...imageList];
+
+    const leftImg = document.getElementById('leftImg');
+    const rightImg = document.getElementById('rightImg');
+
+    function getNextImage() {
+      return imageQueue.length > 0 ? imageQueue.shift() : null;
+    }
+
+    function initialize() {
+      leftImg.src = getNextImage() || "";
+      rightImg.src = getNextImage() || "";
+    }
+
+    initialize();
+
+    // 禁止右鍵選單
+    window.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 滑鼠點擊處理（左鍵：左圖勝，右鍵：右圖勝）
+    window.addEventListener('mouseup', (e) => {
+      if (!leftImg.src || !rightImg.src) return;
+
+      if (e.button === 0) {
+        // 左鍵點擊 => 選擇左圖
+        const next = getNextImage();
+        if (next) rightImg.src = next;
+      } else if (e.button === 2) {
+        // 右鍵點擊 => 選擇右圖
+        const next = getNextImage();
+        if (next) leftImg.src = next;
+      }
+    });
+  </script>
+</body>
+</html>

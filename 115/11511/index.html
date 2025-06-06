@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>心情語錄抽抽樂 🐱</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans TC', sans-serif;
+      background: linear-gradient(to top right, #fceabb, #f8b500);
+      overflow: hidden;
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.6em;
+      margin-top: 40px;
+      color: #4e342e;
+      text-shadow: 1px 1px #fff;
+    }
+
+    .quote-box {
+      background: rgba(255, 255, 255, 0.9);
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 24px;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 10;
+    }
+
+    .quote {
+      font-size: 1.5em;
+      color: #5d4037;
+      min-height: 3em;
+    }
+
+    button {
+      margin-top: 20px;
+      font-size: 1.1em;
+      padding: 12px 28px;
+      background-color: #ffca28;
+      border: none;
+      border-radius: 30px;
+      color: #4e342e;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background-color: #fdd835;
+    }
+
+    .cat {
+      position: absolute;
+      width: 80px;
+      height: auto;
+      z-index: 1;
+      animation: floatCat linear;
+    }
+
+    @keyframes floatCat {
+      from {
+        left: -100px;
+      }
+      to {
+        left: 110vw;
+      }
+    }
+
+    .heart {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: pink;
+      transform: rotate(45deg);
+      animation: floatHeart 10s linear infinite;
+      z-index: 0;
+    }
+
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: pink;
+      border-radius: 50%;
+    }
+
+    .heart::before {
+      top: -10px;
+      left: 0;
+    }
+
+    .heart::after {
+      left: -10px;
+      top: 0;
+    }
+
+    @keyframes floatHeart {
+      from {
+        transform: translateY(100vh) rotate(45deg);
+        opacity: 0.8;
+      }
+      to {
+        transform: translateY(-10vh) rotate(45deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐾 心情語錄抽抽樂 🐾</h1>
+
+  <div class="quote-box">
+    <div class="quote" id="quote">今天的你值得擁有好心情 💛</div>
+    <button onclick="drawQuote()">抽一條語錄</button>
+  </div>
+
+  <script>
+    const quotes = [
+      "你值得被世界溫柔對待。",
+      "呼吸一下，現在就很好。",
+      "小小的快樂，也值得慶祝。",
+      "今天的你，已經很棒了。",
+      "再平凡的日子也能閃閃發光。",
+      "讓自己慢一點，也是一種前進。",
+      "世界不急，我們慢慢來。",
+      "貓咪都在偷偷鼓勵你喔 🐱",
+      "你做得很好，真的。",
+      "願每個明天都比今天更溫柔。"
+    ];
+
+    let clickCount = 0;
+
+    function drawQuote() {
+      clickCount++;
+      const quoteElement = document.getElementById("quote");
+
+      if (clickCount > 10) {
+        quoteElement.textContent = "嘿，妳已經很棒了，不需要一直抽喔～ 🐱💛";
+        return;
+      }
+
+      const index = Math.floor(Math.random() * quotes.length);
+      quoteElement.textContent = quotes[index];
+    }
+
+    // 多樣化的貓咪圖片
+    const catImages = [
+      "https://media.giphy.com/media/v6aOjy0Qo1fIA/giphy.gif", // 走路貓
+      "https://media.giphy.com/media/l3vR85PnGsBwu1PFK/giphy.gif", // 揮手貓
+      "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", // 打電腦貓
+      "https://media.giphy.com/media/13borq7Zo2kulO/giphy.gif", // 滾動貓
+      "https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif", // 跳躍貓
+      "https://media.giphy.com/media/5xaOcLGvzHxDKjufnLW/giphy.gif", // 玩耍貓
+      "https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif", // 睡覺貓
+      "https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif", // 伸懶腰貓
+      "https://media.giphy.com/media/12PA1eI8FBqEBa/giphy.gif", // 躺下貓
+      "https://media.giphy.com/media/10dU7AN7xsi1I4/giphy.gif" // 抓抓貓
+    ];
+
+    function createCat() {
+      const cat = document.createElement("img");
+      cat.src = catImages[Math.floor(Math.random() * catImages.length)];
+      cat.className = "cat";
+      const top = Math.random() * 80;
+      const duration = 10 + Math.random() * 10;
+      cat.style.top = `${top}vh`;
+      cat.style.animationDuration = `${duration}s`;
+      document.body.appendChild(cat);
+      setTimeout(() => cat.remove(), duration * 1000);
+    }
+
+    // 飄動愛心粒子
+    function createHeart() {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.style.left = `${Math.random() * 100}vw`;
+      heart.style.top = `${Math.random() * 100}vh`;
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 10000);
+    }
+
+    setInterval(createCat, 1500);
+    setInterval(createHeart, 400);
+
+    for (let i = 0; i < 5; i++) {
+      setTimeout(createCat, i * 500);
+    }
+  </script>
+</body>
+</html>

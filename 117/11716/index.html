@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>每日運勢生成器</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f9f3e8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #ffcc70;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #ffb347;
+    }
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #fff8dc;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔮 每日運勢 🔮</h1>
+  <button onclick="generateFortune()">點我查看今日運勢</button>
+  <div class="result" id="result"></div>
+
+  <script>
+    const fortunes = {
+      "愛情運": ["桃花旺盛，有新戀情機會", "感情穩定，適合約會", "小心口角，需多包容"],
+      "財運": ["財運佳，適合投資", "收支平衡，注意小額支出", "避免衝動消費"],
+      "健康運": ["精神飽滿，身體健康", "適合運動，有益健康", "注意飲食與休息"],
+      "事業運": ["有貴人相助，工作順利", "需要努力與耐心", "注意同事間的溝通"],
+      "幸運色": ["紅色", "藍色", "黃色", "綠色", "紫色"]
+    };
+
+    function getRandomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function generateFortune() {
+      let today = new Date().toLocaleDateString('zh-Hant', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      let message = `<strong>📅 今天是：${today}</strong><br><br>`;
+      for (let category in fortunes) {
+        message += `<strong>${category}：</strong>${getRandomItem(fortunes[category])}<br>`;
+      }
+
+      document.getElementById('result').innerHTML = message;
+    }
+  </script>
+</body>
+</html>

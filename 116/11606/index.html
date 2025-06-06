@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>小人與鬼遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #222;
+      overflow: hidden;
+    }
+    .player, .ghost {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+    .player {
+      background: #4caf50;
+      z-index: 2;
+    }
+    .ghost {
+      background: rgba(255, 0, 0, 0.7);
+      z-index: 1;
+    }
+    .ghost.tracker {
+      background: rgba(255, 255, 0, 0.8); /* 追蹤鬼：黃色 */
+    }
+    #gameOver {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      display: none;
+      z-index: 3;
+    }
+    #gameOver button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #scoreBoard {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 20px;
+      z-index: 3;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="player" class="player"></div>
+    <div id="scoreBoard">分數：0</div>
+    <div id="gameOver">
+      <h1>遊戲結束</h1>
+      <p id="finalScore"></p>
+      <button onclick="restartGame()">再玩一次</button>
+    </div>
+  </div>
+
+  <script>
+    const game = document.getElementById('game');
+    const player = document.getElementById('player');
+    const gameOverScreen = document.getElementById('gameOver');
+    const finalScoreText = document.getElementById('finalScore');
+    const scoreBoard = document.getElementById('scoreBoard');
+    const ghosts = [];
+
+    const playerSpeed = 5;
+    let playerX = 100, playerY = 100;
+    let keys = {};
+    let gameOver = false;
+    let score = 0;
+
+    document.addEventListener('keydown', e => keys[e.key] = true);
+    document.addEventListener('keyup', e => keys[e.key] = false);
+
+    function movePlayer() {
+      if (keys['ArrowUp']) playerY -= playerSpeed;
+      if (keys['ArrowDown']) playerY += playerSpeed;
+      if (keys['ArrowLeft']) playerX -= playerSpeed;
+      if (keys['ArrowRight']) playerX += playerSpeed;
+
+      playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
+      playerY = Math.max(0, Math.min(window.innerHeight - 40, playerY));
+
+      player.style.left = playerX + 'px';
+      player.style.top = playerY + 'px';
+    }
+
+    function createGhost() {
+      const ghost = document.createElement('div');
+      ghost.classList.add('ghost');
+
+      let isTracker = (ghosts.length + 1) % 10 === 0;
+      if (isTracker) ghost.classList.add('tracker');
+
+      ghost.style.left = Math.random() * (window.innerWidth - 40) + 'px';
+      ghost.style.top = Math.random() * (window.innerHeight - 40) + 'px';
+      game.appendChild(ghost);
+
+      const baseSpeed = 1 + ghosts.length * 0.05;
+      const angle = Math.random() * Math.PI * 2;
+
+      ghosts.push({
+        el: ghost,
+        x: parseFloat(ghost.style.left),
+        y: parseFloat(ghost.style.top),
+        dx: Math.cos(angle) * baseSpeed,
+        dy: Math.sin(angle) * baseSpeed,
+        tracker: isTracker
+      });
+    }
+
+    function moveGhosts() {
+      ghosts.forEach(ghost => {
+        if (ghost.tracker) {
+          const dx = playerX - ghost.x;
+          const dy = playerY - ghost.y;
+          const dist = Math.hypot(dx, dy);
+          const speed = 2 + ghosts.length * 0.05;
+          ghost.x += (dx / dist) * speed;
+          ghost.y += (dy / dist) * speed;
+        } else {
+          ghost.x += ghost.dx;
+          ghost.y += ghost.dy;
+
+          if (ghost.x < 0 || ghost.x > window.innerWidth - 40) ghost.dx *= -1;
+          if (ghost.y < 0 || ghost.y > window.innerHeight - 40) ghost.dy *= -1;
+        }
+
+        ghost.el.style.left = ghost.x + 'px';
+        ghost.el.style.top = ghost.y + 'px';
+      });
+    }
+
+    function checkGhostToGhostCollision() {
+      const toRemove = new Set();
+
+      for (let i = 0; i < ghosts.length; i++) {
+        const g1 = ghosts[i];
+        if (!g1.tracker || toRemove.has(i)) continue;
+
+        for (let j = 0; j < ghosts.length; j++) {
+          if (i === j || toRemove.has(j)) continue;
+          const g2 = ghosts[j];
+          if (g2.tracker) continue;
+
+          const dx = g1.x + 20 - (g2.x + 20);
+          const dy = g1.y + 20 - (g2.y + 20);
+          const dist = Math.hypot(dx, dy);
+
+          if (dist < 40) {
+            // 標記這兩隻要刪除
+            toRemove.add(i);
+            toRemove.add(j);
+            break; // 一次只碰一隻就夠了
+          }
+        }
+      }
+
+      // 移除標記的鬼
+      const sortedIndexes = Array.from(toRemove).sort((a, b) => b - a);
+      for (const index of sortedIndexes) {
+        game.removeChild(ghosts[index].el);
+        ghosts.splice(index, 1);
+      }
+    }
+
+    function checkCollisionWithPlayer() {
+      const px = playerX + 20;
+      const py = playerY + 20;
+
+      for (const ghost of ghosts) {
+        const gx = ghost.x + 20;
+        const gy = ghost.y + 20;
+        const dist = Math.hypot(px - gx, py - gy);
+        if (dist < 40) {
+          endGame();
+          break;
+        }
+      }
+    }
+
+    function endGame() {
+      gameOver = true;
+      gameOverScreen.style.display = 'block';
+      finalScoreText.textContent = `你的分數是：${score}`;
+    }
+
+    function restartGame() {
+      ghosts.forEach(g => game.removeChild(g.el));
+      ghosts.length = 0;
+      playerX = 100;
+      playerY = 100;
+      score = 0;
+      scoreBoard.textContent = `分數：0`;
+      gameOver = false;
+      gameOverScreen.style.display = 'none';
+      createGhost();
+    }
+
+    function updateScore() {
+      if (!gameOver) {
+        score++;
+        scoreBoard.textContent = `分數：${score}`;
+      }
+    }
+
+    function gameLoop() {
+      if (!gameOver) {
+        movePlayer();
+        moveGhosts();
+        checkGhostToGhostCollision();
+        checkCollisionWithPlayer();
+      }
+      requestAnimationFrame(gameLoop);
+    }
+
+    createGhost();
+    setInterval(() => {
+      if (!gameOver) createGhost();
+    }, 1000);
+
+    setInterval(updateScore, 1000);
+
+    gameLoop();
+  </script>
+</body>
+</html>
+
+

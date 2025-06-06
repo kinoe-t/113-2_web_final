@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>迷宮深處 - 文字冒險遊戲</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #111;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container {
+      max-width: 700px;
+      padding: 2rem;
+      background-color: #222;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .story {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .options button {
+      margin: 0.5rem;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .options button:hover {
+      background-color: #444;
+    }
+    .hint {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="story" id="story">正在載入故事...</div>
+    <div class="options">
+      <button id="optionA">選項 A</button>
+      <button id="optionB">選項 B</button>
+    </div>
+    <div class="hint">使用鍵盤 ← → 或點選選項前進</div>
+  </div>
+
+  <script>
+    const storyData = {
+      start: {
+        text: "你站在迷宮入口前，一道光照射在前方的石階上。你準備好進入迷宮了嗎？",
+        a: { text: "踏出一步，進入迷宮。", next: "node1" },
+        b: { text: "回頭離開，不冒險。", next: "giveUp" }
+      },
+      node1: {
+        text: "你走進迷宮，石牆漸漸遮蔽光線。前方出現岔路，一邊是滿是蜘蛛絲的通道，另一邊似乎有微弱光芒。",
+        a: { text: "走進有蜘蛛絲的黑暗通道。", next: "node2" },
+        b: { text: "朝著微光的方向前進。", next: "node3" }
+      },
+      node2: {
+        text: "蜘蛛絲黏膩難行，你被困住了一下，但很快掙脫出來，卻驚動了某些東西。你聽到牆後有滑動聲。",
+        a: { text: "衝過這段通道，快點離開這裡。", next: "node4" },
+        b: { text: "停下來觀察聲音的來源。", next: "node5" }
+      },
+      node3: {
+        text: "微光來自一盞古老的油燈，下方刻著“智慧通過者才能走此路”。",
+        a: { text: "嘗試解開燈座下的謎語。", next: "node6" },
+        b: { text: "無視燈座，繼續往內走。", next: "node7" }
+      },
+      node4: {
+        text: "你來到一扇鐵門前，門後傳來哭泣聲。地上有一把生鏽的鑰匙。",
+        a: { text: "拾起鑰匙開門。", next: "node8" },
+        b: { text: "離開這裡，換條路走。", next: "node9" }
+      },
+      node5: {
+        text: "一隻巨大的蜘蛛從牆後現身。你必須快速決定行動。",
+        a: { text: "拔出短劍迎戰。", next: "node10" },
+        b: { text: "轉身逃跑。", next: "node9" }
+      },
+      node6: {
+        text: "你解開謎語，牆壁緩緩打開，露出隱藏的樓梯。",
+        a: { text: "下樓看看。", next: "node11" },
+        b: { text: "回頭走另一條路。", next: "node7" }
+      },
+      node7: {
+        text: "這條路漸漸變得潮濕，你踩進一個陷阱，幸運的是沒受傷。",
+        a: { text: "繼續前進。", next: "node9" },
+        b: { text: "回頭找其他路線。", next: "node1" }
+      },
+      node8: {
+        text: "門打開了，一位老者坐在椅子上，他說：『選對路，才能活下來。』然後他消失了。",
+        a: { text: "沿著他消失的方向走。", next: "node12" },
+        b: { text: "往回走，感覺不對勁。", next: "node9" }
+      },
+      node9: {
+        text: "你重新回到一個熟悉的岔路，發現有一條未走過的隧道。",
+        a: { text: "走入未探索的隧道。", next: "node13" },
+        b: { text: "繼續走老路，也許會安全些。", next: "node14" }
+      },
+      node10: {
+        text: "你勇敢地面對蜘蛛，經過激烈的戰鬥你獲勝，但也受了傷。",
+        a: { text: "包紮傷口繼續前進。", next: "node13" },
+        b: { text: "找地方休息一會。", next: "node14" }
+      },
+      node11: {
+        text: "樓梯通向一間石室，中間是一顆發光的寶石。你感受到它的力量。",
+        a: { text: "拿起寶石。", next: "node15" },
+        b: { text: "不碰寶石，離開這裡。", next: "node13" }
+      },
+      node12: {
+        text: "你來到一面鏡子牆，鏡中反射出你所有做過的選擇。",
+        a: { text: "直視鏡子。", next: "node16" },
+        b: { text: "打破鏡子。", next: "node17" }
+      },
+      node13: {
+        text: "你找到了一個出口的跡象，但前方還有最後的選擇等待你。",
+        a: { text: "走向光明。", next: "goodEnding" },
+        b: { text: "轉身回到迷宮深處。", next: "badEnding" }
+      },
+      node14: {
+        text: "你感到疲憊不堪，幻想與現實交錯，彷彿永遠困在這裡。",
+        a: { text: "集中精神繼續前進。", next: "node13" },
+        b: { text: "放棄掙扎。", next: "badEnding" }
+      },
+      node15: {
+        text: "寶石傳來溫暖的力量，你感受到某種指引，似乎有路能安全離開。",
+        a: { text: "依照感覺前進。", next: "goodEnding" },
+        b: { text: "懷疑這是陷阱，原路退回。", next: "node13" }
+      },
+      node16: {
+        text: "你的記憶被激發，每個決定都浮現在眼前。你理解了整個迷宮的規則。",
+        a: { text: "順著這些線索逃出迷宮。", next: "goodEnding" },
+        b: { text: "崩潰並躲在角落。", next: "badEnding" }
+      },
+      node17: {
+        text: "鏡子破碎，無數幻象衝向你，你已無法分辨真實。",
+        a: { text: "放棄抵抗。", next: "badEnding" },
+        b: { text: "盲目衝刺逃跑。", next: "node14" }
+      },
+      goodEnding: {
+        text: "你終於走出迷宮，陽光灑在你身上，你自由了。",
+        a: { text: "重新挑戰。", next: "start" },
+        b: { text: "結束冒險。", next: null }
+      },
+      badEnding: {
+        text: "你永遠困在迷宮中，成為它的一部分。",
+        a: { text: "重新挑戰。", next: "start" },
+        b: { text: "結束冒險。", next: null }
+      },
+      giveUp: {
+        text: "你選擇不冒險，也許這是最安全的選擇，但你永遠不會知道迷宮中的秘密。",
+        a: { text: "回到入口再思考。", next: "start" },
+        b: { text: "離開這裡。", next: null }
+      }
+    };
+
+    let currentNode = "start";
+
+    const storyEl = document.getElementById("story");
+    const btnA = document.getElementById("optionA");
+    const btnB = document.getElementById("optionB");
+
+    function renderNode(nodeId) {
+      const node = storyData[nodeId];
+      currentNode = nodeId;
+      storyEl.textContent = node.text;
+      btnA.textContent = node.a.text;
+      btnB.textContent = node.b.text;
+
+      btnA.disabled = node.a.next === null;
+      btnB.disabled = node.b.next === null;
+    }
+
+    btnA.addEventListener("click", () => {
+      const next = storyData[currentNode].a.next;
+      if (next) renderNode(next);
+    });
+
+    btnB.addEventListener("click", () => {
+      const next = storyData[currentNode].b.next;
+      if (next) renderNode(next);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") btnA.click();
+      if (e.key === "ArrowRight") btnB.click();
+    });
+
+    renderNode(currentNode);
+  </script>
+</body>
+</html>

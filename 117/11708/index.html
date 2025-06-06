@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>一日挑戰卡</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(to right, #d2f1f3, #e1f7f9);
+    }
+
+    .sidebar {
+      width: 180px;
+      background-color: #ffffffcc;
+      padding: 20px 10px;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(5px);
+      z-index: 1;
+    }
+
+    .type-option {
+      margin: 8px 0;
+      padding: 10px;
+      background-color: #e0f7fa;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .type-option:hover {
+      background-color: #b2ebf2;
+    }
+
+    .type-option.active {
+      background-color: #4dd0e1;
+      color: white;
+      font-weight: bold;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+    }
+
+    .title {
+      font-size: 2.2rem;
+      font-weight: bold;
+      margin: 10px 0 30px 0;
+      color: #00796b;
+    }
+
+    .cards {
+      position: relative;
+      height: 240px;
+      margin-bottom: 30px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .card {
+      position: absolute;
+      width: 110px;
+      height: 150px;
+      background-color: #ffffff;
+      border: 2px solid #80deea;
+      border-radius: 12px;
+      text-align: center;
+      line-height: 150px;
+      font-weight: bold;
+      color: #00796b;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+      transform-origin: bottom center;
+      transition: all 0.6s ease;
+      z-index: 3;
+    }
+
+    /* 扇形 */
+    .card:nth-child(1) { transform: rotate(-30deg) translateX(-150px); z-index: 1; }
+    .card:nth-child(2) { transform: rotate(-20deg) translateX(-100px); z-index: 2; }
+    .card:nth-child(3) { transform: rotate(-10deg) translateX(-50px); z-index: 3; }
+    .card:nth-child(4) { transform: rotate(0deg); z-index: 4; }
+    .card:nth-child(5) { transform: rotate(10deg) translateX(50px); z-index: 3; }
+    .card:nth-child(6) { transform: rotate(20deg) translateX(100px); z-index: 2; }
+    .card:nth-child(7) { transform: rotate(30deg) translateX(150px); z-index: 1; }
+
+    .draw-button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #00796b;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .draw-button:hover {
+      background-color: #004d40;
+    }
+
+    .card.focused {
+      position: fixed !important;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(2.2) !important;
+      z-index: 999;
+    }
+
+    .card.faded {
+      opacity: 0.15;
+      filter: blur(2px);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="type-option" onclick="selectType('課業')">課業</div>
+    <div class="type-option" onclick="selectType('放鬆')">放鬆</div>
+    <div class="type-option" onclick="selectType('3C')">3C</div>
+    <div class="type-option" onclick="selectType('運動')">運動</div>
+    <div class="type-option" onclick="selectType('創作')">創作</div>
+    <div class="type-option" onclick="selectType('挑戰')">挑戰</div>
+    <div class="type-option" onclick="selectType('社交')">社交</div>
+    <div class="type-option" onclick="selectType('家務')">家務</div>
+  </div>
+
+  <div class="main">
+    <div class="title">今日挑戰</div>
+
+    <div class="cards" id="card-container">
+      <div class="card">卡牌</div>
+      <div class="card">卡牌</div>
+      <div class="card">卡牌</div>
+      <div class="card">卡牌</div>
+      <div class="card">卡牌</div>
+      <div class="card">卡牌</div>
+      <div class="card">卡牌</div>
+    </div>
+
+    <button class="draw-button" onclick="drawCard()">抽卡</button>
+  </div>
+
+  <script>
+    let selectedType = "課業";
+    const typeOptions = document.querySelectorAll(".type-option");
+    const cards = document.querySelectorAll(".card");
+
+    const challenges = {
+      "課業": ["寫日記", "完成作業", "閱讀 20 分鐘", "複習筆記"],
+      "放鬆": ["散步 15 分鐘", "喝杯茶", "冥想 10 分鐘", "泡澡"],
+      "3C": ["不滑手機 1 小時", "清理桌面", "備份資料", "學新 app"],
+      "運動": ["跑步", "深蹲 20 下", "瑜伽", "跳繩 1 分鐘"],
+      "創作": ["畫圖", "寫詩", "拍照", "做手工藝"],
+      "挑戰": ["嘗試新事物", "早起 1 小時", "公開說話", "挑戰極限"],
+      "社交": ["打電話給朋友", "留言給朋友", "問候家人", "寫感謝信"],
+      "家務": ["洗碗", "整理房間", "擦桌子", "掃地"]
+    };
+
+    updateCards();
+
+    function selectType(type) {
+      selectedType = type;
+      typeOptions.forEach(opt => {
+        opt.classList.remove("active");
+        if (opt.textContent === type) {
+          opt.classList.add("active");
+        }
+      });
+      updateCards();
+      resetCards();
+    }
+
+    function updateCards() {
+      cards.forEach(card => {
+        card.textContent = selectedType;
+      });
+    }
+
+    function resetCards() {
+      cards.forEach(card => {
+        card.classList.remove("focused", "faded");
+        card.textContent = selectedType;
+        card.style.position = "absolute"; // 回到原位
+      });
+    }
+
+    function drawCard() {
+      const list = challenges[selectedType];
+      const randomCard = Math.floor(Math.random() * cards.length);
+      const randomTask = list[Math.floor(Math.random() * list.length)];
+
+      cards.forEach((card, index) => {
+        card.classList.remove("focused", "faded");
+        if (index === randomCard) {
+          card.textContent = randomTask;
+          card.classList.add("focused");
+        } else {
+          card.classList.add("faded");
+        }
+      });
+    }
+  </script>
+</body>
+</html>

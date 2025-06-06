@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>今日運勢抽籤</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      background-color: #fff8e1;
+      text-align: center;
+      padding: 50px;
+    }
+    #omikuji-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #draw-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    #fortune-stick {
+      display: none;
+      border: 2px solid #c62828;
+      background-color: #fff3e0;
+      padding: 20px;
+      margin-top: 20px;
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: 24px;
+      color: #3e2723;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .fortune-title {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .fortune-section {
+      margin: 10px 0;
+    }
+    #reset-button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #reset-button:hover {
+      background-color: #d32f2f;
+    }
+    img {
+      width: 200px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="omikuji-container">
+    <!-- 初始籤筒圖片（已更換為提供的圖片） -->
+    <button id="draw-button">
+      <img src="5548.jpg" alt="籤筒" />
+    </button>
+
+    <!-- 顯示抽籤結果 -->
+    <div id="fortune-stick">
+      <div class="fortune-title" id="main-fortune">大吉</div>
+      <div class="fortune-section"><strong>戀愛：</strong><span id="love-result"></span></div>
+      <div class="fortune-section"><strong>事業：</strong><span id="work-result"></span></div>
+      <div class="fortune-section"><strong>財運：</strong><span id="money-result"></span></div>
+      <button id="reset-button">重新開始</button>
+    </div>
+  </div>
+
+  <script>
+    // 主籤選項
+    const mainFortunes = ["大吉", "中吉", "小吉", "末吉", "凶", "大凶"];
+
+    // 各運勢解析句子
+    const loveFortunes = [
+      "愛情將悄悄靠近你。",
+      "保持真誠，感情將順利。",
+      "暫時單身也不錯。",
+      "舊愛可能回來找你。",
+      "別急，緣分尚未到來。",
+      "小心第三者介入。"
+    ];
+    const workFortunes = [
+      "事業如日中天，好運不斷。",
+      "同事合作愉快，工作順利。",
+      "要加倍努力才能突破困境。",
+      "適合學習新技能。",
+      "容易與上司意見不合。",
+      "今天不宜做重大決策。"
+    ];
+    const moneyFortunes = [
+      "財源廣進，意外之財可能降臨。",
+      "收入穩定，支出有節制。",
+      "小有破財，記得節省。",
+      "不要參與高風險投資。",
+      "金錢流動大，需謹慎管理。",
+      "注意詐騙或財務損失。"
+    ];
+
+    const drawButton = document.getElementById("draw-button");
+    const fortuneStick = document.getElementById("fortune-stick");
+    const resetButton = document.getElementById("reset-button");
+
+    drawButton.addEventListener("click", () => {
+      // 隨機選擇主運勢和三個解析句子
+      const main = randomPick(mainFortunes);
+      const love = randomPick(loveFortunes);
+      const work = randomPick(workFortunes);
+      const money = randomPick(moneyFortunes);
+
+      // 顯示抽籤結果
+      document.getElementById("main-fortune").innerText = main;
+      document.getElementById("love-result").innerText = love;
+      document.getElementById("work-result").innerText = work;
+      document.getElementById("money-result").innerText = money;
+
+      // 隱藏籤筒、顯示籤
+      drawButton.style.display = "none";
+      fortuneStick.style.display = "block";
+    });
+
+    // 重新開始按鈕功能
+    resetButton.addEventListener("click", () => {
+      fortuneStick.style.display = "none";
+      drawButton.style.display = "block";
+    });
+
+    // 隨機取陣列中一項
+    function randomPick(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+  </script>
+</body>
+</html>
+

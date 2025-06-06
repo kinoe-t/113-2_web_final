@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>隨機飲料店推薦</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f8ff;
+      color: #333;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 20px;
+      font-size: 24px;
+    }
+    main {
+      padding: 20px;
+    }
+    button {
+      background-color: #008CBA;
+      color: white;
+      padding: 15px 32px;
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #006f8e;
+    }
+    .result {
+      margin-top: 30px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  隨機飲料店推薦
+</header>
+
+<main>
+  <p>點擊下方按鈕，隨機推薦一家飲料店給您！</p>
+  <button onclick="recommendDrinkShop()">推薦飲料店</button>
+  <div class="result" id="result"></div>
+</main>
+
+<script>
+  const drinkShops = [
+    "珍煮丹",
+    "CoCo都可",
+    "一芳水果茶",
+    "茶湯會",
+    "清心福全",
+    "50嵐",
+    "鹿角巷",
+    "快樂檸檬",
+    "老虎堂",
+    "幸福堂",
+    "迷客夏",
+    "春水堂",
+    "再睡五分鐘",
+    "麻古",
+    "大院子",
+
+  ];
+
+  function recommendDrinkShop() {
+    const randomIndex = Math.floor(Math.random() * drinkShops.length);
+    const recommendedShop = drinkShops[randomIndex];
+    document.getElementById("result").textContent = `今天推薦您：${recommendedShop}`;
+  }
+</script>
+
+</body>
+</html>

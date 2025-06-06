@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>可愛貪吃蛇</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+      font-family: "Microsoft JhengHei", sans-serif;
+      color: white;
+    }
+    #scoreboard {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 28px;
+      z-index: 1;
+    }
+    #end-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      font-size: 32px;
+      flex-direction: column;
+      z-index: 2;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background-color: white;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreboard">分數：0</div>
+  <div id="end-screen"></div>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.scale(2, 2); // 放大畫面
+
+    class Snake {
+      constructor(x, y) {
+        this.body = Array.from({ length: 10 }, (_, i) => ({ x: x - i * 10, y }));
+        this.length = 10;
+        this.color = "white";
+        this.score = 0;
+        this.dead = false;
+        this.angle = 0;
+      }
+
+      update(targetX, targetY) {
+        if (this.dead) return;
+        const speed = 3;
+        const dx = targetX - this.body[0].x;
+        const dy = targetY - this.body[0].y;
+        this.angle = Math.atan2(dy, dx);
+        const newX = this.body[0].x + Math.cos(this.angle) * speed;
+        const newY = this.body[0].y + Math.sin(this.angle) * speed;
+
+        this.body.unshift({
+          x: Math.max(0, Math.min(canvas.width / 2, newX)),
+          y: Math.max(0, Math.min(canvas.height / 2, newY))
+        });
+        while (this.body.length > this.length) this.body.pop();
+      }
+
+      draw() {
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 20;
+        ctx.beginPath();
+        for (let i = 1; i < this.body.length; i++) {
+          ctx.moveTo(this.body[i - 1].x, this.body[i - 1].y);
+          ctx.lineTo(this.body[i].x, this.body[i].y);
+        }
+        ctx.stroke();
+
+        // 可愛臉部：眼睛與嘴巴
+        const head = this.body[0];
+        const eyeOffsetX = Math.cos(this.angle + Math.PI / 2) * 5;
+        const eyeOffsetY = Math.sin(this.angle + Math.PI / 2) * 5;
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(head.x + eyeOffsetX, head.y + eyeOffsetY, 2, 0, Math.PI * 2);
+        ctx.arc(head.x - eyeOffsetX, head.y - eyeOffsetY, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, 5, Math.PI * 0.2, Math.PI * 0.8);
+        ctx.strokeStyle = "pink";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    class Dot {
+      constructor(x, y, isGold = false) {
+        this.x = x;
+        this.y = y;
+        this.isGold = isGold;
+        this.radius = isGold ? 25 : 5;
+        this.color = isGold ? "gold" : `hsl(${Math.random() * 360}, 100%, 50%)`;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    const player = new Snake(canvas.width / 4, canvas.height / 4);
+    let dots = [];
+    let mouseX = canvas.width / 4;
+    let mouseY = canvas.height / 4;
+    let startTime = Date.now();
+    let gameOver = false;
+
+    function distance(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function spawnDots(n = 5) {
+      for (let i = 0; i < n; i++) {
+        dots.push(new Dot(Math.random() * canvas.width / 2, Math.random() * canvas.height / 2));
+      }
+    }
+
+    function spawnGoldDot() {
+      dots.push(new Dot(Math.random() * canvas.width / 2, Math.random() * canvas.height / 2, true));
+    }
+
+    function updateGame() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      player.update(mouseX, mouseY);
+      dots.forEach(dot => dot.draw());
+      player.draw();
+
+      for (let i = dots.length - 1; i >= 0; i--) {
+        if (distance(player.body[0], dots[i]) < dots[i].radius + 10) {
+          player.score += dots[i].isGold ? 10 : 1;
+          player.length += 1;
+          dots.splice(i, 1);
+        }
+      }
+
+      document.getElementById("scoreboard").textContent = `分數：${player.score}`;
+
+      const elapsed = (Date.now() - startTime) / 1000;
+      if (elapsed >= 180) {
+        endGame("時間到！");
+      }
+
+      requestAnimationFrame(updateGame);
+    }
+
+    function endGame(msg) {
+      gameOver = true;
+      document.getElementById("end-screen").style.display = "flex";
+      document.getElementById("end-screen").innerHTML = `
+        <div>${msg}</div>
+        <div>最終分數：${player.score}</div>
+        <div style="margin-top:20px;"><button onclick="location.reload()">重新開始</button></div>
+      `;
+    }
+
+    // 控制與初始化
+    canvas.addEventListener("mousemove", (e) => {
+      mouseX = e.offsetX / 2;
+      mouseY = e.offsetY / 2;
+    });
+
+    setInterval(() => spawnDots(5), 1000);    // 每秒5顆小圓點
+    setInterval(spawnGoldDot, 30000);         // 每30秒1顆大金點
+    updateGame();
+  </script>
+</body>
+</html>
+
+
+

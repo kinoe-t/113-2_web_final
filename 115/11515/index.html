@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>七彩貪吃蛇遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      font-family: sans-serif;
+    }
+    canvas {
+      margin-top: 20px;
+      background-color: #111;
+      border: 4px solid #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>七彩貪吃蛇🐍</h1>
+  <canvas id="gameCanvas" width="800" height="1000"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const gridSize = 20;
+    const cols = 40;
+    const rows = 50;
+
+    let snake = [{ x: 20, y: 25 }];
+    let direction = { x: 1, y: 0 };
+    let apple = null;
+    let bomb = null;
+    let colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"];
+
+    function getRandomEmptyCell() {
+      let cell;
+      do {
+        cell = {
+          x: Math.floor(Math.random() * cols),
+          y: Math.floor(Math.random() * rows),
+        };
+      } while (
+        snake.some((s) => s.x === cell.x && s.y === cell.y) ||
+        (apple && apple.x === cell.x && apple.y === cell.y) ||
+        (bomb && bomb.x === cell.x && bomb.y === cell.y)
+      );
+      return cell;
+    }
+
+    function spawnApple() {
+      if (!apple) apple = getRandomEmptyCell();
+    }
+
+    function spawnBomb() {
+      bomb = getRandomEmptyCell();
+    }
+
+    function drawCell(x, y, color, isHead = false) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+      if (isHead) {
+        ctx.beginPath();
+        ctx.fillStyle = 'black';
+        ctx.arc(x * gridSize + 6, y * gridSize + 6, 6, 0, Math.PI * 2);
+        ctx.arc(x * gridSize + 14, y * gridSize + 6, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function update() {
+      if (snake.length === 0) return;
+
+      const newHead = {
+        x: (snake[0].x + direction.x + cols) % cols,
+        y: (snake[0].y + direction.y + rows) % rows,
+      };
+
+      // 撞到自己不會死
+      // 撞到炸彈，切一半
+      snake.unshift(newHead);
+
+      if (apple && newHead.x === apple.x && newHead.y === apple.y) {
+        apple = null;
+      } else if (bomb && newHead.x === bomb.x && newHead.y === bomb.y) {
+        const half = Math.floor(snake.length / 2);
+        snake = snake.slice(0, half);
+        bomb = null;
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < snake.length; i++) {
+        const color = colors[i % colors.length];
+        drawCell(snake[i].x, snake[i].y, color, i === 0);
+      }
+      if (apple) drawCell(apple.x, apple.y, 'red');
+      if (bomb) drawCell(bomb.x, bomb.y, 'orange');
+    }
+
+    document.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "ArrowUp":
+          if (direction.y !== 1) direction = { x: 0, y: -1 };
+          break;
+        case "ArrowDown":
+          if (direction.y !== -1) direction = { x: 0, y: 1 };
+          break;
+        case "ArrowLeft":
+          if (direction.x !== 1) direction = { x: -1, y: 0 };
+          break;
+        case "ArrowRight":
+          if (direction.x !== -1) direction = { x: 1, y: 0 };
+          break;
+      }
+    });
+
+    function resetGame() {
+      snake = [{ x: 20, y: 25 }];
+      direction = { x: 1, y: 0 };
+      apple = null;
+      bomb = null;
+      spawnApple();
+    }
+
+    resetGame();
+    setInterval(update, 200); // 每秒5格
+    setInterval(spawnApple, 800); // 蘋果快
+    setInterval(spawnBomb, 3000); // 炸彈慢
+  </script>
+</body>
+</html>
+
+

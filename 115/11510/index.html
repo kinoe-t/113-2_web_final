@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>午餐拉霸機</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", sans-serif;
+      background: #fefefe;
+      text-align: center;
+      padding: 50px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    #slots {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .slot {
+      width: 100px;
+      height: 100px;
+      margin: 0 10px;
+      font-size: 1.2em;
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .slot.spinning {
+      animation: spin 0.2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotateX(0); }
+      100% { transform: rotateX(360deg); }
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 8px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 1.5em;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <h1>午餐拉霸機 🎰</h1>
+  <div id="slots">
+    <div class="slot" id="slot1">？</div>
+    <div class="slot" id="slot2">？</div>
+    <div class="slot" id="slot3">？</div>
+  </div>
+  <button onclick="spinSlots()">抽午餐！</button>
+  <div id="result"></div>
+
+  <script>
+    const lunchOptions = [
+      "牛肉麵", "便當", "壽司", "拉麵", "炒飯", "雞排飯", "水餃", "滷肉飯",
+      "韓式拌飯", "義大利麵", "燒臘", "越南河粉", "鐵板燒", "湯麵", "三明治"
+    ];
+
+    function getRandomLunch() {
+      return lunchOptions[Math.floor(Math.random() * lunchOptions.length)];
+    }
+
+    function spinSlots() {
+      const slots = [document.getElementById("slot1"), document.getElementById("slot2"), document.getElementById("slot3")];
+      slots.forEach(slot => slot.classList.add("spinning"));
+      document.getElementById("result").textContent = "";
+
+      // 模擬拉霸動畫效果
+      let spinTime = 1000;
+      setTimeout(() => {
+        const results = [];
+        slots.forEach((slot, i) => {
+          const lunch = getRandomLunch();
+          slot.textContent = lunch;
+          slot.classList.remove("spinning");
+          results.push(lunch);
+        });
+        document.getElementById("result").textContent = `今天吃：${results.join(" / ")}`;
+      }, spinTime);
+    }
+  </script>
+</body>
+</html>

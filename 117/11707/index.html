@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>雙人打怪遊戲</title>
+  <style>
+    body { margin: 0; background: #111; color: white; font-family: sans-serif; }
+    canvas { display: block; margin: auto; background: #222; }
+    #info { text-align: center; padding: 10px; }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h1>雙人打怪遊戲</h1>
+    <p>玩家1: ↑↓←→ 移動，J 攻擊 | 玩家2: W A S D 移動，空白鍵 攻擊</p>
+    <p id="status"></p>
+  </div>
+  <canvas id="game" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+    const keys = {};
+
+    let startTime = Date.now();
+    let gameDuration = 60000; // 1 minute
+    let level = 1;
+
+    class Player {
+      constructor(x, y, color, controls) {
+        this.x = x;
+        this.y = y;
+        this.size = 30;
+        this.color = color;
+        this.hp = 100;
+        this.controls = controls;
+        this.cooldown = 0;
+      }
+
+      move() {
+        if (keys[this.controls.up]) this.y -= 5;
+        if (keys[this.controls.down]) this.y += 5;
+        if (keys[this.controls.left]) this.x -= 5;
+        if (keys[this.controls.right]) this.x += 5;
+        this.x = Math.max(0, Math.min(canvas.width - this.size, this.x));
+        this.y = Math.max(0, Math.min(canvas.height - this.size, this.y));
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.fillStyle = 'white';
+        ctx.fillText(`HP: ${this.hp}`, this.x, this.y - 5);
+      }
+
+      attack(monster) {
+        if (this.cooldown <= 0) {
+          const dx = monster.x - this.x;
+          const dy = monster.y - this.y;
+          const distance = Math.sqrt(dx*dx + dy*dy);
+          if (distance < 80) {
+            monster.hp -= 10;
+            this.cooldown = 30;
+          }
+        }
+      }
+    }
+
+    class Monster {
+      constructor() {
+        this.x = canvas.width / 2;
+        this.y = canvas.height / 2;
+        this.size = 60;
+        this.color = 'red';
+        this.hp = 300 * level;
+        this.cooldown = 0;
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.fillStyle = 'white';
+        ctx.fillText(`Monster HP: ${this.hp}`, this.x, this.y - 10);
+      }
+
+      attack(players) {
+        if (this.cooldown <= 0) {
+          players.forEach(p => {
+            const dx = p.x - this.x;
+            const dy = p.y - this.y;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            if (distance < 80) {
+              p.hp -= 10;
+              this.cooldown = 60;
+            }
+          });
+        }
+      }
+    }
+
+    const player1 = new Player(100, 100, 'blue', {
+      up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', attack: 'KeyJ'
+    });
+    const player2 = new Player(700, 100, 'green', {
+      up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', attack: 'Space'
+    });
+    let monster = new Monster();
+
+    document.addEventListener('keydown', (e) => keys[e.code] = true);
+    document.addEventListener('keyup', (e) => keys[e.code] = false);
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const now = Date.now();
+      const elapsed = now - startTime;
+
+      if (elapsed >= gameDuration) {
+        status.textContent = '遊戲結束！';
+        return;
+      } else {
+        status.textContent = `剩餘時間: ${(gameDuration - elapsed) / 1000 | 0}s | 關卡: ${level}`;
+      }
+
+      [player1, player2].forEach(p => {
+        p.move();
+        p.draw();
+        if (keys[p.controls.attack]) {
+          p.attack(monster);
+        }
+        if (p.cooldown > 0) p.cooldown--;
+      });
+
+      monster.attack([player1, player2]);
+      if (monster.cooldown > 0) monster.cooldown--;
+      monster.draw();
+
+      if (monster.hp <= 0) {
+        level++;
+        monster = new Monster();
+      }
+
+      if (player1.hp <= 0 && player2.hp <= 0) {
+        status.textContent = '雙方陣亡，遊戲結束！';
+        return;
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    update();
+  </script>
+</body>
+</html>

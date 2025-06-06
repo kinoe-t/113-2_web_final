@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>今日星座運勢 💫</title>
+<style>
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #fceabb, #f8b500);
+margin: 0; padding: 20px;
+display: flex; flex-direction: column; align-items: center;
+min-height: 100vh; color: #333;
+}
+h1 { margin-bottom: 10px; }
+#date { margin-bottom: 15px; color: #555; font-size: 14px; }
+input, select {
+padding: 10px; font-size: 16px;
+border-radius: 8px; border: 1px solid #ccc;
+margin: 5px 0; width: 240px;
+}
+button {
+padding: 10px 25px; font-size: 16px;
+border: none; border-radius: 25px;
+background-color: #ff7e00; color: white;
+cursor: pointer; margin-top: 10px;
+box-shadow: 0 4px 10px rgba(255, 126, 0, 0.6);
+transition: background-color 0.3s ease;
+}
+button:hover {
+background-color: #cc6400;
+}
+.barContainer {
+width: 80%; max-width: 400px;
+background: #eee;
+border-radius: 20px;
+margin: 12px auto 5px;
+height: 24px;
+overflow: hidden;
+}
+.bar {
+height: 100%;
+width: 0;
+border-radius: 20px;
+transition: width 1s ease, background-color 0.5s ease;
+}
+#loveBar { background: #ff6b81; }
+#careerBar { background: #4da6ff; }
+#moneyBar { background: #ffd93b; }
+#summaryBar { background: #6ac47f; }
+
+.desc {
+max-width: 400px;
+margin: 6px auto 12px;
+font-size: 17px;
+min-height: 32px;
+}
+#extras {
+max-width: 400px;
+margin-top: 20px;
+font-size: 16px;
+color: #444;
+line-height: 1.4;
+}
+#errorMsg {
+color: #cc4444;
+margin-top: 12px;
+min-height: 20px;
+}
+</style>
+</head>
+<body>
+<h1>🔮 今日星座運勢 🔮</h1>
+<div id="date"></div>
+<input id="nameInput" type="text" placeholder="請輸入你的名字" />
+<select id="zodiacSelect">
+<option value="">請選擇星座</option>
+<option>牡羊座</option><option>金牛座</option><option>雙子座</option>
+<option>巨蟹座</option><option>獅子座</option><option>處女座</option>
+<option>天秤座</option><option>天蠍座</option><option>射手座</option>
+<option>魔羯座</option><option>水瓶座</option><option>雙魚座</option>
+</select>
+<button id="generateBtn">✨ 抽出你的命運！</button>
+
+<!-- 愛情運 -->
+<div class="barContainer"><div id="loveBar" class="bar"></div></div>
+<div id="loveDesc" class="desc"></div>
+
+<!-- 事業運 -->
+<div class="barContainer"><div id="careerBar" class="bar"></div></div>
+<div id="careerDesc" class="desc"></div>
+
+<!-- 財運 -->
+<div class="barContainer"><div id="moneyBar" class="bar"></div></div>
+<div id="moneyDesc" class="desc"></div>
+
+<!-- 綜合運 -->
+<div class="barContainer"><div id="summaryBar" class="bar"></div></div>
+<div id="summaryDesc" class="desc"></div>
+
+<div id="extras"></div>
+<div id="errorMsg"></div>
+
+<script>
+// 幸運物、提防星座、幸運顏色清單
+const luckyItems = [
+"紅繩手環", "白茶葉", "紫水晶", "玫瑰花瓣",
+"檀香", "幸運小石頭", "手寫情書", "日落照片"
+];
+const avoidZodiacs = [
+"天蠍座", "雙子座", "魔羯座", "獅子座",
+"水瓶座", "金牛座", "射手座", "處女座",
+"牡羊座", "巨蟹座", "雙魚座", "天秤座"
+];
+const luckyColors = [
+"粉紅色", "天藍色", "金色", "紫色",
+"橘色", "翠綠色", "銀色", "白色"
+];
+
+// 多級描述函數，細分到5%區間
+function getDesc(score, type) {
+if(type === "love") {
+if(score >= 95) return "魅力爆表！今天約會運超旺 💘";
+else if(score >= 90) return "感情甜蜜，適合表白或告白 💕";
+else if(score >= 85) return "感情不錯，浪漫氛圍滿分 🌹";
+else if(score >= 80) return "有機會遇見新對象，別害羞 😏";
+else if(score >= 75) return "感情順利，適合多陪伴伴侶 👫";
+else if(score >= 70) return "感情平穩，聊天交流很重要 🗣️";
+else if(score >= 65) return "感情有些冷淡，建議多關心對方 🥺";
+else if(score >= 60) return "感情稍微有點波折，注意溝通 ⚠️";
+else if(score >= 55) return "感情平淡，先給彼此空間吧 🧘‍♀️";
+else if(score >= 50) return "感情冷淡，避免爭吵和誤會 😶";
+else if(score >= 45) return "感情有點危機，小心情緒起伏 🌩️";
+else if(score >= 40) return "感情不穩，保持理智，別太激動 😕";
+else if(score >= 35) return "感情低迷，可能會有分歧，注意冷靜 🤐";
+else if(score >= 30) return "感情陷入低谷，建議暫時冷靜 🥀";
+else if(score >= 25) return "感情很差，適合暫時遠離對方 💔";
+else if(score >= 20) return "感情破裂危險，謹慎處理感情事務 ⚡";
+else if(score >= 15) return "感情慘烈，別亂說話免得火上加油 🔥";
+else if(score >= 10) return "感情極差，適合沉澱自我 🌪️";
+else if(score >= 5) return "感情崩盤，暫時不要碰感情事 💣";
+else return "感情一片死寂，別亂想，先活自己吧 🖤";
+} else if(type === "career") {
+if(score >= 95) return "事業巔峰，表現會令人驚艷 🚀";
+else if(score >= 90) return "工作順利，適合挑戰高難度任務 💼";
+else if(score >= 85) return "事業運旺，容易獲得上司認可 👍";
+else if(score >= 80) return "適合團隊合作，溝通順暢 🤝";
+else if(score >= 75) return "工作狀態良好，能有效完成任務 📈";
+else if(score >= 70) return "事業穩定，按部就班即可 🛠️";
+else if(score >= 65) return "工作稍有壓力，記得適時放鬆 🧘‍♂️";
+else if(score >= 60) return "小挫折可能出現，別灰心 🔄";
+else if(score >= 55) return "注意同事關係，避免口角 ⚠️";
+else if(score >= 50) return "事業平淡，保持現狀不出錯即可 😐";
+else if(score >= 45) return "工作壓力增大，要注意健康 💊";
+else if(score >= 40) return "狀態欠佳，避免作重大決策 🚫";
+else if(score >= 35) return "容易出錯，工作要仔細仔細再仔細 🔍";
+else if(score >= 30) return "事業運低落，暫時避免衝刺 🛑";
+else if(score >= 25) return "工作受阻，耐心等待時機 ⏳";
+else if(score >= 20) return "事業陷入低潮，注意調整心態 🌀";
+else if(score >= 15) return "工作狀況差，盡量少招惹麻煩 😖";
+else if(score >= 10) return "嚴重低潮期，休息優先 🛌";
+else if(score >= 5) return "事業嚴重受挫，別亂動計劃 🚷";
+else return "事業崩盤，建議暫時離場 💣";
+} else if(type === "money") {
+if(score >= 95) return "財運爆棚，投資理財正旺 💰";
+else if(score >= 90) return "收入增加，有意外之財 🎉";
+else if(score >= 85) return "花錢有理財計劃，收支平衡 📊";
+else if(score >= 80) return "適合規劃長期財務目標 💡";
+else if(score >= 75) return "財運穩定，避免大額開銷 💳";
+else if(score >= 70) return "錢包安全，按部就班花錢 🛍️";
+else if(score >= 65) return "稍微亂花，注意節制 🛑";
+else if(score >= 60) return "財運下滑，建議少花多存 💵";
+else if(score >= 55) return "花費增多，控制衝動消費 ⚠️";
+else if(score >= 50) return "財運平平，不宜冒險投資 💤";
+else if(score >= 45) return "花錢容易後悔，要計劃消費 📉";
+else if(score >= 40) return "財務吃緊，慎防借貸陷阱 🕳️";
+else if(score >= 35) return "財務壓力大，避免大額花費 🛑";
+else if(score >= 30) return "存款減少，理財需謹慎 🔒";
+else if(score >= 25) return "財務困難，避免高風險投資 ⚡";
+else if(score >= 20) return "錢財入不敷出，小心借貸問題 🥀";
+else if(score >= 15) return "財務狀況很差，盡量節省 💔";
+else if(score >= 10) return "金錢壓力巨大，需尋求幫助 🔥";
+else if(score >= 5) return "財務崩盤，慎防詐騙與借貸陷阱 💣";
+else return "財運死透，先活著最重要 🖤";
+} else if(type === "summary") {
+if(score >= 95) return "整體運勢無敵，抓緊好運繼續衝 💥";
+else if(score >= 90) return "今天運勢極佳，好事連連 🌈";
+else if(score >= 85) return "運勢旺盛，適合出手做事 👍";
+else if(score >= 80) return "運勢良好，心情愉快 😄";
+else if(score >= 75) return "運勢穩定，日常順心 🧘";
+else if(score >= 70) return "運勢平穩，保持現狀即可 🛡️";
+else if(score >= 65) return "運勢稍弱，保持冷靜應對 🧊";
+else if(score >= 60) return "運勢一般，小心意外 ⚠️";
+else if(score >= 55) return "運勢低落，建議多休息 🛌";
+else if(score >= 50) return "運勢不佳，避免衝動 😤";
+else if(score >= 45) return "運勢差，情緒波動較大 🌪️";
+else if(score >= 40) return "運勢很差，慎防破財和口舌 🔥";
+else if(score >= 35) return "運勢低迷，適合靜心調整 🥀";
+else if(score >= 30) return "運勢谷底，適合暫時休息 💤";
+else if(score >= 25) return "運勢糟糕，避免重要決策 🚫";
+else if(score >= 20) return "運勢很糟，謹慎面對挑戰 🥶";
+else if(score >= 15) return "運勢超差，小心意外事故 💀";
+else if(score >= 10) return "運勢崩潰，保重身心 🖤";
+else if(score >= 5) return "運勢死亡，保持冷靜是王道 🧊";
+else return "運勢極度負面，明天會更好，撐住！ 🌑";
+}
+}
+
+// 取得當日日期，格式 YYYY-MM-DD
+function getToday() {
+const d = new Date();
+return d.toLocaleDateString('zh-Hant', { year:'numeric', month:'2-digit', day:'2-digit' });
+}
+
+// 根據分數決定顏色（紅黃綠）
+function getColor(score) {
+if(score >= 75) return "#4CAF50"; // 綠
+else if(score >= 50) return "#FFC107"; // 黃
+else return "#F44336"; // 紅
+}
+
+// 隨機選陣列一項
+function randomPick(arr) {
+return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// 主運勢生成函數
+function generateFortune() {
+const name = document.getElementById("nameInput").value.trim();
+const zodiac = document.getElementById("zodiacSelect").value;
+
+if(!name) {
+showError("名字不能空白喔，請輸入你的名字！");
+return;
+}
+if(!zodiac) {
+showError("星座沒選擇，拜託選一個啦！");
+return;
+}
+clearError();
+
+// 隨機運勢分數0~100
+const loveScore = Math.floor(Math.random() * 101);
+const careerScore = Math.floor(Math.random() * 101);
+const moneyScore = Math.floor(Math.random() * 101);
+
+// 綜合 = 愛情*0.4 + 事業*0.3 + 財運*0.3
+const summaryScore = Math.round(loveScore * 0.4 + careerScore * 0.3 + moneyScore * 0.3);
+
+// 設定血條與描述
+setBarAndDesc("loveBar", loveScore, "loveDesc", getDesc(loveScore, "love"));
+setBarAndDesc("careerBar", careerScore, "careerDesc", getDesc(careerScore, "career"));
+setBarAndDesc("moneyBar", moneyScore, "moneyDesc", getDesc(moneyScore, "money"));
+setBarAndDesc("summaryBar", summaryScore, "summaryDesc", getDesc(summaryScore, "summary"));
+
+// 額外資訊
+const avoid = randomPick(avoidZodiacs);
+const luckyItem = randomPick(luckyItems);
+const luckyColor = randomPick(luckyColors);
+
+const extras = `
+<p><strong>提防星座：</strong>${avoid}</p>
+<p><strong>幸運物：</strong>${luckyItem}</p>
+<p><strong>幸運顏色：</strong>${luckyColor}</p>
+`;
+document.getElementById("extras").innerHTML = extras;
+
+// 日期顯示
+document.getElementById("date").textContent = `日期：${getToday()}`;
+
+}
+
+// 設定血條寬度與顏色，還有描述文字
+function setBarAndDesc(barId, score, descId, descText) {
+const bar = document.getElementById(barId);
+bar.style.width = score + "%";
+bar.style.backgroundColor = getColor(score);
+document.getElementById(descId).textContent = descText;
+}
+
+function showError(msg) {
+document.getElementById("errorMsg").textContent = msg;
+}
+function clearError() {
+document.getElementById("errorMsg").textContent = "";
+}
+
+document.getElementById("generateBtn").addEventListener("click", generateFortune);
+
+// 頁面載入時顯示今天日期
+document.getElementById("date").textContent = `日期：${getToday()}`;
+
+</script>
+</body>
+</html>
+
+

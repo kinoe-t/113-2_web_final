@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>迷宮遊戲</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #fbc2eb, #a6c1ee);
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #fff;
+    }
+    #maze {
+      display: inline-grid;
+      grid-template-columns: repeat(10, 40px);
+      grid-template-rows: repeat(10, 40px);
+      gap: 2px;
+      margin-top: 20px;
+    }
+    .cell {
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+    }
+    .wall {
+      background-color: #333;
+    }
+    .path {
+      background-color: #eee;
+    }
+    .player {
+      background-color: #f39c12;
+    }
+    .end {
+      background-color: #2ecc71;
+    }
+    #message {
+      margin-top: 20px;
+      font-size: 24px;
+      color: #fff;
+      display: none;
+    }
+    #restartBtn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background-color: #e67e22;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    #restartBtn:hover {
+      background-color: #d35400;
+    }
+  </style>
+</head>
+<body>
+  <h1>走迷宮遊戲</h1>
+  <div id="maze"></div>
+  <div id="message">🎉 恭喜通關！</div>
+  <button id="restartBtn" onclick="restartGame()">再玩一次</button>
+
+  <script>
+    const mazePresets = [
+      // Maze 1
+      [
+        [1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,1,0,0,0,0,0,1],
+        [1,1,0,1,0,1,1,1,0,1],
+        [1,0,0,0,0,0,0,1,0,1],
+        [1,0,1,1,1,1,0,1,0,1],
+        [1,0,1,0,0,1,0,1,0,1],
+        [1,0,1,0,1,1,0,1,0,1],
+        [1,0,1,0,0,0,0,1,0,1],
+        [1,0,1,1,1,1,1,1,0,1],
+        [1,1,1,1,1,1,1,1,2,1],
+      ],
+      // Maze 2
+      [
+        [1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,1,0,0,1],
+        [1,1,1,1,1,0,1,0,1,1],
+        [1,0,0,0,1,0,0,0,0,1],
+        [1,0,1,0,1,1,1,1,0,1],
+        [1,0,1,0,0,0,0,1,0,1],
+        [1,0,1,1,1,1,0,1,0,1],
+        [1,0,0,0,0,1,0,0,0,1],
+        [1,1,1,1,0,1,1,1,1,1],
+        [1,1,1,1,2,1,1,1,1,1],
+      ],
+      // Maze 3
+      [
+        [1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,1,0,0,0,0,0,1],
+        [1,0,1,1,1,1,1,1,0,1],
+        [1,0,0,0,0,0,0,1,0,1],
+        [1,1,1,1,1,1,0,1,0,1],
+        [1,0,0,0,0,1,0,1,0,1],
+        [1,0,1,1,0,1,0,1,0,1],
+        [1,0,1,2,0,0,0,1,0,1],
+        [1,0,1,1,1,1,1,1,0,1],
+        [1,1,1,1,1,1,1,1,1,1],
+      ]
+    ];
+
+    let usedMazes = [];
+    let playerPos = { x: 1, y: 1 };
+    let mazeData = [];
+
+    const mazeEl = document.getElementById("maze");
+    const messageEl = document.getElementById("message");
+    const restartBtn = document.getElementById("restartBtn");
+
+    function drawMaze() {
+      mazeEl.innerHTML = "";
+      for (let y = 0; y < mazeData.length; y++) {
+        for (let x = 0; x < mazeData[y].length; x++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+
+          if (mazeData[y][x] === 1) cell.classList.add("wall");
+          else if (mazeData[y][x] === 2) cell.classList.add("end");
+          else cell.classList.add("path");
+
+          if (x === playerPos.x && y === playerPos.y) {
+            cell.classList.remove("wall", "path", "end");
+            cell.classList.add("player");
+          }
+
+          mazeEl.appendChild(cell);
+        }
+      }
+    }
+
+    function move(dx, dy) {
+      const newX = playerPos.x + dx;
+      const newY = playerPos.y + dy;
+      if (mazeData[newY] && mazeData[newY][newX] !== 1) {
+        playerPos = { x: newX, y: newY };
+        drawMaze();
+
+        if (mazeData[newY][newX] === 2) {
+          messageEl.style.display = "block";
+          restartBtn.style.display = "inline-block";
+          document.removeEventListener("keydown", handleKey);
+        }
+      }
+    }
+
+    function handleKey(e) {
+      switch (e.key) {
+        case "ArrowUp": move(0, -1); break;
+        case "ArrowDown": move(0, 1); break;
+        case "ArrowLeft": move(-1, 0); break;
+        case "ArrowRight": move(1, 0); break;
+      }
+    }
+
+    function restartGame() {
+      if (usedMazes.length === mazePresets.length) {
+        messageEl.textContent = "🎉 所有迷宮都玩過了！";
+        messageEl.style.display = "block";
+        restartBtn.style.display = "none";
+        return;
+      }
+
+      let newMazeIndex;
+      do {
+        newMazeIndex = Math.floor(Math.random() * mazePresets.length);
+      } while (usedMazes.includes(newMazeIndex));
+
+      usedMazes.push(newMazeIndex);
+      mazeData = JSON.parse(JSON.stringify(mazePresets[newMazeIndex]));
+      playerPos = { x: 1, y: 1 };
+      messageEl.style.display = "none";
+      restartBtn.style.display = "none";
+      messageEl.textContent = "🎉 恭喜通關！";
+      document.addEventListener("keydown", handleKey);
+      drawMaze();
+    }
+
+    // 初始化
+    restartGame();
+  </script>
+</body>
+</html>

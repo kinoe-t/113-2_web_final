@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>午餐轉盤</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      background-color: #f9f9f9;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      color: #333;
+    }
+    #wheel {
+      margin: 20px auto;
+      width: 300px;
+      height: 300px;
+      border: 10px solid #ccc;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+    }
+    .option {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      top: 50%;
+      left: 50%;
+      transform-origin: 0% 0%;
+      background: #f2b632;
+      color: #fff;
+      text-align: right;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    #start-btn {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 24px;
+      color: #e74c3c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>午餐轉盤</h1>
+  <div id="wheel"></div>
+  <button id="start-btn">開始轉盤</button>
+  <div id="result"></div>
+
+  <script>
+    const lunchOptions = [
+      "牛肉麵", "便當", "炒飯", "漢堡", "義大利麵",
+      "拉麵", "火鍋", "壽司", "三明治", "燒臘飯",
+      "滷肉飯", "水餃", "炒麵", "雞排飯", "披薩",
+      "蔬食便當", "越南河粉", "韓式拌飯", "咖哩飯", "牛排",
+      "泰式料理", "日式丼飯", "鍋燒意麵", "涼麵", "燉飯"
+    ];
+
+    const wheel = document.getElementById("wheel");
+    const startBtn = document.getElementById("start-btn");
+    const result = document.getElementById("result");
+
+    const totalOptions = lunchOptions.length;
+    const sliceDeg = 360 / totalOptions;
+
+    // 建立轉盤區塊
+    lunchOptions.forEach((option, index) => {
+      const slice = document.createElement("div");
+      slice.className = "option";
+      const rotateDeg = sliceDeg * index;
+      slice.style.transform = `rotate(${rotateDeg}deg) skewY(${90 - sliceDeg}deg)`;
+      slice.style.backgroundColor = `hsl(${index * sliceDeg}, 70%, 60%)`;
+      slice.innerHTML = `<span style="transform: skewY(${sliceDeg - 90}deg) rotate(${sliceDeg / 2}deg); display: inline-block;">${option}</span>`;
+      wheel.appendChild(slice);
+    });
+
+    startBtn.addEventListener("click", () => {
+      result.textContent = "";
+      const spins = Math.floor(Math.random() * 5 + 5); // 隨機轉幾圈
+      const selectedIndex = Math.floor(Math.random() * totalOptions);
+      const rotateTo = 360 * spins + (360 - (selectedIndex * sliceDeg)) - (sliceDeg / 2);
+
+      wheel.style.transition = "transform 4s cubic-bezier(0.33, 1, 0.68, 1)";
+      wheel.style.transform = `rotate(${rotateTo}deg)`;
+
+      setTimeout(() => {
+        result.textContent = `今天午餐吃 ${lunchOptions[selectedIndex]}！`;
+      }, 4200);
+    });
+  </script>
+
+</body>
+</html>

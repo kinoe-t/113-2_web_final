@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>高級代辦清單</title>
+  <style id="theme-style">
+    /* Style will be inserted dynamically */
+  </style>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui;
+      transition: background 0.3s, color 0.3s;
+      background-color: #fff6f6;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 1rem;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    form, .todo-item {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    .todo-item.completed {
+      text-decoration: line-through;
+      color: #aaa;
+      background: #f5f5f5;
+    }
+    .todo-item.overdue {
+      background: #ffe5e5;
+      border-left: 5px solid red;
+    }
+    .tag {
+      display: inline-block;
+      background-color: #ffd1dc;
+      color: #fff;
+      border-radius: 20px;
+      padding: 4px 10px;
+      margin-left: 6px;
+      font-size: 0.75rem;
+    }
+    select, input, textarea, button {
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+    }
+    button {
+      background-color: #ffb6c1;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff99aa;
+    }
+    @media (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+    .note-preview img {
+      max-width: 100px;
+      display: block;
+    }
+    .filter-section {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="title">📋 我的代辦事項</h1>
+    <div class="controls">
+      <select id="languageSelect">
+        <option value="zh-TW">繁體中文</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="de">Deutsch</option>
+      </select>
+      <select id="themeSelect">
+        <option value="light">🌞 Light</option>
+        <option value="dark">🌙 Dark</option>
+      </select>
+      <select id="fontSelect">
+        <option value="system-ui">系統預設</option>
+        <option value="serif">明體</option>
+        <option value="sans-serif">無襯線</option>
+        <option value="cursive">手寫</option>
+      </select>
+      <select id="fontSizeSelect">
+        <option value="small">小</option>
+        <option value="medium" selected>中</option>
+        <option value="large">大</option>
+      </select>
+    </div>
+
+    <div class="filter-section">
+      <label>篩選標籤：<input type="text" id="tagFilter" placeholder="輸入標籤名稱..." /></label>
+    </div>
+
+    <form id="todoForm">
+      <label>事項：<input type="text" id="taskInput" required /></label><br />
+      <label>完成時間：<input type="datetime-local" id="deadlineInput" required /></label><br />
+      <label>分類標籤：<input type="text" id="tagInput" placeholder="如：工作、個人、學習..." /></label><br />
+      <label>備註：<textarea id="noteInput" rows="2"></textarea></label><br />
+      <label>附加檔案或圖片：<input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt" /></label><br />
+      <button type="submit">新增事項</button>
+    </form>
+
+    <ul id="todoList"></ul>
+  </div>
+
+  <script>
+    let todos = JSON.parse(localStorage.getItem("todos") || "[]");
+    const todoList = document.getElementById("todoList");
+
+    function renderTodos() {
+      todoList.innerHTML = "";
+      const now = new Date();
+      const filter = document.getElementById("tagFilter").value.trim().toLowerCase();
+      todos.sort((a,b)=>a.completed-b.completed || new Date(a.deadline)-new Date(b.deadline));
+      todos.forEach(todo => {
+        if (filter && (!todo.tag || !todo.tag.toLowerCase().includes(filter))) return;
+
+        const li = document.createElement("li");
+        li.className = "todo-item";
+        if (todo.completed) li.classList.add("completed");
+        if (!todo.completed && new Date(todo.deadline) < now) li.classList.add("overdue");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = todo.completed;
+        checkbox.onchange = () => {
+          todo.completed = checkbox.checked;
+          saveTodos();
+        };
+
+        const content = document.createElement("div");
+        content.innerHTML = `<strong>${todo.task}</strong><br />完成時間：${new Date(todo.deadline).toLocaleString()}`;
+
+        if (todo.tag) {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = todo.tag;
+          content.appendChild(tag);
+        }
+
+        if (todo.note) {
+          const note = document.createElement("div");
+          note.textContent = `備註：${todo.note}`;
+          content.appendChild(note);
+        }
+
+        if (todo.fileData) {
+          const preview = document.createElement("div");
+          preview.className = "note-preview";
+          if (todo.fileType.startsWith("image/")) {
+            const img = new Image();
+            img.src = todo.fileData;
+            preview.appendChild(img);
+          } else {
+            const link = document.createElement("a");
+            link.href = todo.fileData;
+            link.download = todo.fileName;
+            link.textContent = todo.fileName;
+            preview.appendChild(link);
+          }
+          content.appendChild(preview);
+        }
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "刪除";
+        delBtn.onclick = () => {
+          if (confirm(`確定要刪除「${todo.task}」嗎？`)) {
+            todos = todos.filter(t => t.id !== todo.id);
+            saveTodos();
+          }
+        };
+
+        li.append(checkbox, content, delBtn);
+        todoList.appendChild(li);
+      });
+    }
+
+    function saveTodos() {
+      localStorage.setItem("todos", JSON.stringify(todos));
+      renderTodos();
+    }
+
+    document.getElementById("todoForm").onsubmit = async e => {
+      e.preventDefault();
+      const task = document.getElementById("taskInput").value.trim();
+      const deadline = new Date(document.getElementById("deadlineInput").value);
+      const tag = document.getElementById("tagInput").value.trim();
+      const note = document.getElementById("noteInput").value.trim();
+      const file = document.getElementById("fileInput").files[0];
+
+      let fileData = null;
+      let fileType = null;
+      let fileName = null;
+
+      if (file) {
+        fileData = await toBase64(file);
+        fileType = file.type;
+        fileName = file.name;
+      }
+
+      todos.push({
+        id: Date.now(),
+        task, deadline: deadline.toISOString(), tag, note,
+        fileData, fileType, fileName,
+        completed: false
+      });
+
+      e.target.reset();
+      saveTodos();
+    };
+
+    document.getElementById("tagFilter").oninput = renderTodos;
+
+    function toBase64(file) {
+      return new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.onerror = err => rej(err);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if ("Notification" in window && Notification.permission !== "denied") {
+      Notification.requestPermission();
+    }
+
+    setInterval(() => {
+      const now = new Date();
+      todos.forEach(todo => {
+        const due = new Date(todo.deadline);
+        if (!todo.completed && due - now <= 60000 && due - now > 0) {
+          new Notification("到期提醒", { body: `${todo.task} 快到期了！` });
+        }
+      });
+    }, 30000);
+
+    renderTodos();
+  </script>
+</body>
+</html>

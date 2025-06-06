@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>轉盤小工具</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      background-color: #f0f8ff;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #007acc;
+    }
+
+    canvas {
+      margin: 20px auto;
+      display: block;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #b2dfdb;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      background: #40e0d0; /* Tiffany 藍 */
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #00bcd4;
+    }
+  </style>
+</head>
+<body>
+  <h1>幸運轉盤</h1>
+  <canvas id="wheelCanvas" width="400" height="400"></canvas>
+  <input type="text" id="itemsInput" placeholder="請輸入選項，使用逗號分隔，例如：蘋果,香蕉,橘子"/>
+  <br />
+  <button onclick="updateWheel()">更新轉盤</button>
+  <button onclick="spinWheel()">轉動轉盤</button>
+
+  <script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    let items = ['選項一', '選項二', '選項三'];
+    let angle = 0;
+    let spinning = false;
+
+    function drawWheel() {
+      const numItems = items.length;
+      const anglePerItem = (2 * Math.PI) / numItems;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < numItems; i++) {
+        const startAngle = angle + i * anglePerItem;
+        const endAngle = startAngle + anglePerItem;
+        ctx.beginPath();
+        ctx.moveTo(200, 200);
+        ctx.arc(200, 200, 180, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = i % 2 === 0 ? '#87CEEB' : '#40E0D0'; // 天藍 & Tiffany 藍
+        ctx.fill();
+        ctx.stroke();
+
+        // 標籤文字
+        ctx.save();
+        ctx.translate(200, 200);
+        ctx.rotate(startAngle + anglePerItem / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#000';
+        ctx.font = '16px Arial';
+        ctx.fillText(items[i], 170, 5);
+        ctx.restore();
+      }
+
+      // 指針
+      ctx.beginPath();
+      ctx.moveTo(200, 20);
+      ctx.lineTo(190, 0);
+      ctx.lineTo(210, 0);
+      ctx.closePath();
+      ctx.fillStyle = '#FF6347';
+      ctx.fill();
+    }
+
+    function updateWheel() {
+      const input = document.getElementById('itemsInput').value.trim();
+      if (input) {
+        items = input.split(',').map(i => i.trim()).filter(i => i !== '');
+        drawWheel();
+      }
+    }
+
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      const spins = Math.random() * 5 + 5; // 隨機旋轉 5~10 圈
+      const duration = 3000; // 轉動時間 3 秒
+      const start = performance.now();
+
+      function animate(now) {
+        const elapsed = now - start;
+        const t = Math.min(elapsed / duration, 1);
+        const easing = 1 - Math.pow(1 - t, 3); // ease-out
+        angle = 2 * Math.PI * spins * easing;
+        drawWheel();
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          showResult();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function showResult() {
+      const numItems = items.length;
+      const anglePerItem = (2 * Math.PI) / numItems;
+      const selected = Math.floor(((2 * Math.PI - (angle % (2 * Math.PI))) % (2 * Math.PI)) / anglePerItem);
+      alert("結果是：" + items[selected]);
+    }
+
+    drawWheel();
+  </script>
+</body>
+</html>

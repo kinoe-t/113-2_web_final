@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>怪獸跑酷</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #87CEEB; font-family: sans-serif; }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(#87CEEB 70%, #228B22 70%);
+      overflow: hidden;
+    }
+    .player {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 20px;
+      width: 60px;
+      height: 60px;
+      background: brown;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      z-index: 10;
+    }
+    .jumping {
+      animation: jump 0.6s ease-out;
+    }
+    @keyframes jump {
+      0% { bottom: 20px; }
+      50% { bottom: 200px; }
+      100% { bottom: 20px; }
+    }
+    .flying { bottom: 300px !important; }
+    .giant {
+      width: 120px;
+      height: 120px;
+      background: gray;
+    }
+    .kong {
+      width: 100px;
+      height: 100px;
+      background: #654321;
+    }
+    .obstacle {
+      position: absolute;
+      bottom: 20px;
+      width: 40px;
+      height: 60px;
+      background: black;
+      left: 100vw;
+    }
+    .obstacle-flying {
+      bottom: 300px !important;
+    }
+    .poop {
+      background: #8B4513;
+      width: 60px;
+      height: 60px;
+      border-radius: 50% 50% 30% 30%;
+    }
+    #game-over, #game-start {
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      text-align: center;
+      font-size: 48px;
+      color: red;
+      display: none;
+      z-index: 20;
+    }
+    #game-start { color: green; }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="player" class="player"></div>
+    <div id="game-start">Ludus Initium</div>
+    <div id="game-over">Ludus Finis</div>
+  </div>
+
+  <script>
+    const game = document.getElementById('game');
+    const player = document.getElementById('player');
+    const gameStartText = document.getElementById('game-start');
+    const gameOverText = document.getElementById('game-over');
+
+    let jumping = false;
+    let flying = false;
+    let status = 'dino';
+    let startTime = Date.now();
+    let obstacleInterval;
+    let animationId;
+
+    function jump() {
+      if (jumping || flying) return;
+      jumping = true;
+      player.classList.add('jumping');
+      setTimeout(() => {
+        player.classList.remove('jumping');
+        jumping = false;
+      }, 600);
+    }
+
+    function fly(direction) {
+      if (!flying) return;
+      const bottom = parseInt(window.getComputedStyle(player).bottom);
+      if (direction === 'up' && bottom < 500) {
+        player.style.bottom = `${bottom + 40}px`;
+      }
+      if (direction === 'down' && bottom > 100) {
+        player.style.bottom = `${bottom - 40}px`;
+      }
+    }
+
+    function createObstacle() {
+      const obs = document.createElement('div');
+      obs.classList.add('obstacle');
+      if (flying) obs.classList.add('obstacle-flying');
+      game.appendChild(obs);
+
+      const move = setInterval(() => {
+        const left = parseInt(obs.style.left);
+        if (left < -50) {
+          obs.remove();
+          clearInterval(move);
+        } else {
+          obs.style.left = `${left - 5}px`;
+          checkCollision(obs);
+        }
+      }, 30);
+    }
+
+    function checkCollision(obs) {
+      const playerRect = player.getBoundingClientRect();
+      const obsRect = obs.getBoundingClientRect();
+      if (
+        playerRect.left < obsRect.left + obsRect.width &&
+        playerRect.left + playerRect.width > obsRect.left &&
+        playerRect.top < obsRect.top + obsRect.height &&
+        playerRect.height + playerRect.top > obsRect.top
+      ) {
+        endGame();
+      }
+    }
+
+    function endGame() {
+      cancelAnimationFrame(animationId);
+      clearInterval(obstacleInterval);
+      player.className = 'player poop';
+      gameOverText.style.display = 'block';
+    }
+
+    function changeState(newState) {
+      player.className = 'player';
+      status = newState;
+      flying = false;
+
+      if (newState === 'godzilla') {
+        player.classList.add('giant');
+        player.style.bottom = '300px';
+        flying = true;
+      } else if (newState === 'kong') {
+        player.classList.add('kong');
+        player.style.bottom = '20px';
+      } else {
+        player.style.bottom = '20px';
+      }
+    }
+
+    function updateState() {
+      const elapsed = (Date.now() - startTime) / 1000;
+      if (elapsed % 35 < 10) changeState('dino');
+      else if (elapsed % 35 < 25) changeState('godzilla');
+      else changeState('kong');
+    }
+
+    function gameLoop() {
+      updateState();
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function moveObstacles() {
+      const allObstacles = document.querySelectorAll('.obstacle');
+      allObstacles.forEach(obs => {
+        const left = parseInt(obs.style.left);
+        obs.style.left = `${left - 2}px`;
+        checkCollision(obs);
+        if (left < -100) obs.remove();
+      });
+    }
+
+    function animateWorld() {
+      moveObstacles();
+      requestAnimationFrame(animateWorld);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp') {
+        if (flying) fly('up');
+        else jump();
+      } else if (e.key === 'ArrowDown') {
+        fly('down');
+      }
+    });
+
+    // 開始動畫
+    gameStartText.style.display = 'block';
+    setTimeout(() => {
+      gameStartText.style.display = 'none';
+      startTime = Date.now();
+      obstacleInterval = setInterval(createObstacle, 1500);
+      gameLoop();
+      animateWorld();
+    }, 2000);
+  </script>
+</body>
+</html>

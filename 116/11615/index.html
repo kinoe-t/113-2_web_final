@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>心理測驗：你是哪一型人格？</title>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background: #fffaf0;
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #quiz {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+    .question {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    .options button {
+      display: block;
+      margin: 10px 0;
+      padding: 12px;
+      width: 100%;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      text-align: left;
+    }
+    .options button:hover {
+      background-color: #e0f7fa;
+    }
+    #nextBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #4a90e2;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    #result {
+      font-size: 18px;
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #e1f5fe;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="quiz">
+    <div id="questionBox" class="question"></div>
+    <div class="options" id="optionsBox"></div>
+    <button id="nextBtn" onclick="nextQuestion()">下一步</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        text: "1. 週末來了，你最想？",
+        options: [
+          { text: "跟朋友吃飯聊八卦，社交能量加滿！", type: "社交型" },
+          { text: "在家耍廢追劇，舒服就是王道", type: "穩定型" },
+          { text: "找個新興趣試試看，也許我有天賦？", type: "創造型" }
+        ]
+      },
+      {
+        text: "2. 遇到工作卡關時，你會？",
+        options: [
+          { text: "分析問題、整理資料，我要找到根本原因", type: "分析型" },
+          { text: "先畫個流程圖，再來慢慢拆解！", type: "思考型" },
+          { text: "直接問同事，集思廣益最快啦～", type: "社交型" }
+        ]
+      },
+      {
+        text: "3. 聚會上你通常？",
+        options: [
+          { text: "默默觀察大家，好像每個人都有故事", type: "思考型" },
+          { text: "搶先開話題，不然氣氛太乾啦！", type: "社交型" },
+          { text: "找幾個人討論最近的 AI 趨勢（認真）", type: "分析型" }
+        ]
+      },
+      {
+        text: "4. 要規劃旅遊行程時你會？",
+        options: [
+          { text: "整份 Excel 都幫你排好了，準時出發！", type: "主導型" },
+          { text: "先找景點靈感，看看有什麼酷東西", type: "創造型" },
+          { text: "我配合大家就好，去哪都行～", type: "穩定型" }
+        ]
+      },
+      {
+        text: "5. 有人跟你說他很煩，你會？",
+        options: [
+          { text: "先給他一個大大的擁抱，聽他說完", type: "社交型" },
+          { text: "分析他煩惱的根本，提出具體建議", type: "分析型" },
+          { text: "認真陪他一起畫出情緒圖表（？）", type: "思考型" }
+        ]
+      },
+      {
+        text: "6. 你最無法忍受什麼？",
+        options: [
+          { text: "混亂沒規劃的行程", type: "主導型" },
+          { text: "無聊又缺乏挑戰的工作", type: "創造型" },
+          { text: "突然的改變讓我心跳加速", type: "穩定型" }
+        ]
+      },
+      {
+        text: "7. 你覺得自己的決策風格是？",
+        options: [
+          { text: "果斷直接，先決定再微調", type: "主導型" },
+          { text: "多方蒐集資料、比較後再行動", type: "分析型" },
+          { text: "直覺！第六感 usually 不會錯", type: "創造型" }
+        ]
+      },
+      {
+        text: "8. 如果明天不用上班，你會？",
+        options: [
+          { text: "把想做但拖很久的事全部搞定", type: "主導型" },
+          { text: "泡一壺茶，發呆一整天", type: "穩定型" },
+          { text: "畫畫寫詩剪影片，腦袋開 Party", type: "創造型" }
+        ]
+      },
+      {
+        text: "9. 開會時你通常？",
+        options: [
+          { text: "默默記筆記，事後寫報告", type: "思考型" },
+          { text: "發問提點重點，不能讓會議變廢話！", type: "主導型" },
+          { text: "邊聽邊加表情包在聊天室（誤）", type: "社交型" }
+        ]
+      },
+      {
+        text: "10. 面對陌生環境，你的反應是？",
+        options: [
+          { text: "一開始會緊張，但我會觀察再融入", type: "穩定型" },
+          { text: "太棒了，又可以認識新朋友了！", type: "社交型" },
+          { text: "我已經開始腦補情境模擬100遍", type: "思考型" }
+        ]
+      },
+      {
+        text: "11. 有一個創新點子，你會？",
+        options: [
+          { text: "馬上寫企劃書，實現它！", type: "主導型" },
+          { text: "在腦中想像三種版本，看哪個最好玩", type: "創造型" },
+          { text: "研究市場數據，確認可行性", type: "分析型" }
+        ]
+      },
+      {
+        text: "12. 朋友常說你是？",
+        options: [
+          { text: "好聊又溫暖", type: "社交型" },
+          { text: "邏輯派，問題終結者", type: "分析型" },
+          { text: "腦洞超大，常常驚艷大家", type: "創造型" }
+        ]
+      },
+      {
+        text: "13. 工作中你最重視？",
+        options: [
+          { text: "穩定、有明確方向", type: "穩定型" },
+          { text: "自由、可以創造價值", type: "創造型" },
+          { text: "明確權責分工，效率至上", type: "主導型" }
+        ]
+      },
+      {
+        text: "14. 你對未來的想法是？",
+        options: [
+          { text: "要有規劃，有備無患", type: "穩定型" },
+          { text: "充滿可能性，我準備好大展身手了", type: "主導型" },
+          { text: "變化多才有趣，不然多無聊啊", type: "創造型" }
+        ]
+      },
+      {
+        text: "15. 遇到衝突時，你傾向？",
+        options: [
+          { text: "先觀察彼此情緒，再慢慢溝通", type: "思考型" },
+          { text: "主動出擊，解決問題才是王道", type: "主導型" },
+          { text: "幫大家調和氣氛，不要吵架啦！", type: "社交型" }
+        ]
+      }
+    ];
+
+    let currentQuestion = 0;
+    let scores = {
+      "社交型": 0,
+      "分析型": 0,
+      "創造型": 0,
+      "主導型": 0,
+      "思考型": 0,
+      "穩定型": 0
+    };
+
+    function showQuestion() {
+      const q = questions[currentQuestion];
+      document.getElementById("questionBox").innerText = q.text;
+      const optionsBox = document.getElementById("optionsBox");
+      optionsBox.innerHTML = "";
+      document.getElementById("nextBtn").style.display = "none";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.innerText = option.text;
+        btn.onclick = () => {
+          scores[option.type]++;
+          document.querySelectorAll("#optionsBox button").forEach(b => b.disabled = true);
+          document.getElementById("nextBtn").style.display = "inline-block";
+        };
+        optionsBox.appendChild(btn);
+      });
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      let maxType = null;
+      let maxScore = -1;
+      for (const type in scores) {
+        if (scores[type] > maxScore) {
+          maxScore = scores[type];
+          maxType = type;
+        }
+      }
+
+      const descriptions = {
+        "社交型": "你是天生的開朗小太陽，擅長與人連結、感染氣氛，是團體中的活力來源。",
+        "分析型": "你思路清晰，凡事講邏輯，是團隊中的數據大腦，適合研究、規劃與解決問題。",
+        "創造型": "你充滿創意與想像力，點子永遠說不完，是靈感和突破的火花來源！",
+        "主導型": "你果斷、有組織力，適合帶領團隊向前衝，是天生的領導者。",
+        "思考型": "你內斂、細膩，擅長分析與觀察，是團隊中的深度智者。",
+        "穩定型": "你給人安心感，踏實穩重，喜歡有秩序的生活，是值得信賴的存在。"
+      };
+
+      document.getElementById("quiz").innerHTML = `
+        <h2>測驗結果：${maxType}</h2>
+        <div id="result">${descriptions[maxType]}</div>
+      `;
+    }
+
+    showQuestion();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>浣熊跳跳樂</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #e0f7fa, #f0fff0);
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background-color: transparent;
+    }
+    #score {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">得分：0</div>
+  <canvas id="gameCanvas" width="800" height="200"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // 載入圖片
+    const raccoonImg = new Image();
+    const trashcanImg = new Image();
+    const pigeonImg = new Image();
+
+    raccoonImg.src = "raccoon.png";
+    trashcanImg.src = "trashcan.png";
+    pigeonImg.src = "pigeon.png";
+
+    let raccoon = {
+      x: 50,
+      y: 150,
+      width: 40,
+      height: 40,
+      vy: 0,
+      gravity: 1.5,
+      jumpPower: -20,
+      grounded: true
+    };
+
+    let trashCan = {
+      x: canvas.width,
+      y: 160,
+      width: 30,
+      height: 40,
+      speed: 6
+    };
+
+    let pigeon = {
+      x: canvas.width + 300,
+      y: 80,
+      width: 40,
+      height: 30,
+      speed: 5
+    };
+
+    let score = 0;
+    let isGameOver = false;
+
+    function update() {
+      if (isGameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 浣熊重力與跳躍
+      raccoon.vy += raccoon.gravity;
+      raccoon.y += raccoon.vy;
+      if (raccoon.y >= 150) {
+        raccoon.y = 150;
+        raccoon.vy = 0;
+        raccoon.grounded = true;
+      }
+
+      // 垃圾桶移動
+      trashCan.x -= trashCan.speed;
+      if (trashCan.x + trashCan.width < 0) {
+        trashCan.x = canvas.width + Math.random() * 200;
+        score++;
+        document.getElementById("score").innerText = "得分：" + score;
+      }
+
+      // 鴿子移動
+      pigeon.x -= pigeon.speed;
+      if (pigeon.x + pigeon.width < 0) {
+        pigeon.x = canvas.width + Math.random() * 300 + 200;
+        pigeon.y = Math.random() * 60 + 60;
+      }
+
+      // 畫出角色
+      ctx.drawImage(raccoonImg, raccoon.x, raccoon.y, raccoon.width, raccoon.height);
+      ctx.drawImage(trashcanImg, trashCan.x, trashCan.y, trashCan.width, trashCan.height);
+      ctx.drawImage(pigeonImg, pigeon.x, pigeon.y, pigeon.width, pigeon.height);
+
+      // 碰撞檢查
+      const obstacles = [trashCan, pigeon];
+      for (let obs of obstacles) {
+        if (
+          raccoon.x < obs.x + obs.width &&
+          raccoon.x + raccoon.width > obs.x &&
+          raccoon.y < obs.y + obs.height &&
+          raccoon.y + raccoon.height > obs.y
+        ) {
+          isGameOver = true;
+          alert("遊戲結束！你的得分是：" + score);
+          location.reload();
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.code === "Space" || e.code === "ArrowUp") {
+        if (raccoon.grounded) {
+          raccoon.vy = raccoon.jumpPower;
+          raccoon.grounded = false;
+        }
+      }
+    });
+
+    // 等待圖片載入完成再開始遊戲
+    let imagesLoaded = 0;
+    function checkStart() {
+      imagesLoaded++;
+      if (imagesLoaded === 3) update();
+    }
+
+    raccoonImg.onload = checkStart;
+    trashcanImg.onload = checkStart;
+    pigeonImg.onload = checkStart;
+  </script>
+</body>
+</html>
+
+

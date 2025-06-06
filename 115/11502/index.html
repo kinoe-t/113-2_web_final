@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>成績計算機OwO</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #4a90e2;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+      border-collapse: collapse;
+      padding: 10px;
+      text-align: center;
+    }
+    table {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    input[type="number"] {
+      width: 80px;
+    }
+    .button {
+      margin: 10px 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>你好，歡迎來到成績計算機OwO</h1>
+  <p>這是一個可以幫你計算成績(加權)平均、兩次成績比較的網頁哦!</p>
+
+  <button class="button" onclick="addSubject()">新增科目</button>
+  <button class="button" onclick="removeSubject()">減少科目</button>
+
+  <table id="scoreTable">
+    <tr id="scoreRow">
+      <th>成績</th>
+    </tr>
+    <tr id="weightRow">
+      <th>加權</th>
+    </tr>
+  </table>
+
+  <button class="button" onclick="calculateWeightedAverage()">計算加權平均</button>
+  <button class="button" onclick="showComparisonInput()">成績比較</button>
+
+  <p id="result"></p>
+  <div id="comparisonArea"></div>
+
+  <script>
+    let subjectCount = 0;
+    let weightedAverage = null;
+
+    function addSubject() {
+      subjectCount++;
+
+      const scoreRow = document.getElementById('scoreRow');
+      const scoreCell = document.createElement('td');
+      scoreCell.innerHTML = `<input type="number" id="score${subjectCount}" placeholder="成績">`;
+      scoreCell.id = `scoreCell${subjectCount}`;
+      scoreRow.appendChild(scoreCell);
+
+      const weightRow = document.getElementById('weightRow');
+      const weightCell = document.createElement('td');
+      weightCell.innerHTML = `<input type="number" id="weight${subjectCount}" placeholder="加權">`;
+      weightCell.id = `weightCell${subjectCount}`;
+      weightRow.appendChild(weightCell);
+    }
+
+    function removeSubject() {
+      if (subjectCount <= 0) {
+        alert("沒有科目可以刪除了！");
+        return;
+      }
+
+      const scoreCell = document.getElementById(`scoreCell${subjectCount}`);
+      const weightCell = document.getElementById(`weightCell${subjectCount}`);
+      if (scoreCell) scoreCell.remove();
+      if (weightCell) weightCell.remove();
+      subjectCount--;
+    }
+
+    function calculateWeightedAverage() {
+      let totalWeight = 0;
+      let weightedSum = 0;
+
+      if (subjectCount === 0) {
+        document.getElementById('result').textContent = '請先新增科目並輸入成績與加權。';
+        return;
+      }
+
+      for (let i = 1; i <= subjectCount; i++) {
+        const score = parseFloat(document.getElementById(`score${i}`).value);
+        const weight = parseFloat(document.getElementById(`weight${i}`).value);
+
+        if (isNaN(score) || isNaN(weight)) {
+          document.getElementById('result').textContent = '請填寫所有成績與加權數。';
+          return;
+        }
+
+        weightedSum += score * weight;
+        totalWeight += weight;
+      }
+
+      if (totalWeight === 0) {
+        document.getElementById('result').textContent = '加權總和不能為 0。';
+        return;
+      }
+
+      weightedAverage = weightedSum / totalWeight;
+      document.getElementById('result').textContent = `加權平均成績為：${weightedAverage.toFixed(2)}`;
+    }
+
+    function showComparisonInput() {
+      if (weightedAverage === null) {
+        alert("請先計算加權平均！");
+        return;
+      }
+
+      const comparisonDiv = document.getElementById('comparisonArea');
+      comparisonDiv.innerHTML = `
+        <p>請輸入另一個成績進行比較：</p>
+        <input type="number" id="compareScore" placeholder="輸入成績">
+        <button class="button" onclick="compareScore()">比較</button>
+        <p id="compareResult"></p>
+      `;
+    }
+
+    function compareScore() {
+      const inputScore = parseFloat(document.getElementById('compareScore').value);
+      const resultDiv = document.getElementById('compareResult');
+
+      if (isNaN(inputScore)) {
+        resultDiv.textContent = '請輸入有效的成績進行比較。';
+        return;
+      }
+
+      const diff = Math.abs(inputScore - weightedAverage).toFixed(2);
+      let comparison = "";
+
+      if (inputScore > weightedAverage) {
+        comparison = `新成績比加權平均高！差距為 ${diff} 分。`;
+      } else if (inputScore < weightedAverage) {
+        comparison = `新成績比加權平均低！差距為 ${diff} 分。`;
+      } else {
+        comparison = "新成績與加權平均相同！差距為 0 分。";
+      }
+
+      resultDiv.textContent = comparison;
+    }
+
+    // 預設三科
+    for (let i = 0; i < 3; i++) {
+      addSubject();
+    }
+  </script>
+</body>
+</html>

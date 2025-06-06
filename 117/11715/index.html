@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>吃什麼決定器</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.5s;
+    }
+    #choice-screen {
+      background-color: #fff8e1;
+      flex-direction: row;
+    }
+    .option {
+      width: 50%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .option:hover {
+      background-color: #ffe082;
+    }
+    #spin-screen {
+      background-color: #fff;
+      flex-direction: column;
+      display: none;
+    }
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 10px solid #ccc;
+      position: relative;
+      margin-bottom: 30px;
+      transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    .segment {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      top: 50%;
+      left: 50%;
+      transform-origin: 0% 0%;
+      background-color: #ffcc80;
+      text-align: center;
+      line-height: 2;
+      font-size: 1rem;
+    }
+    #spin-btn, #exit-btn {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background-color: #ff9800;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      margin: 5px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="choice-screen" class="screen">
+    <div class="option" id="salty">鹹食</div>
+    <div class="option" id="sweet">甜食</div>
+  </div>
+
+  <div id="spin-screen" class="screen">
+    <div id="wheel"></div>
+    <div>
+      <button id="spin-btn">轉啊！</button>
+      <button id="exit-btn">退出</button>
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const saltyFoods = ["滷肉飯", "牛肉麵", "雞排", "水餃", "炒飯", "陽春麵"];
+    const sweetFoods = ["珍珠奶茶", "冰淇淋", "蛋糕", "豆花", "甜甜圈", "剉冰"];
+    let selectedFoods = [];
+    let angle = 0;
+
+    const choiceScreen = document.getElementById('choice-screen');
+    const spinScreen = document.getElementById('spin-screen');
+    const wheel = document.getElementById('wheel');
+    const result = document.getElementById('result');
+    const spinBtn = document.getElementById('spin-btn');
+    const exitBtn = document.getElementById('exit-btn');
+
+    function renderWheel(items) {
+      wheel.innerHTML = '';
+      const anglePerItem = 360 / items.length;
+      items.forEach((item, index) => {
+        const segment = document.createElement('div');
+        segment.className = 'segment';
+        segment.style.transform = `rotate(${index * anglePerItem}deg) skewY(${90 - anglePerItem}deg)`;
+        segment.textContent = item;
+        wheel.appendChild(segment);
+      });
+    }
+
+    function spin() {
+      const rand = Math.floor(Math.random() * selectedFoods.length);
+      const degreesPerItem = 360 / selectedFoods.length;
+      const randomAngle = 360 * 5 + (360 - rand * degreesPerItem - degreesPerItem / 2);
+      angle = randomAngle;
+      wheel.style.transform = `rotate(${angle}deg)`;
+      setTimeout(() => {
+        result.textContent = `你該吃：${selectedFoods[rand]}！`;
+      }, 5000);
+    }
+
+    function startSpin() {
+      choiceScreen.style.display = 'none';
+      spinScreen.style.display = 'flex';
+      renderWheel(selectedFoods);
+      result.textContent = '';
+      wheel.style.transform = 'rotate(0deg)';
+    }
+
+    document.getElementById('salty').addEventListener('click', () => {
+      selectedFoods = saltyFoods;
+      startSpin();
+    });
+    document.getElementById('sweet').addEventListener('click', () => {
+      selectedFoods = sweetFoods;
+      startSpin();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') {
+        selectedFoods = saltyFoods;
+        startSpin();
+      } else if (e.key === 'ArrowRight') {
+        selectedFoods = sweetFoods;
+        startSpin();
+      } else if (e.key === 'Escape') {
+        exitToMenu();
+      }
+    });
+
+    spinBtn.addEventListener('click', spin);
+    exitBtn.addEventListener('click', exitToMenu);
+
+    function exitToMenu() {
+      spinScreen.style.display = 'none';
+      choiceScreen.style.display = 'flex';
+      result.textContent = '';
+    }
+  </script>
+</body>
+</html>

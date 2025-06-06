@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>每週待辦事項清單</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      margin: 20px;
+    }
+    h2 {
+      margin-top: 30px;
+      color: #333;
+    }
+    .day-section {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin: 8px 0;
+    }
+    li.completed {
+      text-decoration: line-through;
+      color: #aaa;
+      opacity: 0.6;
+    }
+    .done-image {
+      display: none;
+      margin-top: 10px;
+      width: 100px;
+    }
+    input[type="text"] {
+      padding: 6px;
+      width: 70%;
+    }
+    button {
+      padding: 6px 10px;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>每週待辦事項清單</h1>
+
+  <div id="week"></div>
+
+  <script>
+    const days = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
+    const weekContainer = document.getElementById('week');
+
+    days.forEach((day, dayIndex) => {
+      const section = document.createElement('div');
+      section.className = 'day-section';
+      section.innerHTML = `
+        <h2>${day}</h2>
+        <form onsubmit="return false;">
+          <input type="text" placeholder="新增待辦事項">
+          <button>新增</button>
+        </form>
+        <ul></ul>
+        <img src="day_done.jpg" class="done-image" alt="完成圖片">
+      `;
+      weekContainer.appendChild(section);
+
+      const input = section.querySelector('input');
+      const button = section.querySelector('button');
+      const ul = section.querySelector('ul');
+      const doneImage = section.querySelector('.done-image');
+
+      button.addEventListener('click', () => {
+        const text = input.value.trim();
+        if (text !== '') {
+          const li = document.createElement('li');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+
+          const span = document.createElement('span');
+          span.textContent = ' ' + text;
+
+          li.appendChild(checkbox);
+          li.appendChild(span);
+          ul.appendChild(li);
+          input.value = '';
+
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+              li.classList.add('completed');
+            } else {
+              li.classList.remove('completed');
+            }
+            checkAllCompleted();
+          });
+        }
+      });
+
+      function checkAllCompleted() {
+        const items = ul.querySelectorAll('li');
+        const completed = ul.querySelectorAll('li.completed');
+        if (items.length > 0 && items.length === completed.length) {
+          doneImage.style.display = 'block';
+        } else {
+          doneImage.style.display = 'none';
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>愛情中你是哪種多巴胺色系？</title>
+  <style>
+    body {
+      font-family: "微軟正黑體", sans-serif;
+      background-color: #fff8f8;
+      margin: 0;
+      padding: 40px 20px;
+      text-align: center;
+      color: #333;
+    }
+    h1 {
+      color: #f4a5bc;
+      font-size: 32px;
+    }
+    p.description {
+      font-size: 16px;
+      color: #000;
+      margin-bottom: 30px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .button-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    button.color-btn {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.2s;
+    }
+    button.color-btn:hover {
+      transform: scale(1.05);
+    }
+    #answer {
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background-color: #fff0f5;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 15px;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>愛情中你是哪種多巴胺色系？</h1>
+  <p class="description">
+    冷冷的冬天，好想來點戀愛的多巴胺。<br>
+    在愛情中的你具有哪種思維？從以下的多巴胺色系中，直覺選擇一個對你而言象徵「戀愛」的顏色。
+  </p>
+  <div class="button-container">
+    <button class="color-btn" style="background-color: #d9214c;" onclick="showAnswer('red')">胭脂紅</button>
+    <button class="color-btn" style="background-color: #faff00; color: #333;" onclick="showAnswer('yellow')">螢光黃</button>
+    <button class="color-btn" style="background-color: #6fcf97;" onclick="showAnswer('green')">鮮果綠</button>
+    <button class="color-btn" style="background-color: #ff8a3d;" onclick="showAnswer('orange')">蜜柚橘</button>
+    <button class="color-btn" style="background-color: #fbb1b1;" onclick="showAnswer('pink')">蜜桃粉</button>
+  </div>
+  <div id="answer"></div>
+
+  <script>
+    function showAnswer(color) {
+      const answers = {
+        red: `胭脂紅｜感受豐富的〔情感派〕戀愛者
+多巴胺是存在於大腦中與愉悅、快樂有關的神經傳導物質。妳選擇了「胭脂紅」作為戀愛的連結，意味著妳具有十分敏感的感受性，特別是在愛情中喜歡製造浪漫甜美的幸福氛圍，屬於儀式感滿滿、不愛則已一愛驚人的類型。因為感受性強，往往能充分體會感情裡的美好，也會徹底感受其中的苦澀。有些人甚至特別容易經歷到如同偶像劇般峰迴路轉的戀愛情節。`,
+        yellow: `螢光黃｜自由個性的〔獨立派〕戀愛者 
+選擇了這個充分刺激腦內啡的明亮色彩作為愛情代表色，透露妳有著熱愛注目、熱愛分享與互動的特質，但潛意識中也暗藏了妳對於感情有著較懷疑的投射。比起那些全心全意付出、追求海枯石瀾至死不渝的烈愛者，妳反倒有比較多的保留，甚至比較相信自己的能力與獨特性，即使走入兩人關係，妳仍傾向保有自主性、保有屬於自己的想法，也經常是關係中較強勢、較被依賴的一方。`,
+        green: `鮮果綠｜務實理性的〔思考派〕戀愛者 
+雖然感情中種種風花雪月的情節令人嚮往，不過生活還是要繼續，除了感情還有很多重要的事情得做。選擇鮮果綠的妳，感情中屬於十分聰明的戀愛者，妳善於在感情中創造出互相依存的關係，並藉由感情達成1+1大於2的生活目標，與其說妳在談戀愛，倒不如說妳喜歡「研究戀愛」，抱持著實驗精神了解妳想了解的事物，即使身處在甜美的愛情中，妳仍會透過各種方式滿足愛情上的求知慾望，期許自己在感情中有所領悟。`,
+        orange: `蜜柚橘｜屬於〔依賴派〕戀愛者 
+摻了蜜的色彩除了漂亮吸睛，往往也能刺激著大腦分泌出屬於幸福的激素。選擇蜜柚橘的妳，對於外人有著極高的戒心，然而一旦有人突破層層心防，妳所建立的防護牆也會瞬間崩塌，無論妳看起來有多堅強，只要走入感情，妳就容易失去自我，成為不折不扣的「依賴派」。也許戀愛之前孤軍奮戰已讓妳累壞，因此一旦戀愛，就容易事事以對方主導，再從這份認同中尋求安全感和支持。`,
+        pink: `蜜桃粉｜追求新鮮有趣的〔玩樂派〕戀愛者
+摻了紅、橘和桃紅等甜甜糖果色系的蜜桃粉，乍看十分羅曼蒂克，但其實充分顯示了你在感情中有著長不大的一面，舉凡孩子可能出現的任性、孩子氣、傻氣、直率不設防的特質，妳幾乎都有。在妳大大的玩心之下，一旦走入戀愛，兩人的生活往往變得多采多姿。只是感情中的妳往往專注在享樂、被對方寵愛與照顧的部分，可以同甘卻不一定能共苦，一旦中間出現挫折與壓力，就很可能在不開心又不知如何處理的狀況中畫下句點。`
+      };
+
+      document.getElementById("answer").textContent = answers[color];
+    }
+  </script>
+</body>
+</html>

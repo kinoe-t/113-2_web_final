@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>1A2B 遊戲</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f2f2f2;
+      text-align: center;
+      padding: 50px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    input {
+      font-size: 24px;
+      text-align: center;
+      width: 100px;
+      padding: 5px;
+    }
+
+    .feedback {
+      font-size: 32px;
+      margin: 10px;
+    }
+
+    .green {
+      color: green;
+      font-weight: bold;
+    }
+
+    .red {
+      color: red;
+      font-weight: bold;
+    }
+
+    #game, #result, #records {
+      margin-top: 30px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      font-size: 18px;
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>1A2B 猜數字遊戲</h1>
+  <button onclick="startGame()">開始遊戲</button>
+
+  <div id="game" style="display:none;">
+    <p>請輸入 4 位數不重複的數字：</p>
+    <input type="text" id="userInput" maxlength="4" onkeyup="handleKeyUp(event)">
+    <div id="feedback" class="feedback"></div>
+    <p>你已經猜了 <span id="guessCount">0</span> 次</p>
+  </div>
+
+  <div id="result" style="display:none;">
+    <h2>🎉 恭喜猜中！</h2>
+    <p>你總共猜了 <span id="finalGuessCount"></span> 次</p>
+    <button onclick="startGame()">再玩一次</button>
+  </div>
+
+  <div id="records">
+    <h3>最佳紀錄</h3>
+    <ul id="recordList"></ul>
+  </div>
+
+  <script>
+    let answer = "";
+    let guessCount = 0;
+    let records = [];
+
+    function generateAnswer() {
+      let digits = [];
+      while (digits.length < 4) {
+        let n = Math.floor(Math.random() * 10).toString();
+        if (!digits.includes(n)) {
+          digits.push(n);
+        }
+      }
+      return digits.join("");
+    }
+
+    function startGame() {
+      answer = generateAnswer();
+      guessCount = 0;
+      document.getElementById("userInput").value = "";
+      document.getElementById("feedback").innerHTML = "";
+      document.getElementById("guessCount").textContent = "0";
+      document.getElementById("game").style.display = "block";
+      document.getElementById("result").style.display = "none";
+      console.log("答案是: " + answer); // 可移除
+    }
+
+    function handleKeyUp(event) {
+      if (event.key === "Enter") {
+        const input = document.getElementById("userInput").value;
+        if (input.length !== 4 || !/^\d{4}$/.test(input) || new Set(input).size !== 4) {
+          alert("請輸入4位不重複的數字！");
+          return;
+        }
+
+        guessCount++;
+        document.getElementById("guessCount").textContent = guessCount;
+        const result = checkGuess(input);
+        document.getElementById("feedback").innerHTML = renderFeedback(result.A, result.B);
+
+        if (result.A === 4) {
+          document.getElementById("game").style.display = "none";
+          document.getElementById("result").style.display = "block";
+          document.getElementById("finalGuessCount").textContent = guessCount;
+          saveRecord(guessCount);
+          renderRecords();
+        }
+
+        document.getElementById("userInput").value = "";
+      }
+    }
+
+    function checkGuess(guess) {
+      let A = 0, B = 0;
+      for (let i = 0; i < 4; i++) {
+        if (guess[i] === answer[i]) {
+          A++;
+        } else if (answer.includes(guess[i])) {
+          B++;
+        }
+      }
+      return { A, B };
+    }
+
+    function renderFeedback(A, B) {
+      return `<span class="green">${A}A</span> <span class="red">${B}B</span>`;
+    }
+
+    function saveRecord(count) {
+      records.push(count);
+      records.sort((a, b) => a - b);
+      records = records.slice(0, 5); // 僅保留前5筆最佳紀錄
+      localStorage.setItem("1a2bRecords", JSON.stringify(records));
+    }
+
+    function renderRecords() {
+      const list = document.getElementById("recordList");
+      list.innerHTML = "";
+      records.forEach((count, index) => {
+        const li = document.createElement("li");
+        li.textContent = `第 ${index + 1} 名：${count} 次`;
+        list.appendChild(li);
+      });
+    }
+
+    function loadRecords() {
+      const saved = localStorage.getItem("1a2bRecords");
+      if (saved) {
+        records = JSON.parse(saved);
+        renderRecords();
+      }
+    }
+
+    // 初次載入
+    loadRecords();
+  </script>
+</body>
+</html>

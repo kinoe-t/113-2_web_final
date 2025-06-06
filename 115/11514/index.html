@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>午餐輪盤</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", sans-serif;
+      text-align: center;
+      background: #fefefe;
+      padding: 20px;
+    }
+    canvas {
+      margin-top: 20px;
+    }
+    #spinButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 24px;
+      color: #d9534f;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>今天午餐吃什麼？</h1>
+  <canvas id="wheel" width="400" height="400"></canvas>
+  <br />
+  <button id="spinButton">轉啊轉！</button>
+  <div id="result"></div>
+
+  <script>
+    const options = [
+      "日式咖哩飯", "義大利肉醬麵", "韓式拌飯", "鐵板麵", "炒泡麵",
+      "潛艇堡", "鍋燒意麵", "泡麵", "福利社", "便利商店"
+    ];
+
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinButton = document.getElementById("spinButton");
+    const resultDiv = document.getElementById("result");
+
+    const wheelRadius = 180;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const arcSize = (2 * Math.PI) / options.length;
+
+    let angle = 0;
+    let spinning = false;
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < options.length; i++) {
+        const startAngle = i * arcSize + angle;
+        const endAngle = startAngle + arcSize;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, wheelRadius, startAngle, endAngle);
+        ctx.fillStyle = i % 2 === 0 ? "#ffcc66" : "#ff9966";
+        ctx.fill();
+        ctx.stroke();
+
+        // 標籤文字
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + arcSize / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#333";
+        ctx.font = "14px sans-serif";
+        ctx.fillText(options[i], wheelRadius - 10, 5);
+        ctx.restore();
+      }
+
+      // 畫中心白圓
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+      ctx.stroke();
+
+      // 畫指針：固定在 90 度（右側）
+      const pointerLength = 20;
+      const pointerBase = 15;
+      const pointerAngle = Math.PI / 2;
+
+      const px = centerX + (wheelRadius + 10) * Math.cos(pointerAngle);
+      const py = centerY + (wheelRadius + 10) * Math.sin(pointerAngle);
+
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(
+        px - pointerBase * Math.cos(pointerAngle - Math.PI / 6),
+        py - pointerBase * Math.sin(pointerAngle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        px - pointerBase * Math.cos(pointerAngle + Math.PI / 6),
+        py - pointerBase * Math.sin(pointerAngle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fillStyle = "#d9534f";
+      ctx.fill();
+    }
+
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      resultDiv.textContent = "";
+
+      let spinAngle = Math.random() * 360 + 720; // 至少兩圈
+      let duration = 3000;
+      let start = null;
+
+      function animate(timestamp) {
+        if (!start) start = timestamp;
+        const elapsed = timestamp - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const easing = 1 - Math.pow(1 - progress, 3);
+        angle = (spinAngle * easing * Math.PI / 180) % (2 * Math.PI);
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // 指針角度在 90 度 (Math.PI / 2)
+          const targetAngle = (2 * Math.PI - angle + Math.PI / 2) % (2 * Math.PI);
+          const selectedIndex = Math.floor(targetAngle / arcSize);
+          resultDiv.textContent = "吃 " + options[selectedIndex] + " 吧！";
+          spinning = false;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    drawWheel();
+    spinButton.addEventListener("click", spinWheel);
+  </script>
+</body>
+</html>
+
+ 

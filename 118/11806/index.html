@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>冒險心理測驗</title>
+    <style>
+        body {
+            font-family: "Arial", sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .story-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        .question {
+            display: none;
+        }
+        .question:target {
+            display: block;
+        }
+        .choice {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #ecf0f1;
+            text-decoration: none;
+            color: black;
+            border-radius: 5px;
+        }
+        .choice:hover {
+            background-color: #bdc3c7;
+        }
+        .result {
+            display: none;
+        }
+        #result-a:target .result-a,
+        #result-b:target .result-b,
+        #result-c:target .result-c,
+        #result-d:target .result-d,
+        #result-e:target .result-e,
+        #result-f:target .result-f {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>冒險心理測驗</h1>
+        <p>從七個關卡的故事選擇中，探索你內心的性格類型！</p>
+
+        <!-- 第一題 -->
+        <div id="q0" class="question" style="display:block">
+            <img class="story-img" src="images/forest.jpg" alt="森林入口">
+            <p>你走進神秘的森林，兩條小徑出現在眼前，你會選擇？</p>
+            <a href="#q1" class="choice">左邊的陰暗小徑</a>
+            <a href="#q2" class="choice">右邊的陽光草徑</a>
+        </div>
+
+        <!-- 第二題 -->
+        <div id="q1" class="question">
+            <img class="story-img" src="images/cave.jpg" alt="洞穴">
+            <p>小徑通向一個洞穴，裡面傳來低語聲，你會？</p>
+            <a href="#q3" class="choice">進入洞穴</a>
+            <a href="#q4" class="choice">繞過洞穴</a>
+        </div>
+
+        <div id="q2" class="question">
+            <img class="story-img" src="images/river.jpg" alt="河流">
+            <p>你走到一條清澈的河流旁，水中漂著一艘小船，你會？</p>
+            <a href="#q5" class="choice">搭上小船</a>
+            <a href="#q6" class="choice">沿河岸走</a>
+        </div>
+
+        <!-- 第三題 -->
+        <div id="q3" class="question">
+            <img class="story-img" src="images/fire.jpg" alt="火光洞穴">
+            <p>你發現火焰圍繞的符文石板，你會？</p>
+            <a href="#q7" class="choice">觸摸石板</a>
+            <a href="#result-f" class="choice">離開此地</a>
+        </div>
+
+        <div id="q4" class="question">
+            <img class="story-img" src="images/statue.jpg" alt="雕像">
+            <p>你發現一座雕像，它的眼睛突然發光，你會？</p>
+            <a href="#result-d" class="choice">回望雕像</a>
+            <a href="#result-b" class="choice">迅速離開</a>
+        </div>
+
+        <div id="q5" class="question">
+            <img class="story-img" src="images/island.jpg" alt="島嶼">
+            <p>你抵達河中島嶼，看見一棟小屋與一棵大樹，你選？</p>
+            <a href="#result-c" class="choice">進入小屋</a>
+            <a href="#result-e" class="choice">坐在大樹下</a>
+        </div>
+
+        <div id="q6" class="question">
+            <img class="story-img" src="images/bridge.jpg" alt="古橋">
+            <p>你發現一座斷橋與一條小路，你選？</p>
+            <a href="#result-a" class="choice">嘗試過橋</a>
+            <a href="#result-b" class="choice">走小路</a>
+        </div>
+
+        <!-- 第四題 -->
+        <div id="q7" class="question">
+            <img class="story-img" src="images/mountain.jpg" alt="高山">
+            <p>你被傳送到雪山之巔，前方有座閃爍的傳送門，你？</p>
+            <a href="#result-a" class="choice">勇敢走入</a>
+            <a href="#result-e" class="choice">在山上靜坐冥想</a>
+        </div>
+
+        <!-- 結果頁面 -->
+        <div id="result-a">
+            <div class="result result-a">
+                <h2>你是：勇者之魂 🗡️</h2>
+                <p>你擁有不畏挑戰、直面困境的力量，總是衝在最前線！</p>
+            </div>
+        </div>
+
+        <div id="result-b">
+            <div class="result result-b">
+                <h2>你是：夢想旅人 🌈</h2>
+                <p>你渴望自由與探索，內心藏有無窮創意與希望。</p>
+            </div>
+        </div>
+
+        <div id="result-c">
+            <div class="result result-c">
+                <h2>你是：智慧賢者 📚</h2>
+                <p>你冷靜沉著，追求真理與知識，是群體中的智者。</p>
+            </div>
+        </div>
+
+        <div id="result-d">
+            <div class="result result-d">
+                <h2>你是：黑夜行者 🌌</h2>
+                <p>你勇於面對未知與孤獨，擁有觀察與洞察的能力。</p>
+            </div>
+        </div>
+
+        <div id="result-e">
+            <div class="result result-e">
+                <h2>你是：自然之心 🍃</h2>
+                <p>你善良溫柔，與萬物共生，是世界的治癒力量。</p>
+            </div>
+        </div>
+
+        <div id="result-f">
+            <div class="result result-f">
+                <h2>你是：守護者之心 🛡️</h2>
+                <p>你願意為信念與夥伴而奮戰，是堅定又值得信賴的存在。</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+

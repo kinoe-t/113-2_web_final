@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>數學小測驗</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background-color: #f9f9f9;
+    }
+    #question {
+      font-size: 2em;
+      margin: 1em 0;
+    }
+    #result {
+      margin: 1em 0;
+      font-size: 1.2em;
+    }
+    input[type="number"] {
+      font-size: 1.2em;
+      padding: 0.5em;
+      width: 100px;
+    }
+    #apples {
+      margin: 1em 0;
+      font-size: 1.5em;
+    }
+    .apple {
+      width: 40px;
+      vertical-align: middle;
+    }
+    #raccoon {
+      margin-top: 2em;
+      display: none;
+    }
+    #raccoon img {
+      width: 200px;
+    }
+    #raccoon p {
+      font-size: 1.5em;
+      color: #663399;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>數學小測驗</h1>
+  <div id="question">載入中...</div>
+  <input type="number" id="answer" placeholder="輸入答案" />
+  <div id="result"></div>
+  <div id="apples"></div>
+  <div id="raccoon">
+    <img src="raccoon.jpg" alt="浣熊" />
+    <p>你成為一隻大浣熊了！</p>
+  </div>
+
+  <script>
+    const questionEl = document.getElementById('question');
+    const answerInput = document.getElementById('answer');
+    const resultEl = document.getElementById('result');
+    const applesEl = document.getElementById('apples');
+    const raccoonEl = document.getElementById('raccoon');
+
+    let correctStreak = 0;
+    let appleCount = 0;
+    let currentAnswer = null;
+
+    function generateQuestion() {
+      const num1 = Math.floor(Math.random() * 10) + 1;
+      const num2 = Math.floor(Math.random() * 10) + 1;
+      const ops = ['+', '-', '*', '/'];
+      const op = ops[Math.floor(Math.random() * ops.length)];
+
+      let displayOp = op;
+      let a = num1, b = num2;
+
+      if (op === '/') {
+        a = num1 * num2;
+        currentAnswer = a / b;
+        displayOp = '÷';
+      } else if (op === '*') {
+        currentAnswer = a * b;
+        displayOp = '×';
+      } else if (op === '+') {
+        currentAnswer = a + b;
+      } else {
+        currentAnswer = a - b;
+      }
+
+      currentAnswer = Math.round(currentAnswer);
+      questionEl.textContent = `${a} ${displayOp} ${b} = ?`;
+      answerInput.value = '';
+      answerInput.focus();
+    }
+
+    function checkAnswer() {
+      const userAnswer = Number(answerInput.value);
+      if (isNaN(userAnswer)) return;
+
+      if (userAnswer === currentAnswer) {
+        resultEl.textContent = "✅ 正確！";
+        correctStreak++;
+        if (correctStreak >= 3) {
+          correctStreak = 0;
+          appleCount++;
+          showApple();
+          if (appleCount >= 3) {
+            showRaccoon();
+          }
+        }
+      } else {
+        resultEl.textContent = "❌ 錯誤，再試一次！";
+        correctStreak = 0;
+      }
+
+      setTimeout(() => {
+        resultEl.textContent = '';
+        generateQuestion();
+      }, 1000);
+    }
+
+    function showApple() {
+      const appleImg = document.createElement('img');
+      appleImg.src = 'https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg';
+      appleImg.alt = 'Apple';
+      appleImg.className = 'apple';
+      applesEl.appendChild(appleImg);
+    }
+
+    function showRaccoon() {
+      raccoonEl.style.display = 'block';
+    }
+
+    answerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        checkAnswer();
+      }
+    });
+
+    generateQuestion();
+  </script>
+</body>
+</html>

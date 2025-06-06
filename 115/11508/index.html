@@ -1,0 +1,123 @@
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>隨機整數抽籤機</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 1.2rem;
+      color: #333;
+    }
+    .error {
+      color: red;
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>隨機整數抽籤機</h1>
+
+    <label for="minValue">最小整數 (含)：</label>
+    <input type="number" id="minValue" placeholder="輸入最小整數" />
+
+    <label for="maxValue">最大整數 (含)：</label>
+    <input type="number" id="maxValue" placeholder="輸入最大整數" />
+
+    <button id="generateBtn">抽一個隨機整數！</button>
+
+    <div id="errorMsg" class="error"></div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    // 生成隨機整數的函式（包含上下限）
+    function getRandomIntInclusive(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', function() {
+      const minInput = document.getElementById('minValue').value;
+      const maxInput = document.getElementById('maxValue').value;
+      const errorDiv = document.getElementById('errorMsg');
+      const resultDiv = document.getElementById('result');
+
+      // 先清空訊息
+      errorDiv.textContent = '';
+      resultDiv.textContent = '';
+
+      // 轉成數字
+      const minNum = parseInt(minInput, 10);
+      const maxNum = parseInt(maxInput, 10);
+
+      // 驗證：檢查是不是數字，有沒有空白
+      if (isNaN(minNum) || isNaN(maxNum)) {
+        errorDiv.textContent = '請務必輸入兩個有效的整數！';
+        return;
+      }
+
+      // 檢查上下限邏輯：min <= max
+      if (minNum > maxNum) {
+        errorDiv.textContent = '最小值不能大於最大值，請檢查一下。';
+        return;
+      }
+
+      // 一切 OK，產生隨機數
+      const randomInt = getRandomIntInclusive(minNum, maxNum);
+      resultDiv.textContent = '抽到的數字是： ' + randomInt;
+    });
+  </script>
+</body>
+</html>

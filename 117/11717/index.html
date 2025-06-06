@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>命運的紅色按鈕</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #f0f0f0;
+      font-family: "微軟正黑體", sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #red-button {
+      width: 100px;
+      height: 100px;
+      background-color: red;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: transform 0.1s;
+    }
+
+    #red-button:active {
+      transform: scale(0.95);
+    }
+
+    #message {
+      margin-top: 30px;
+      font-size: 1.5rem;
+      color: #333;
+      text-align: center;
+      min-height: 2em;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="red-button"></button>
+  <div id="message"></div>
+
+  <script>
+    const messages = [
+      "重補修去吧，孩子",
+      "喲~考得不錯嘛",
+      "哎呀~輕舟已撞大冰山"
+    ];
+
+    const button = document.getElementById("red-button");
+    const messageDiv = document.getElementById("message");
+
+    button.addEventListener("click", () => {
+      const randomIndex = Math.floor(Math.random() * messages.length);
+      messageDiv.textContent = messages[randomIndex];
+    });
+  </script>
+
+</body>
+</html>
+

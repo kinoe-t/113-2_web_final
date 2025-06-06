@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>Chrome 小恐龍遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background-color: #fff;
+      border: 2px solid #000;
+    }
+    #instructions {
+      text-align: center;
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+<div id="instructions">按 ↑ 跳躍，↓ 趴下</div>
+<canvas id="gameCanvas" width="800" height="200"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let dino = {
+  x: 50,
+  y: 150,
+  width: 40,
+  height: 40,
+  vy: 0,
+  gravity: 0.7,
+  jumpStrength: -11,
+  isJumping: false,
+  isDucking: false
+};
+
+const ground = 180;
+let obstacles = [];
+let distance = 0;
+let gameSpeed = 6;
+let gameOver = false;
+let highScore = localStorage.getItem("highScore") || 0;
+
+const minGap = 220;
+const maxGap = 360;
+let nextObstacleDist = randomGap();
+
+function randomGap() {
+  return minGap + Math.random() * (maxGap - minGap);
+}
+
+document.addEventListener("keydown", function (e) {
+  if (e.code === "ArrowUp" && !dino.isJumping) {
+    dino.vy = dino.jumpStrength;
+    dino.isJumping = true;
+    dino.isDucking = false;
+  }
+  if (e.code === "ArrowDown" && !dino.isJumping) {
+    dino.isDucking = true;
+    dino.height = 20;
+  }
+});
+
+document.addEventListener("keyup", function (e) {
+  if (e.code === "ArrowDown") {
+    dino.isDucking = false;
+    dino.height = 40;
+  }
+});
+
+function spawnObstacle() {
+  const height = 30 + Math.random() * 10;
+  obstacles.push({
+    x: canvas.width,
+    y: ground - height,
+    width: 20,
+    height: height
+  });
+}
+
+function checkCollision(a, b) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
+}
+
+function update() {
+  if (gameOver) return;
+
+  dino.vy += dino.gravity;
+  dino.y += dino.vy;
+
+  if (dino.y >= ground - dino.height) {
+    dino.y = ground - dino.height;
+    dino.vy = 0;
+    dino.isJumping = false;
+  }
+
+  nextObstacleDist -= gameSpeed;
+  if (nextObstacleDist <= 0) {
+    spawnObstacle();
+    nextObstacleDist = randomGap();
+  }
+
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    obstacles[i].x -= gameSpeed;
+
+    if (checkCollision(dino, obstacles[i])) {
+      gameOver = true;
+      if (distance > highScore) {
+        highScore = distance;
+        localStorage.setItem("highScore", highScore);
+      }
+    }
+
+    if (obstacles[i].x + obstacles[i].width < 0) {
+      obstacles.splice(i, 1);
+    }
+  }
+
+  distance += gameSpeed / 10;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 地面
+  ctx.fillStyle = "#ccc";
+  ctx.fillRect(0, ground, canvas.width, 2);
+
+  // 恐龍
+  ctx.fillStyle = "#333";
+  ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+
+  // 障礙物
+  ctx.fillStyle = "#e53935";
+  obstacles.forEach(obs => {
+    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+  });
+
+  // 分數
+  ctx.fillStyle = "#000";
+  ctx.font = "18px Arial";
+  ctx.fillText(`距離: ${Math.floor(distance)} m`, 10, 25);
+  ctx.fillText(`最高分: ${Math.floor(highScore)} m`, 10, 50);
+
+  if (gameOver) {
+    ctx.fillStyle = "#000";
+    ctx.font = "28px Arial";
+    ctx.fillText("遊戲結束，請按 F5 重新開始", 220, 100);
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  if (!gameOver) requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
+

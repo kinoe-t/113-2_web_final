@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>轉盤抽獎遊戲</title>
+  <style>
+    body {
+      font-family: "微軟正黑體", sans-serif;
+      background-color: #f0f0f0;
+      text-align: center;
+      padding: 30px;
+    }
+    canvas {
+      margin-top: 20px;
+    }
+    input, button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <h1>自訂轉盤抽獎</h1>
+  <p>請輸入選項（用逗號分隔，例如：蘋果,香蕉,橘子）</p>
+  <input type="text" id="optionsInput" size="50" placeholder="輸入選項">
+  <br>
+  <button onclick="setupWheel()">產生轉盤</button>
+  <button onclick="spinWheel()">開始轉盤</button>
+  
+  <canvas id="wheelCanvas" width="500" height="500"></canvas>
+  <div id="result"></div>
+
+  <script>
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    let options = [];
+    let startAngle = 0;
+    let spinTimeout = null;
+    let arc = 0;
+    let spinAngle = 0;
+    let spinTime = 0;
+    let spinTimeTotal = 0;
+
+    function setupWheel() {
+      const input = document.getElementById("optionsInput").value;
+      options = input.split(",").map(s => s.trim()).filter(s => s !== "");
+      if (options.length < 2) {
+        alert("請輸入至少兩個選項！");
+        return;
+      }
+      arc = Math.PI * 2 / options.length;
+      drawWheel();
+      document.getElementById("result").innerText = "";
+    }
+
+    function drawWheel() {
+      const outsideRadius = 200;
+      const textRadius = 160;
+      const insideRadius = 50;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+
+      for (let i = 0; i < options.length; i++) {
+        const angle = startAngle + i * arc;
+        ctx.fillStyle = i % 2 === 0 ? "#FFCC80" : "#FFB74D";
+
+        ctx.beginPath();
+        ctx.arc(250, 250, outsideRadius, angle, angle + arc, false);
+        ctx.arc(250, 250, insideRadius, angle + arc, angle, true);
+        ctx.fill();
+
+        ctx.save();
+        ctx.fillStyle = "black";
+        ctx.translate(250 + Math.cos(angle + arc / 2) * textRadius,
+                      250 + Math.sin(angle + arc / 2) * textRadius);
+        ctx.rotate(angle + arc / 2);
+        const text = options[i];
+        ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+        ctx.restore();
+      }
+
+      // 畫指針
+      ctx.fillStyle = "#d32f2f";
+      ctx.beginPath();
+      ctx.moveTo(250 - 10, 250 - 210);
+      ctx.lineTo(250 + 10, 250 - 210);
+      ctx.lineTo(250, 250 - 180);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function spinWheel() {
+      if (options.length < 2) {
+        alert("請先輸入選項並點擊『產生轉盤』！");
+        return;
+      }
+      spinAngle = Math.random() * 10 + 10;
+      spinTime = 0;
+      spinTimeTotal = 5000;
+      rotateWheel();
+    }
+
+    function rotateWheel() {
+      spinTime += 30;
+      if (spinTime >= spinTimeTotal) {
+        stopRotateWheel();
+        return;
+      }
+
+      const easeOut = easeOutQuad(spinTime, 0, spinAngle, spinTimeTotal);
+      startAngle += (easeOut * Math.PI / 180);
+      drawWheel();
+      spinTimeout = setTimeout(rotateWheel, 30);
+    }
+
+    function stopRotateWheel() {
+      clearTimeout(spinTimeout);
+      const degrees = startAngle * 180 / Math.PI + 90;
+      const arcd = arc * 180 / Math.PI;
+      const index = Math.floor((360 - (degrees % 360)) / arcd) % options.length;
+      const result = options[index];
+      document.getElementById("result").innerText = "🎉 結果是：「" + result + "」";
+    }
+
+    function easeOutQuad(t, b, c, d) {
+      t /= d;
+      return -c * t*(t-2) + b;
+    }
+  </script>
+</body>
+</html>

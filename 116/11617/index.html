@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>記憶配對遊戲</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #timer {
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+    }
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(5, 100px);
+      grid-gap: 10px;
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      background-color: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      cursor: pointer;
+      border-radius: 8px;
+      user-select: none;
+    }
+    .matched {
+      visibility: hidden;
+    }
+    .flipped {
+      background-color: #fff;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.4rem;
+    }
+    button {
+      margin-top: 15px;
+      padding: 8px 16px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>記憶配對遊戲</h1>
+  <div id="timer">時間：0 秒</div>
+  <div id="game-board"></div>
+  <div id="result"></div>
+  <button onclick="startGame()">再玩一次</button>
+
+  <script>
+    const emojis = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍒', '🍍', '🥝', '🍑', '🥥'];
+    let cards = [];
+    let firstCard = null;
+    let secondCard = null;
+    let lockBoard = false;
+    let matchedPairs = 0;
+    let timer = 0;
+    let interval;
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startTimer() {
+      timer = 0;
+      document.getElementById('timer').textContent = `時間：0 秒`;
+      interval = setInterval(() => {
+        timer++;
+        document.getElementById('timer').textContent = `時間：${timer} 秒`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(interval);
+    }
+
+    function createBoard() {
+      const gameBoard = document.getElementById('game-board');
+      gameBoard.innerHTML = '';
+      matchedPairs = 0;
+      cards = shuffle([...emojis, ...emojis]);
+      cards.forEach((emoji, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.emoji = emoji;
+        card.dataset.index = index;
+        card.addEventListener('click', flipCard);
+        gameBoard.appendChild(card);
+      });
+    }
+
+    function flipCard(e) {
+      if (lockBoard) return;
+      const card = e.target;
+      if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+      card.classList.add('flipped');
+      card.textContent = card.dataset.emoji;
+
+      if (!firstCard) {
+        firstCard = card;
+        return;
+      }
+
+      secondCard = card;
+      lockBoard = true;
+
+      if (firstCard.dataset.emoji === secondCard.dataset.emoji) {
+        firstCard.classList.add('matched');
+        secondCard.classList.add('matched');
+        matchedPairs++;
+        if (matchedPairs === emojis.length) {
+          stopTimer();
+          document.getElementById('result').textContent = `完成！總共花費：${timer} 秒`;
+        }
+        resetTurn();
+      } else {
+        setTimeout(() => {
+          firstCard.classList.remove('flipped');
+          secondCard.classList.remove('flipped');
+          firstCard.textContent = '';
+          secondCard.textContent = '';
+          resetTurn();
+        }, 1000);
+      }
+    }
+
+    function resetTurn() {
+      [firstCard, secondCard] = [null, null];
+      lockBoard = false;
+    }
+
+    function startGame() {
+      stopTimer();
+      startTimer();
+      createBoard();
+      document.getElementById('result').textContent = '';
+    }
+
+    window.onload = startGame;
+  </script>
+</body>
+</html>
+

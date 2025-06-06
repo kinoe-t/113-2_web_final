@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>永遠不會給你上</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #222;
+      cursor: crosshair;
+      color: white;
+      font-family: sans-serif;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    button {
+      margin: 5px;
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #linkMessage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      color: red;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <button onclick="addPart('head')">+頭</button>
+    <button onclick="addPart('body')">+軀幹</button>
+    <button onclick="addPart('arms')">+手</button>
+    <button onclick="addPart('legs')">+腳</button>
+  </div>
+  <canvas id="drawCanvas"></canvas>
+  <div id="linkMessage"> <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" style="color: white; text-decoration: none;">https://www.youtube.com/watch?v/dQw4w9WgXcQ</a> </div>
+
+  <script>
+    const canvas = document.getElementById('drawCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let drawing = false;
+    const addedParts = { head: false, body: false, arms: false, legs: false };
+
+    canvas.addEventListener('mousedown', (e) => {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (drawing) {
+        ctx.lineTo(e.clientX, e.clientY);
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      drawing = false;
+    });
+
+    canvas.addEventListener('mouseout', () => {
+      drawing = false;
+    });
+
+    function addPart(part) {
+      if (addedParts[part]) return;
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 4;
+
+      if (part === 'head') {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY - 150, 50, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (part === 'body') {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY - 100);
+        ctx.lineTo(centerX, centerY + 100);
+        ctx.stroke();
+      } else if (part === 'arms') {
+        ctx.beginPath();
+        ctx.moveTo(centerX - 75, centerY - 50);
+        ctx.lineTo(centerX + 75, centerY - 50);
+        ctx.stroke();
+      } else if (part === 'legs') {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY + 100);
+        ctx.lineTo(centerX - 50, centerY + 200);
+        ctx.moveTo(centerX, centerY + 100);
+        ctx.lineTo(centerX + 50, centerY + 200);
+        ctx.stroke();
+      }
+
+      addedParts[part] = true;
+
+      if (Object.values(addedParts).every(v => v)) {
+        document.getElementById('linkMessage').style.display = 'block';
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      ctx.putImageData(imgData, 0, 0);
+    });
+  </script>
+</body>
+</html>

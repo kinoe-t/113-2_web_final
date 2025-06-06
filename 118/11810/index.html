@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>未來男友預測</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to right, #f6d365, #fda085);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      max-width: 500px;
+      text-align: center;
+    }
+    h1 {
+      color: #e94e77;
+    }
+    .question {
+      margin: 20px 0;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff7e5f;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #eb5757;
+    }
+    .result {
+      font-size: 1.2em;
+      color: #333;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>未來男友預測</h1>
+    <div id="quiz">
+      <div class="question" id="question"></div>
+      <div id="choices"></div>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        text: "你最喜歡的約會地點是？",
+        choices: ["海邊", "咖啡廳", "遊樂園", "山上"]
+      },
+      {
+        text: "你最在意對方的什麼特質？",
+        choices: ["幽默感", "體貼", "外表", "聰明"]
+      },
+      {
+        text: "如果週末沒事，你會？",
+        choices: ["追劇", "戶外運動", "讀書", "睡到自然醒"]
+      },
+      {
+        text: "你喜歡的電影類型是？",
+        choices: ["愛情片", "喜劇片", "動作片", "紀錄片"]
+      },
+      {
+        text: "你喜歡哪種寵物？",
+        choices: ["狗", "貓", "兔子", "不想養寵物"]
+      },
+      {
+        text: "你的穿衣風格偏好？",
+        choices: ["休閒簡約", "可愛甜美", "時尚潮流", "奇異古怪"]
+      },
+      {
+        text: "你最怕以下哪一種情境？",
+        choices: ["被冷落", "尷尬沉默", "吵架爭執", "對方太黏"]
+      }
+    ];
+
+    const results = [
+      "你的未來男友是愛搞笑的陽光型男孩，總讓你笑個不停！",
+      "你的未來男友是溫柔又體貼的暖男，總是為你著想。",
+      "你的未來男友是時尚有型的帥哥，走到哪都吸睛！",
+      "你的未來男友是聰明又有點神祕感的知性型男。",
+      "你目前最適合享受單身生活，自由自在是你現在的幸福源泉！"
+    ];
+
+    let currentQuestion = 0;
+    let answers = [];
+
+    function showQuestion() {
+      const q = questions[currentQuestion];
+      document.getElementById('question').textContent = q.text;
+      const choicesDiv = document.getElementById('choices');
+      choicesDiv.innerHTML = '';
+
+      q.choices.forEach((choice, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = choice;
+        btn.onclick = () => {
+          answers.push(index);
+          currentQuestion++;
+          if (currentQuestion < questions.length) {
+            showQuestion();
+          } else {
+            showResult();
+          }
+        };
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function showResult() {
+      const sum = answers.reduce((a, b) => a + b, 0);
+      const resultIndex = sum % results.length;
+      document.getElementById('quiz').style.display = 'none';
+      document.getElementById('result').textContent = results[resultIndex];
+    }
+
+    showQuestion();
+  </script>
+</body>
+</html>

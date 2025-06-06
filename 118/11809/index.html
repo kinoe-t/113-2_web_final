@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>貪吃蛇迷宮</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #111;
+      color: #fff;
+    }
+    canvas {
+      background: #222;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid #fff;
+    }
+    #menu {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    #scoreboard {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>貪吃蛇：嗨啾迷宮</h1>
+  <div id="menu">
+    <button onclick="startGame()">開始遊戲</button>
+    <div id="scoreboard">
+      最高分：<span id="highScore">0</span>
+    </div>
+  </div>
+  <canvas id="game" width="600" height="600"></canvas>
+  <div id="endMenu" style="display:none;">
+    <h2 id="resultText"></h2>
+    <button onclick="startGame()">再玩一次</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const tileSize = 20;
+    const rows = canvas.height / tileSize;
+    const cols = canvas.width / tileSize;
+
+    let snake, direction, candyList, score, interval, maze, end, timer, timeLeft, gameOver;
+    const highScoreElement = document.getElementById("highScore");
+
+    function getHighScore() {
+      return parseInt(localStorage.getItem("snakeHighScore")) || 0;
+    }
+
+    function setHighScore(score) {
+      const high = getHighScore();
+      if (score > high) {
+        localStorage.setItem("snakeHighScore", score);
+        highScoreElement.textContent = score;
+      }
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp" && direction !== "down") direction = "up";
+      else if (e.key === "ArrowDown" && direction !== "up") direction = "down";
+      else if (e.key === "ArrowLeft" && direction !== "right") direction = "left";
+      else if (e.key === "ArrowRight" && direction !== "left") direction = "right";
+    });
+
+    function startGame() {
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("endMenu").style.display = "none";
+      snake = [{x: 1, y: 1}];
+      direction = "right";
+      candyList = [];
+      score = 0;
+      timeLeft = 120;
+      gameOver = false;
+      maze = generateMaze();
+      end = { x: cols - 2, y: rows - 2 };
+      generateCandies();
+      timer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          endGame("時間到，遊戲結束！");
+        }
+      }, 1000);
+      interval = setInterval(update, 300); // ⚠️ 改成 300 毫秒移動一次
+      highScoreElement.textContent = getHighScore();
+    }
+
+    function generateMaze() {
+      let grid = Array(rows).fill().map(() => Array(cols).fill(0));
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          if (x === 0 || y === 0 || x === cols-1 || y === rows-1 || Math.random() < 0.15) {
+            grid[y][x] = 1; // wall
+          }
+        }
+      }
+      grid[1][1] = 0;
+      grid[rows-2][cols-2] = 0;
+      return grid;
+    }
+
+    function generateCandies() {
+      for (let i = 0; i < 30; i++) {
+        let x, y, type;
+        do {
+          x = Math.floor(Math.random() * cols);
+          y = Math.floor(Math.random() * rows);
+        } while (maze[y][x] === 1 || (x === 1 && y === 1));
+        const r = Math.random();
+        if (r < 0.7) type = "normal";
+        else if (r < 0.9) type = "color";
+        else type = "black";
+        candyList.push({ x, y, type });
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // maze
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          if (maze[y][x] === 1) {
+            ctx.fillStyle = "#555";
+            ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+          }
+        }
+      }
+
+      // candies
+      for (const candy of candyList) {
+        if (candy.type === "normal") ctx.fillStyle = "#f33";
+        else if (candy.type === "color") ctx.fillStyle = "#f0f";
+        else ctx.fillStyle = "#000";
+        ctx.fillRect(candy.x*tileSize, candy.y*tileSize, tileSize, tileSize);
+      }
+
+      // end
+      ctx.fillStyle = "#0f0";
+      ctx.fillRect(end.x*tileSize, end.y*tileSize, tileSize, tileSize);
+
+      // snake
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = snake.color || "#0ff";
+        ctx.fillRect(snake[i].x*tileSize, snake[i].y*tileSize, tileSize, tileSize);
+      }
+
+      // score
+      ctx.fillStyle = "#fff";
+      ctx.font = "16px sans-serif";
+      ctx.fillText(`分數: ${score}　剩餘時間: ${timeLeft}s`, 10, 20);
+    }
+
+    function update() {
+      const head = {...snake[0]};
+      if (direction === "up") head.y--;
+      else if (direction === "down") head.y++;
+      else if (direction === "left") head.x--;
+      else if (direction === "right") head.x++;
+
+      if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || maze[head.y][head.x] === 1 ||
+          snake.some(s => s.x === head.x && s.y === head.y)) {
+        endGame("你撞牆或撞到自己了！");
+        return;
+      }
+
+      const candy = candyList.find(c => c.x === head.x && c.y === head.y);
+      if (candy) {
+        if (candy.type === "normal") {
+          score += 1;
+          snake.unshift(head);
+        } else if (candy.type === "color") {
+          score += 5;
+          snake.color = `hsl(${Math.random()*360}, 100%, 50%)`;
+          snake.unshift(head, {...head});
+        } else if (candy.type === "black") {
+          endGame("你吃到黑色嗨啾，死亡！");
+          return;
+        }
+        candyList = candyList.filter(c => !(c.x === head.x && c.y === head.y));
+      } else {
+        snake.pop();
+        snake.unshift(head);
+      }
+
+      if (head.x === end.x && head.y === end.y) {
+        endGame("恭喜你通關！");
+      }
+
+      draw();
+    }
+
+    function endGame(message) {
+      if (gameOver) return;
+      clearInterval(interval);
+      clearInterval(timer);
+      gameOver = true;
+      setHighScore(score);
+      document.getElementById("resultText").textContent = `${message}　總分: ${score}`;
+      document.getElementById("endMenu").style.display = "block";
+    }
+  </script>
+</body>
+</html>
+

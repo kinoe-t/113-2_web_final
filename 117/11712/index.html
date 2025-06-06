@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>小恐龍障礙賽</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background-color: lightblue;
+      border: 2px solid #ccc;
+      overflow: hidden;
+    }
+    .dino {
+      position: absolute;
+      bottom: 0;
+      width: 60px;
+      height: 60px;
+      background-color: green;
+      transition: background-color 0.3s, transform 0.2s ease;
+    }
+    .jumping {
+      animation: jump 0.6s ease;
+    }
+    .ducking {
+      height: 30px !important;
+    }
+    .obstacle {
+      position: absolute;
+      bottom: 0;
+      width: 30px;
+      background-color: brown;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      z-index: 10;
+    }
+    #game-over {
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      text-align: center;
+      font-size: 48px;
+      color: red;
+      font-weight: bold;
+      display: none;
+      z-index: 10;
+    }
+    #restart-btn {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      padding: 10px 20px;
+      display: none;
+      cursor: pointer;
+      z-index: 10;
+    }
+    @keyframes jump {
+      0%   { transform: translateY(0); }
+      50%  { transform: translateY(-150px); }
+      100% { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="score">分數：0</div>
+    <div id="game-over">遊戲結束！</div>
+    <button id="restart-btn">重新開始</button>
+    <div class="dino" id="dino"></div>
+  </div>
+
+  <script>
+    const dino = document.getElementById('dino');
+    const game = document.getElementById('game');
+    const scoreText = document.getElementById('score');
+    const gameOverText = document.getElementById('game-over');
+    const restartBtn = document.getElementById('restart-btn');
+
+    const dinoColors = ['green', 'blue', 'red', 'purple', 'orange'];
+    const bgColors = ['lightblue', 'lightyellow', 'lightgray', 'lavender', 'lightgreen', 'peachpuff'];
+
+    let dinoColorIndex = 0;
+    let currentScore = 0;
+    let isJumping = false;
+    let isGameOver = false;
+    let obstacleInterval;
+    let gameStarted = false;
+
+    let obstacleSpeed = 3;      // 初始障礙物速度
+    let obstacleDelay = 2500;   // 初始障礙物間隔時間（毫秒）
+
+    function jump() {
+      if (isJumping || isGameOver) return;
+      isJumping = true;
+      dino.classList.remove('ducking');
+      dino.classList.add('jumping');
+      setTimeout(() => {
+        dino.classList.remove('jumping');
+        isJumping = false;
+      }, 600);
+    }
+
+    function duck() {
+      if (!isJumping && !isGameOver) {
+        dino.classList.add('ducking');
+      }
+    }
+
+    function stand() {
+      dino.classList.remove('ducking');
+    }
+
+    function changeDinoColor(direction) {
+      dinoColorIndex = direction === 'left'
+        ? (dinoColorIndex - 1 + dinoColors.length) % dinoColors.length
+        : (dinoColorIndex + 1) % dinoColors.length;
+      dino.style.backgroundColor = dinoColors[dinoColorIndex];
+      ensureBgColorNotMatch();
+    }
+
+    function ensureBgColorNotMatch() {
+      const dinoColor = dinoColors[dinoColorIndex];
+      if (game.style.backgroundColor === dinoColor) {
+        let availableColors = bgColors.filter(c => c !== dinoColor);
+        game.style.backgroundColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+      }
+    }
+
+    function updateScore(amount) {
+      currentScore += amount;
+      scoreText.textContent = `分數：${currentScore}`;
+
+      if (currentScore % 100 === 0) {
+        changeBackgroundColor();
+
+        // 隨分數加快速度與生成頻率
+        obstacleSpeed = Math.min(obstacleSpeed + 1, 10);       // 最快10
+        obstacleDelay = Math.max(obstacleDelay - 200, 800);    // 最短800ms
+        restartObstacleLoop();
+      }
+    }
+
+    function changeBackgroundColor() {
+      let available = bgColors.filter(c => c !== dinoColors[dinoColorIndex]);
+      game.style.backgroundColor = available[Math.floor(Math.random() * available.length)];
+    }
+
+    function createObstacle() {
+      if (isGameOver) return;
+      const obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle');
+
+      const height = Math.random() > 0.5 ? 60 : 30;
+      obstacle.style.height = height + 'px';
+      obstacle.style.left = '100vw';
+
+      game.appendChild(obstacle);
+
+      let moveInterval = setInterval(() => {
+        if (isGameOver) {
+          clearInterval(moveInterval);
+          obstacle.remove();
+          return;
+        }
+
+        let left = parseInt(obstacle.style.left);
+        obstacle.style.left = (left - obstacleSpeed) + 'px';
+
+        if (left < -30) {
+          clearInterval(moveInterval);
+          obstacle.remove();
+          updateScore(10);
+        }
+
+        const dinoRect = dino.getBoundingClientRect();
+        const obstacleRect = obstacle.getBoundingClientRect();
+
+        if (
+          dinoRect.left < obstacleRect.right &&
+          dinoRect.right > obstacleRect.left &&
+          dinoRect.bottom > obstacleRect.top &&
+          dinoRect.top < obstacleRect.bottom
+        ) {
+          endGame();
+        }
+      }, 20);
+    }
+
+    function startObstacleLoop() {
+      obstacleInterval = setInterval(() => {
+        createObstacle();
+      }, obstacleDelay + Math.random() * 500);
+    }
+
+    function restartObstacleLoop() {
+      clearInterval(obstacleInterval);
+      startObstacleLoop();
+    }
+
+    function endGame() {
+      isGameOver = true;
+      clearInterval(obstacleInterval);
+      gameOverText.style.display = 'block';
+      restartBtn.style.display = 'inline-block';
+    }
+
+    function resetGame() {
+      document.querySelectorAll('.obstacle').forEach(o => o.remove());
+
+      currentScore = 0;
+      isJumping = false;
+      isGameOver = false;
+      dinoColorIndex = 0;
+      dino.classList.remove('ducking');
+      dino.classList.remove('jumping');
+      dino.style.backgroundColor = dinoColors[dinoColorIndex];
+      scoreText.textContent = '分數：0';
+      gameOverText.style.display = 'none';
+      restartBtn.style.display = 'none';
+      ensureBgColorNotMatch();
+
+      // 重置速度與延遲
+      obstacleSpeed = 3;
+      obstacleDelay = 2500;
+
+      if (!gameStarted) {
+        gameStarted = true;
+        setTimeout(startObstacleLoop, 5000);
+      } else {
+        startObstacleLoop();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (isGameOver) return;
+      switch (e.key) {
+        case 'ArrowUp':
+        case ' ':
+          jump();
+          break;
+        case 'ArrowDown':
+          duck();
+          break;
+        case 'ArrowLeft':
+          changeDinoColor('left');
+          break;
+        case 'ArrowRight':
+          changeDinoColor('right');
+          break;
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowDown') stand();
+    });
+
+    restartBtn.addEventListener('click', resetGame);
+
+    ensureBgColorNotMatch();
+    setTimeout(() => {
+      gameStarted = true;
+      startObstacleLoop();
+    }, 5000);
+  </script>
+</body>
+</html>
+
+
+

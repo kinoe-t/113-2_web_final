@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>午餐轉盤</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 30px;
+      background: #fdfdfd;
+    }
+    canvas {
+      margin: 20px auto;
+      display: block;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    button {
+      margin: 10px 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      background: #ff6f61;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e65b50;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>午餐轉盤</h1>
+  <canvas id="wheel" width="500" height="500"></canvas>
+  <div id="result">點擊轉盤決定今天吃什麼！</div>
+  <br>
+  <button onclick="addOption()">還想吃什麼？</button>
+  <button onclick="removeLastCustom()">我不要這個!</button>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const resultDiv = document.getElementById("result");
+
+    let options = [
+      "八方雲集", "FAGO", "隱市牛麵", "Magic廚房",
+      "相撲咖哩", "福亭", "趕鴨子", "福利社",
+      "?", "?", "?", "?"
+    ];
+    const defaultCount = 8; // 前8個是預設不可刪除
+    const colors = [
+      "#FFB6C1", "#FFA07A", "#FFD700", "#98FB98",
+      "#AFEEEE", "#9370DB", "#FF69B4", "#40E0D0",
+      "#F08080", "#90EE90", "#FF8C00", "#00CED1"
+    ];
+
+    let startAngle = 0;
+    let spinning = false;
+    let lastSelectedIndex = -1;
+
+    const arc = 2 * Math.PI / 12;
+
+    function drawWheel() {
+      const radius = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < options.length; i++) {
+        const angle = startAngle + i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius - 10, angle, angle + arc, false);
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(angle + arc / 2);
+        ctx.fillStyle = "#000";
+        ctx.font = "18px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(options[i], radius - 30, 6);
+        ctx.restore();
+      }
+
+      // 嘴巴圖案（替代箭頭）
+      ctx.save();
+      ctx.translate(radius, radius);
+      ctx.fillStyle = "#333";
+      ctx.beginPath();
+      ctx.moveTo(0, -radius + 10);
+      ctx.bezierCurveTo(-15, -radius + 30, 15, -radius + 30, 0, -radius + 10);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      let angle = 0;
+      let speed = Math.random() * 0.3 + 0.3;
+      const deceleration = 0.995;
+
+      const interval = setInterval(() => {
+        angle += speed;
+        speed *= deceleration;
+        if (speed < 0.002) {
+          clearInterval(interval);
+          spinning = false;
+          const degrees = angle * 180 / Math.PI;
+          const index = Math.floor(options.length - (degrees / 360 * options.length) % options.length) % options.length;
+          lastSelectedIndex = index;
+          const selected = options[index];
+          resultDiv.innerText = `今天吃「${selected}」！`;
+        }
+        startAngle += speed;
+        drawWheel();
+      }, 20);
+    }
+
+    function addOption() {
+      if (options.length >= 24) {
+        alert("選項太多了，最多 24 個！");
+        return;
+      }
+      const newOption = prompt("請輸入新選項：");
+      if (newOption && newOption.trim() !== "") {
+        const index = options.findIndex(opt => opt === "?");
+        if (index !== -1) {
+          options[index] = newOption.trim();
+        } else {
+          options.push(newOption.trim());
+        }
+        drawWheel();
+      }
+    }
+
+    function removeLastCustom() {
+      // 找到最後一個非預設的自訂選項
+      for (let i = options.length - 1; i >= defaultCount; i--) {
+        if (options[i] !== "?") {
+          options[i] = "?";
+          drawWheel();
+          resultDiv.innerText = "自訂選項已移除。";
+          return;
+        }
+      }
+      alert("沒有可移除的自訂選項！");
+    }
+
+    canvas.addEventListener("click", spinWheel);
+
+    drawWheel();
+  </script>
+</body>
+</html>

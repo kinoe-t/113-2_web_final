@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>終極密碼加強版</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+    input, button, select {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin: 0.2rem 0;
+    }
+    #result, #history, #record, #nicknameInput, #gameArea {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background-color: #f0f0f0;
+    }
+    #confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      display: none;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+    .better { color: green; }
+  </style>
+</head>
+<body>
+
+  <h1>終極密碼遊戲</h1>
+
+  <div id="nicknameInput">
+    <label for="nickname">請輸入暱稱：</label>
+    <input type="text" id="nickname">
+    <button onclick="startGame()">開始遊戲</button>
+  </div>
+
+  <div id="gameArea" style="display:none;">
+    <p><strong>玩家：</strong><span id="playerName"></span></p>
+    <label>選擇歷史玩家紀錄：</label>
+    <select id="playerHistoryDropdown" onchange="loadPlayerHistory()">
+      <option value="">--選擇玩家--</option>
+    </select>
+
+    <p>猜一個 1 到 100 的數字：</p>
+    <input type="number" id="guess" min="1" max="100">
+    <button onclick="makeGuess()">猜！</button>
+    <button onclick="resetGame()">重新開始</button>
+
+    <div id="result"></div>
+    <div id="record">
+      <h3>個人最佳紀錄</h3>
+      <p id="bestRecord">尚無紀錄</p>
+    </div>
+    <div id="history">
+      <h3>這局猜測紀錄</h3>
+      <ul id="guessList"></ul>
+    </div>
+  </div>
+
+  <!-- 鞭炮動畫 (confetti) -->
+  <div id="confetti"><canvas id="confettiCanvas"></canvas></div>
+  <audio id="cheerSound" src="https://www.soundjay.com/human/cheering-01.mp3"></audio>
+
+  <script>
+    let answer = 0, min = 1, max = 100, attempts = 0, guesses = [], currentPlayer = '';
+
+    function startGame() {
+      const name = document.getElementById("nickname").value.trim();
+      if (!name) {
+        alert("請輸入暱稱");
+        return;
+      }
+      currentPlayer = name;
+      document.getElementById("playerName").textContent = currentPlayer;
+      document.getElementById("nicknameInput").style.display = "none";
+      document.getElementById("gameArea").style.display = "block";
+      initPlayerDropdown();
+      resetGame();
+    }
+
+    function resetGame() {
+      answer = Math.floor(Math.random() * 100) + 1;
+      min = 1; max = 100;
+      attempts = 0;
+      guesses = [];
+      document.getElementById("guessList").innerHTML = "";
+      document.getElementById("result").textContent = "";
+      updateBestRecordDisplay();
+    }
+
+    function makeGuess() {
+      const guess = parseInt(document.getElementById("guess").value);
+      if (isNaN(guess) || guess < min || guess > max) {
+        alert(`請輸入 ${min} 到 ${max} 的數字`);
+        return;
+      }
+      attempts++;
+      guesses.push(guess);
+      document.getElementById("guessList").innerHTML += `<li>${guess}</li>`;
+
+      if (guess === answer) {
+        document.getElementById("result").innerHTML = `<strong>🎉 恭喜猜對！</strong> 共 ${attempts} 次`;
+        playWinEffects();
+        saveResult(currentPlayer, attempts);
+        updateBestRecordDisplay();
+      } else if (guess < answer) {
+        min = guess + 1;
+        document.getElementById("result").textContent = `太小了！請猜 ${min} 到 ${max}`;
+      } else {
+        max = guess - 1;
+        document.getElementById("result").textContent = `太大了！請猜 ${min} 到 ${max}`;
+      }
+
+      document.getElementById("guess").value = "";
+    }
+
+    function saveResult(name, newScore) {
+      let data = JSON.parse(localStorage.getItem("ultimateGameData")) || {};
+      if (!data[name] || newScore < data[name]) {
+        data[name] = newScore;
+      }
+      localStorage.setItem("ultimateGameData", JSON.stringify(data));
+      initPlayerDropdown();
+    }
+
+    function updateBestRecordDisplay() {
+      const data = JSON.parse(localStorage.getItem("ultimateGameData")) || {};
+      const best = data[currentPlayer];
+      if (best) {
+        document.getElementById("bestRecord").innerHTML = `最佳猜中次數：<strong>${best}</strong>`;
+      } else {
+        document.getElementById("bestRecord").textContent = "尚無紀錄";
+      }
+    }
+
+    function initPlayerDropdown() {
+      const data = JSON.parse(localStorage.getItem("ultimateGameData")) || {};
+      const dropdown = document.getElementById("playerHistoryDropdown");
+      dropdown.innerHTML = `<option value="">--選擇玩家--</option>`;
+      for (let name in data) {
+        dropdown.innerHTML += `<option value="${name}">${name}（${data[name]} 次）</option>`;
+      }
+    }
+
+    function loadPlayerHistory() {
+      const name = document.getElementById("playerHistoryDropdown").value;
+      if (!name) return;
+      alert(`${name} 的最佳紀錄為 ${JSON.parse(localStorage.getItem("ultimateGameData"))[name]} 次`);
+    }
+
+    function playWinEffects() {
+      document.getElementById("cheerSound").play();
+      const canvas = document.getElementById("confettiCanvas");
+      const confettiContainer = document.getElementById("confetti");
+      confettiContainer.style.display = "block";
+
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const confetti = [];
+
+      for (let i = 0; i < 150; i++) {
+        confetti.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          r: Math.random() * 6 + 4,
+          d: Math.random() * 10 + 2,
+          color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+          tilt: Math.random() * 10 - 5
+        });
+      }
+
+      function drawConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confetti.forEach(c => {
+          ctx.beginPath();
+          ctx.fillStyle = c.color;
+          ctx.ellipse(c.x, c.y, c.r, c.r * 0.6, c.tilt, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+        updateConfetti();
+      }
+
+      function updateConfetti() {
+        confetti.forEach(c => {
+          c.y += c.d;
+          c.tilt += 0.1;
+          if (c.y > canvas.height) {
+            c.y = -10;
+            c.x = Math.random() * canvas.width;
+          }
+        });
+      }
+
+      let count = 0;
+      const interval = setInterval(() => {
+        drawConfetti();
+        if (++count > 100) {
+          clearInterval(interval);
+          confettiContainer.style.display = "none";
+        }
+      }, 30);
+    }
+  </script>
+</body>
+</html>

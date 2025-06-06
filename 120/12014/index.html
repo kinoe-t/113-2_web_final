@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>仙人掌跳恐龍</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+    canvas {
+      background: #ffffff;
+      border: 2px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="800" height="200"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const player = {
+      x: 50,
+      y: 150,
+      width: 40,
+      height: 40,
+      vy: 0,
+      gravity: 1.5,
+      jumpPower: -22,
+      isJumping: false,
+    };
+
+    let obstacles = [];
+    let lastObstacleTime = 0;
+    let nextObstacleDelay = 400 + Math.random() * 1000; // 隨機延遲時間（400~1400ms）
+    let score = 0;
+    let gameOver = false;
+
+    function drawPlayer() {
+      ctx.fillStyle = "#00aa00";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawObstacle(ob) {
+      ctx.fillStyle = "#555";
+      ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+    }
+
+    function spawnObstacle() {
+      const now = Date.now();
+      if (now - lastObstacleTime < nextObstacleDelay) return;
+      lastObstacleTime = now;
+      nextObstacleDelay = 600 + Math.random() * 1200; // 每次生成後重新設隨機間距
+
+      const height = 30 + Math.random() * 30;
+      const ob = {
+        x: canvas.width,
+        y: 190 - height,
+        width: 20 + Math.random() * 30,
+        height: height,
+        speed: 6
+      };
+      obstacles.push(ob);
+    }
+
+    function detectCollision(a, b) {
+      return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+      );
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "#888";
+      ctx.beginPath();
+      ctx.moveTo(0, 190);
+      ctx.lineTo(canvas.width, 190);
+      ctx.stroke();
+
+      player.y += player.vy;
+      player.vy += player.gravity;
+      if (player.y >= 150) {
+        player.y = 150;
+        player.vy = 0;
+        player.isJumping = false;
+      }
+
+      drawPlayer();
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const ob = obstacles[i];
+        ob.x -= ob.speed;
+        drawObstacle(ob);
+
+        if (detectCollision(player, ob)) {
+          gameOver = true;
+        }
+
+        if (ob.x + ob.width < 0) {
+          obstacles.splice(i, 1);
+        }
+      }
+
+      ctx.fillStyle = "#000";
+      ctx.font = "20px sans-serif";
+      ctx.fillText(`分數: ${score}`, 680, 30);
+
+      if (gameOver) {
+        ctx.fillStyle = "red";
+        ctx.font = "40px sans-serif";
+        ctx.fillText("遊戲結束", 300, 100);
+      }
+    }
+
+    setInterval(() => {
+      if (!gameOver) spawnObstacle();
+    }, 100);
+
+    setInterval(() => {
+      if (!gameOver) score++;
+    }, 100);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !player.isJumping && !gameOver) {
+        player.vy = player.jumpPower;
+        player.isJumping = true;
+      } else if (gameOver && e.code === "Space") {
+        location.reload();
+      }
+    });
+
+    function loop() {
+      update();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

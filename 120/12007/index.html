@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>終結密碼</title>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background: #ffffff;
+      color: #222;
+      text-align: center;
+      padding: 2rem;
+      font-size: 1.25rem;
+    }
+    h1 {
+      color: #000;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    #game, #result {
+      margin-top: 2rem;
+    }
+    input[type="number"] {
+      padding: 0.5rem;
+      font-size: 1.25rem;
+      width: 120px;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      font-size: 1.25rem;
+      cursor: pointer;
+      border: 1px solid #999;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+    button:hover {
+      background-color: #eee;
+    }
+    #message, #range, #remaining, #timer {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    #timer {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 終結密碼</h1>
+
+  <div id="setup">
+    <p>請選擇模式：</p>
+    <button onclick="startGame('unlimited')">不限次數模式</button>
+    <button onclick="startGame('limited')">限制次數模式（最多10次）</button>
+    <button onclick="startGame('timed')">限制時間模式（60秒）</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <p id="modeInfo"></p>
+    <input type="number" id="guessInput" placeholder="1~100" min="1" max="100"/>
+    <button onclick="makeGuess()">猜！</button>
+    <p id="message"></p>
+    <p id="range"></p>
+    <p id="remaining" style="color: #a00;"></p>
+    <p id="timer"></p>
+  </div>
+
+  <div id="result" style="display:none;">
+    <h2 id="resultMessage"></h2>
+    <p id="summary"></p>
+    <button onclick="location.reload()">重新開始</button>
+  </div>
+
+  <script>
+    let answer;
+    let attempts = 0;
+    let maxAttempts = 10;
+    let mode = "unlimited";
+    let startTime;
+    let minGuess = 1;
+    let maxGuess = 100;
+    let timerInterval;
+    let timeLimit = 60; // seconds
+
+    function startGame(selectedMode) {
+      mode = selectedMode;
+      answer = Math.floor(Math.random() * 100) + 1;
+      attempts = 0;
+      minGuess = 1;
+      maxGuess = 100;
+      startTime = new Date();
+
+      document.getElementById("setup").style.display = "none";
+      document.getElementById("game").style.display = "block";
+      document.getElementById("guessInput").value = "";
+      document.getElementById("message").textContent = "";
+      document.getElementById("range").textContent = `目前可猜範圍：${minGuess} ~ ${maxGuess}`;
+      document.getElementById("remaining").textContent = "";
+      document.getElementById("timer").textContent = "";
+
+      if (mode === "limited") {
+        document.getElementById("modeInfo").textContent = "限制次數模式：最多猜 10 次";
+      } else if (mode === "timed") {
+        document.getElementById("modeInfo").textContent = "限制時間模式：限時 60 秒內猜中！";
+        startTimer();
+      } else {
+        document.getElementById("modeInfo").textContent = "不限次數模式：直到猜中為止";
+      }
+    }
+
+    function makeGuess() {
+      const guess = Number(document.getElementById("guessInput").value);
+      if (guess < minGuess || guess > maxGuess || isNaN(guess)) {
+        document.getElementById("message").textContent = `請輸入有效的 ${minGuess}～${maxGuess} 數字`;
+        return;
+      }
+
+      attempts++;
+
+      if (guess === answer) {
+        endGame(true);
+      } else {
+        let hint = `你剛剛猜的是 ${guess}，`;
+        if (guess > answer) {
+          hint += "太大了！";
+          maxGuess = guess - 1;
+        } else {
+          hint += "太小了！";
+          minGuess = guess + 1;
+        }
+        document.getElementById("message").textContent = hint;
+        document.getElementById("range").textContent = `目前可猜範圍：${minGuess} ~ ${maxGuess}`;
+
+        if (mode === "limited") {
+          const remaining = maxAttempts - attempts;
+          document.getElementById("remaining").textContent = `剩下 ${remaining} 次機會`;
+          if (remaining <= 0) {
+            endGame(false);
+          }
+        }
+      }
+
+      document.getElementById("guessInput").value = "";
+      document.getElementById("guessInput").focus();
+    }
+
+    function endGame(success) {
+      const endTime = new Date();
+      const durationSec = Math.floor((endTime - startTime) / 1000);
+      clearInterval(timerInterval);
+      document.getElementById("game").style.display = "none";
+      document.getElementById("result").style.display = "block";
+      document.getElementById("resultMessage").textContent = success
+        ? "🎉 恭喜你猜對了！"
+        : `💀 你沒猜中，正確答案是 ${answer}`;
+      document.getElementById("summary").textContent = `你猜了 ${attempts} 次，花費時間 ${durationSec} 秒`;
+    }
+
+    function startTimer() {
+      let remaining = timeLimit;
+      document.getElementById("timer").textContent = `剩餘時間：${remaining} 秒`;
+
+      timerInterval = setInterval(() => {
+        remaining--;
+        document.getElementById("timer").textContent = `剩餘時間：${remaining} 秒`;
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          endGame(false);
+        }
+      }, 1000);
+    }
+
+    // 按下 Enter 也能送出
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("guessInput").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+          makeGuess();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

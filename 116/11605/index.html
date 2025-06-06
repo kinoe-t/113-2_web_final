@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>你是哪種台灣小吃？心理測驗</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fff7ed;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #d97706;
+    }
+    .question {
+      margin-bottom: 25px;
+    }
+    .question p {
+      font-weight: bold;
+    }
+    label {
+      display: block;
+      margin: 5px 0;
+      cursor: pointer;
+    }
+    button {
+      background-color: #d97706;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      background: #fef3c7;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>你是哪種台灣小吃？</h1>
+    <p>回答以下10個問題，看看你最像哪一種台灣經典小吃！</p>
+
+    <form id="quizForm">
+      <div class="question">
+        <p>1. 你早上最常喝什麼？</p>
+        <label><input type="radio" name="q1" value="A"> 豆漿</label>
+        <label><input type="radio" name="q1" value="B"> 咖啡</label>
+        <label><input type="radio" name="q1" value="C"> 奶茶</label>
+        <label><input type="radio" name="q1" value="D"> 不喝飲料</label>
+      </div>
+
+      <div class="question">
+        <p>2. 朋友約吃飯，你偏好？</p>
+        <label><input type="radio" name="q2" value="A"> 傳統市場小吃攤</label>
+        <label><input type="radio" name="q2" value="B"> 網美咖啡廳</label>
+        <label><input type="radio" name="q2" value="C"> 夜市走一圈</label>
+        <label><input type="radio" name="q2" value="D"> 安靜的老屋餐廳</label>
+      </div>
+
+      <div class="question">
+        <p>3. 如果你是一道菜，你會是哪一種？</p>
+        <label><input type="radio" name="q3" value="A"> 簡單但耐吃</label>
+        <label><input type="radio" name="q3" value="B"> 色香味俱全</label>
+        <label><input type="radio" name="q3" value="C"> 口感豐富、有層次</label>
+        <label><input type="radio" name="q3" value="D"> 古早味、令人懷念</label>
+      </div>
+
+      <div class="question">
+        <p>4. 你比較常被說個性是？</p>
+        <label><input type="radio" name="q4" value="A"> 親切</label>
+        <label><input type="radio" name="q4" value="B"> 搞怪有趣</label>
+        <label><input type="radio" name="q4" value="C"> 隨和</label>
+        <label><input type="radio" name="q4" value="D"> 穩重</label>
+      </div>
+
+      <div class="question">
+        <p>5. 你比較無法忍受哪種事？</p>
+        <label><input type="radio" name="q5" value="A"> 太複雜</label>
+        <label><input type="radio" name="q5" value="B"> 無聊</label>
+        <label><input type="radio" name="q5" value="C"> 冷場</label>
+        <label><input type="radio" name="q5" value="D"> 沒誠意</label>
+      </div>
+
+      <div class="question">
+        <p>6. 你喜歡的節奏是？</p>
+        <label><input type="radio" name="q6" value="A"> 慢慢來沒關係</label>
+        <label><input type="radio" name="q6" value="B"> 跳Tone快速切換</label>
+        <label><input type="radio" name="q6" value="C"> 跟著氣氛走</label>
+        <label><input type="radio" name="q6" value="D"> 事先安排好</label>
+      </div>
+
+      <div class="question">
+        <p>7. 你最常使用的社群媒體是？</p>
+        <label><input type="radio" name="q7" value="A"> Facebook</label>
+        <label><input type="radio" name="q7" value="B"> TikTok</label>
+        <label><input type="radio" name="q7" value="C"> Instagram</label>
+        <label><input type="radio" name="q7" value="D"> 不太用社群</label>
+      </div>
+
+      <div class="question">
+        <p>8. 你喜歡的天氣是？</p>
+        <label><input type="radio" name="q8" value="A"> 陰天微風</label>
+        <label><input type="radio" name="q8" value="B"> 熱辣辣的夏天</label>
+        <label><input type="radio" name="q8" value="C"> 晴天但不熱</label>
+        <label><input type="radio" name="q8" value="D"> 涼涼的冬天</label>
+      </div>
+
+      <div class="question">
+        <p>9. 你的理想生活是？</p>
+        <label><input type="radio" name="q9" value="A"> 簡單平穩</label>
+        <label><input type="radio" name="q9" value="B"> 充滿冒險與挑戰</label>
+        <label><input type="radio" name="q9" value="C"> 自由自在不被束縛</label>
+        <label><input type="radio" name="q9" value="D"> 舒適安定有節奏</label>
+      </div>
+
+      <div class="question">
+        <p>10. 如果今天只有你一個人吃飯，你會選擇？</p>
+        <label><input type="radio" name="q10" value="A"> 魯肉飯配青菜</label>
+        <label><input type="radio" name="q10" value="B"> 鹽酥雞+飲料</label>
+        <label><input type="radio" name="q10" value="C"> 米粉湯+黑輪</label>
+        <label><input type="radio" name="q10" value="D"> 牛肉麵</label>
+      </div>
+
+      <button type="button" onclick="calculateResult()">查看結果</button>
+    </form>
+
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    function calculateResult() {
+      const form = document.getElementById('quizForm');
+      const resultDiv = document.getElementById('result');
+      const answers = { A: 0, B: 0, C: 0, D: 0 };
+      const formData = new FormData(form);
+
+      for (let [_, value] of formData.entries()) {
+        answers[value]++;
+      }
+
+      const totalAnswered = Object.values(answers).reduce((a, b) => a + b, 0);
+      if (totalAnswered < 10) {
+        resultDiv.textContent = "請回答完所有問題才能查看結果喔！";
+        return;
+      }
+
+      let max = 0;
+      let chosen = 'A';
+      for (let key in answers) {
+        if (answers[key] > max) {
+          max = answers[key];
+          chosen = key;
+        }
+      }
+
+      const results = {
+        A: "你是：魯肉飯 🍚 —— 樸實又耐吃，親切平易近人，是大家心中的安全感來源！",
+        B: "你是：鹽酥雞 🍗 —— 活潑熱情，總是帶給人歡樂氣氛，是朋友中的氣氛王！",
+        C: "你是：黑輪米粉湯 🍢 —— 隨和、富有彈性，總是能在各種環境中自然融合。",
+        D: "你是：牛肉麵 🍜 —— 穩重、有深度，外表看似平淡，實則內在豐富、有料！"
+      };
+
+      resultDiv.textContent = results[chosen];
+    }
+  </script>
+</body>
+</html>

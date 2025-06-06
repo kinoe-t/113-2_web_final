@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>代辦事項清單</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f0f0f0;
+    }
+
+    h2 {
+      margin-top: 30px;
+    }
+
+    .section {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #todoInputSection {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+
+    .todo-item input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    input[type="text"] {
+      padding: 8px;
+      width: 70%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    #message {
+      display: none;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      animation: fadeout 2s ease-out forwards;
+    }
+
+    @keyframes fadeout {
+      0% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; display: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>我的代辦事項</h1>
+
+  <button onclick="showInput()">輸入代辦事項</button>
+
+  <div id="todoInputSection" class="section">
+    <input type="text" id="newTodo" placeholder="輸入代辦事項..." />
+    <button onclick="addTodo()">新增</button>
+  </div>
+
+  <div id="message">你好棒! 一個代辦事項已完成</div>
+
+  <div class="section">
+    <h2>代辦事項</h2>
+    <div id="todoList"></div>
+  </div>
+
+  <div class="section">
+    <h2>已完成</h2>
+    <div id="doneList"></div>
+  </div>
+
+  <script>
+    function showInput() {
+      const inputSection = document.getElementById("todoInputSection");
+      inputSection.style.display = inputSection.style.display === "none" ? "block" : "none";
+    }
+
+    function addTodo() {
+      const input = document.getElementById("newTodo");
+      const todoText = input.value.trim();
+      if (todoText === "") return;
+
+      const todoItem = document.createElement("div");
+      todoItem.className = "todo-item";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.addEventListener("change", function () {
+        if (checkbox.checked) {
+          document.getElementById("todoList").removeChild(todoItem);
+          document.getElementById("doneList").appendChild(todoItem);
+          showMessage();
+        }
+      });
+
+      const label = document.createElement("span");
+      label.textContent = todoText;
+
+      todoItem.appendChild(checkbox);
+      todoItem.appendChild(label);
+
+      document.getElementById("todoList").appendChild(todoItem);
+
+      input.value = "";
+    }
+
+    function showMessage() {
+      const msg = document.getElementById("message");
+      msg.style.display = "block";
+      msg.style.opacity = "1";
+
+      // 重啟動畫效果
+      msg.style.animation = "none";
+      void msg.offsetWidth; // 觸發重繪
+      msg.style.animation = "fadeout 2s ease-out forwards";
+
+      // 自動隱藏
+      setTimeout(() => {
+        msg.style.display = "none";
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
+
+

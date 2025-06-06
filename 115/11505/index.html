@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>五子棋：玩家 vs 電腦</title>
+  <style>
+    body {
+      background-color: #f8f1e5;
+      font-family: "Helvetica Neue", sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    canvas {
+      background-color: #d2b48c; /* 棋盤色：淡棕色 */
+      margin-top: 20px;
+      border: 4px solid #8b5e3c;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    #message {
+      margin: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    #restart {
+      padding: 10px 20px;
+      font-size: 18px;
+      display: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>五子棋：玩家 vs 電腦</h1>
+  <canvas id="board" width="600" height="600"></canvas>
+  <div id="message"></div>
+  <button id="restart" onclick="init()">再來一局</button>
+
+  <script>
+    const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
+    const size = 15;
+    const cellSize = canvas.width / size;
+    const board = [];
+    let gameOver = false;
+
+    const EMPTY = 0, PLAYER = 1, AI = 2;
+
+    function init() {
+      for (let i = 0; i < size; i++) {
+        board[i] = [];
+        for (let j = 0; j < size; j++) {
+          board[i][j] = EMPTY;
+        }
+      }
+      gameOver = false;
+      drawBoard();
+      document.getElementById("message").innerText = "";
+      document.getElementById("restart").style.display = "none";
+    }
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < size; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cellSize / 2, cellSize / 2 + i * cellSize);
+        ctx.lineTo(canvas.width - cellSize / 2, cellSize / 2 + i * cellSize);
+        ctx.moveTo(cellSize / 2 + i * cellSize, cellSize / 2);
+        ctx.lineTo(cellSize / 2 + i * cellSize, canvas.height - cellSize / 2);
+        ctx.strokeStyle = "#444";
+        ctx.stroke();
+      }
+
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          if (board[i][j] !== EMPTY) {
+            drawStone(i, j, board[i][j] === PLAYER ? "#333" : "#eee");
+          }
+        }
+      }
+    }
+
+    function drawStone(x, y, color) {
+      const centerX = x * cellSize + cellSize / 2;
+      const centerY = y * cellSize + cellSize / 2;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, cellSize / 2.8, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = "#000";
+      ctx.stroke();
+    }
+
+    function handleClick(e) {
+      if (gameOver) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((e.clientX - rect.left) / cellSize);
+      const y = Math.floor((e.clientY - rect.top) / cellSize);
+
+      if (board[x][y] === EMPTY) {
+        board[x][y] = PLAYER;
+        drawBoard();
+
+        if (checkWin(x, y, PLAYER)) {
+          endGame("You win!");
+          return;
+        }
+
+        aiMove();
+
+        drawBoard();
+      }
+    }
+
+    function aiMove() {
+      if (gameOver) return;
+
+      let bestScore = -Infinity;
+      let move = null;
+
+      for (let x = 0; x < size; x++) {
+        for (let y = 0; y < size; y++) {
+          if (board[x][y] === EMPTY) {
+            board[x][y] = AI;
+            if (checkWin(x, y, AI)) {
+              return finishAIMove(x, y);
+            }
+            board[x][y] = EMPTY;
+
+            board[x][y] = PLAYER;
+            if (checkWin(x, y, PLAYER)) {
+              board[x][y] = AI;
+              return finishAIMove(x, y);
+            }
+            board[x][y] = EMPTY;
+
+            const score = evaluatePoint(x, y, AI) + evaluatePoint(x, y, PLAYER) * 0.9;
+            if (score > bestScore) {
+              bestScore = score;
+              move = { x, y };
+            }
+          }
+        }
+      }
+
+      if (move) {
+        board[move.x][move.y] = AI;
+        if (checkWin(move.x, move.y, AI)) {
+          endGame("You lose!");
+        }
+      }
+    }
+
+    function finishAIMove(x, y) {
+      board[x][y] = AI;
+      drawBoard();
+      endGame("You lose!");
+    }
+
+    function evaluatePoint(x, y, role) {
+      let total = 0;
+      const directions = [
+        [1, 0], [0, 1], [1, 1], [1, -1]
+      ];
+      for (const [dx, dy] of directions) {
+        let count = 1;
+        for (let d = 1; d <= 4; d++) {
+          const nx = x + dx * d, ny = y + dy * d;
+          if (nx >= 0 && ny >= 0 && nx < size && ny < size && board[nx][ny] === role) {
+            count++;
+          } else break;
+        }
+        for (let d = 1; d <= 4; d++) {
+          const nx = x - dx * d, ny = y - dy * d;
+          if (nx >= 0 && ny >= 0 && nx < size && ny < size && board[nx][ny] === role) {
+            count++;
+          } else break;
+        }
+        total += Math.pow(10, count);
+      }
+      return total;
+    }
+
+    function checkWin(x, y, role) {
+      const directions = [
+        [1, 0], [0, 1], [1, 1], [1, -1]
+      ];
+      for (const [dx, dy] of directions) {
+        let count = 1;
+        for (let d = 1; d <= 4; d++) {
+          const nx = x + dx * d, ny = y + dy * d;
+          if (nx >= 0 && ny >= 0 && nx < size && ny < size && board[nx][ny] === role) {
+            count++;
+          } else break;
+        }
+        for (let d = 1; d <= 4; d++) {
+          const nx = x - dx * d, ny = y - dy * d;
+          if (nx >= 0 && ny >= 0 && nx < size && ny < size && board[nx][ny] === role) {
+            count++;
+          } else break;
+        }
+        if (count >= 5) return true;
+      }
+      return false;
+    }
+
+    function endGame(msg) {
+      gameOver = true;
+      document.getElementById("message").innerText = msg;
+      document.getElementById("restart").style.display = "inline-block";
+    }
+
+    canvas.addEventListener("click", handleClick);
+    init();
+  </script>
+</body>
+</html>
+
+

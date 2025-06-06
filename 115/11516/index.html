@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>猜數字遊戲 (1~1000)</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      background-color: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px;
+    }
+    h1 {
+      color: #333;
+    }
+    input[type="number"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 150px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .range {
+      margin-top: 10px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>猜數字遊戲（1 ~ 1000）</h1>
+  <p>請輸入你猜的數字：</p>
+  <input type="number" id="guessInput" min="1" max="1000" />
+  <button onclick="makeGuess()">猜！</button>
+
+  <div class="message" id="message"></div>
+  <div class="range" id="rangeDisplay">目前範圍：1 ~ 1000</div>
+
+  <script>
+    let answer = Math.floor(Math.random() * 1000) + 1;
+    let low = 1;
+    let high = 1000;
+    let finished = false;
+
+    function makeGuess() {
+      if (finished) return;
+
+      const input = document.getElementById("guessInput");
+      const guess = parseInt(input.value, 10);
+      const message = document.getElementById("message");
+      const rangeDisplay = document.getElementById("rangeDisplay");
+
+      if (isNaN(guess) || guess < low || guess > high) {
+        message.textContent = `請輸入 ${low} 到 ${high} 之間的數字。`;
+        return;
+      }
+
+      if (guess === answer) {
+        message.textContent = `恭喜你猜對了！答案是 ${answer}！`;
+        finished = true;
+        rangeDisplay.textContent = '';
+      } else if (guess < answer) {
+        if (guess >= low) low = guess + 1;
+        message.textContent = `太小了！再試一次。`;
+      } else {
+        if (guess <= high) high = guess - 1;
+        message.textContent = `太大了！再試一次。`;
+      }
+
+      rangeDisplay.textContent = `目前範圍：${low} ~ ${high}`;
+      input.value = "";
+      input.focus();
+    }
+  </script>
+
+</body>
+</html>

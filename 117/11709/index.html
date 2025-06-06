@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>籤筒模擬器</title>
+  <style>
+    body {
+      font-family: "Noto Sans TC", sans-serif;
+      background-color: #fff9e6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #d35400;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 15px 40px;
+      font-size: 1.3rem;
+      background-color: #e67e22;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #ca6f1e;
+    }
+    #result {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 1.6rem;
+      color: #2c3e50;
+    }
+    .fortune {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1.8rem;
+      color: #8e44ad;
+    }
+    .message {
+      margin-top: 10px;
+      font-size: 1.4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>請點擊籤筒抽籤</h1>
+  <button onclick="drawFortune()">抽籤！</button>
+
+  <div id="result"></div>
+
+  <script>
+    const goodFortunes = [
+      "全收速匯", "全收匯款", "全收取付", "隨緣收", "收徽章", "收立牌",
+      "收紙片", "收娃娃", "收滿額", "看價排收", "排拆", "收盲抽"
+    ];
+
+    const badFortunes = [
+      "不收且存100元", "不收且存50元", "不收且存200元", "不收且存500元", "盤子還買啊!=="
+    ];
+
+    const allFortunes = goodFortunes.concat(badFortunes);
+
+    function drawFortune() {
+      const randomIndex = Math.floor(Math.random() * allFortunes.length);
+      const fortune = allFortunes[randomIndex];
+      const resultDiv = document.getElementById("result");
+
+      const isBad = badFortunes.includes(fortune);
+
+      resultDiv.innerHTML = `
+        <div class="fortune">【${fortune}】</div>
+        <div class="message">${isBad 
+          ? "你是一個失敗的盤子" 
+          : "恭喜你離成為盤子之王又更進一步!!!"}</div>
+      `;
+    }
+  </script>
+
+</body>
+</html>

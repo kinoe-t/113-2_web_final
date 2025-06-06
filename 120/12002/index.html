@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>圈圈叉叉</title>
+  <style>
+    body {
+      background-color: #d3d3d3; /* 冷灰色背景 */
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 5px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .cell.o { color: red; }    /* 圈（O）紅色 */
+    .cell.x { color: blue; }   /* 叉（X）藍色 */
+
+    #win-message {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #win-message img {
+      width: 200px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>圈圈叉叉</h1>
+  <div class="board" id="board"></div>
+
+  <div id="win-message">
+    <h2>你贏了！</h2>
+    <img src="win.jpg" alt="你贏了圖片">
+  </div>
+
+  <script>
+    const board = document.getElementById('board');
+    const winMessage = document.getElementById('win-message');
+    let cells = [];
+    let currentPlayer = 'o';
+    let gameOver = false;
+
+    function createBoard() {
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.addEventListener('click', () => makeMove(cell, i));
+        board.appendChild(cell);
+        cells.push(cell);
+      }
+    }
+
+    function makeMove(cell, index) {
+      if (gameOver || cell.textContent !== '') return;
+
+      cell.textContent = currentPlayer.toUpperCase();
+      cell.classList.add(currentPlayer);
+
+      if (checkWin(currentPlayer)) {
+        gameOver = true;
+        winMessage.style.display = 'block';
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'o' ? 'x' : 'o';
+    }
+
+    function checkWin(player) {
+      const winPatterns = [
+        [0,1,2],[3,4,5],[6,7,8], // rows
+        [0,3,6],[1,4,7],[2,5,8], // cols
+        [0,4,8],[2,4,6]          // diags
+      ];
+
+      return winPatterns.some(pattern => 
+        pattern.every(index => 
+          cells[index].textContent.toLowerCase() === player
+        )
+      );
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>

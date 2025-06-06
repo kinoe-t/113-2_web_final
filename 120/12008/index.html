@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>戀愛校園故事 x MBTI 測驗</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #e8f5e9;
+      color: #333;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2e7d32;
+    }
+    .story {
+      margin-top: 30px;
+      font-size: 1.2em;
+      line-height: 1.6em;
+    }
+    .choices {
+      margin-top: 20px;
+    }
+    .choice {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #c8e6c9;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    .choice:hover {
+      background-color: #a5d6a7;
+    }
+    .result {
+      margin-top: 30px;
+      font-size: 1.3em;
+      font-weight: bold;
+      text-align: center;
+      color: #1b5e20;
+    }
+  </style>
+</head>
+<body>
+  <h1>戀愛校園故事 × MBTI 測驗</h1>
+  <div class="story" id="story"></div>
+  <div class="choices" id="choices"></div>
+  <div class="result" id="result"></div>
+
+  <script>
+    let currentQuestion = 0;
+    let mbtiScores = {
+      E: 0, I: 0,
+      S: 0, N: 0,
+      T: 0, F: 0,
+      J: 0, P: 0
+    };
+
+    const questions = [
+      {
+        text: "開學第一天，你的心情是？",
+        choices: [
+          { text: "興奮！我想認識新朋友。", value: "E" },
+          { text: "有點緊張，想安靜觀察一下。", value: "I" }
+        ]
+      },
+      {
+        text: "你對暗戀的感覺更像是？",
+        choices: [
+          { text: "現實互動更重要，我要先認識他/她。", value: "S" },
+          { text: "我喜歡幻想和想像未來。", value: "N" }
+        ]
+      },
+      {
+        text: "朋友問你戀愛的建議，你會：",
+        choices: [
+          { text: "給出客觀分析。", value: "T" },
+          { text: "以情感共鳴給建議。", value: "F" }
+        ]
+      },
+      {
+        text: "你計劃向心儀對象告白，會：",
+        choices: [
+          { text: "安排好時機和場景。", value: "J" },
+          { text: "跟著感覺走，想到就做。", value: "P" }
+        ]
+      },
+      {
+        text: "與喜歡的人第一次約會，你：",
+        choices: [
+          { text: "喜歡安排活動，讓彼此留下好印象。", value: "J" },
+          { text: "順其自然，看情況發展。", value: "P" }
+        ]
+      },
+      {
+        text: "你認為戀愛的理想方式是：",
+        choices: [
+          { text: "踏實相處中慢慢培養感情。", value: "S" },
+          { text: "充滿靈魂共鳴和深度理解。", value: "N" }
+        ]
+      },
+      {
+        text: "你在群體中通常是？",
+        choices: [
+          { text: "主動發話的中心角色。", value: "E" },
+          { text: "比較喜歡聽大家說話。", value: "I" }
+        ]
+      },
+      {
+        text: "你面對戀愛難題時通常怎麼做？",
+        choices: [
+          { text: "理性思考，找出解法。", value: "T" },
+          { text: "傾向從心出發，跟著情緒走。", value: "F" }
+        ]
+      }
+    ];
+
+    function showQuestion(index) {
+      const question = questions[index];
+      const storyEl = document.getElementById("story");
+      const choicesEl = document.getElementById("choices");
+      const resultEl = document.getElementById("result");
+      storyEl.textContent = question.text;
+      choicesEl.innerHTML = "";
+      resultEl.innerHTML = "";
+
+      question.choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.textContent = choice.text;
+        btn.onclick = () => {
+          mbtiScores[choice.value]++;
+          currentQuestion++;
+          if (currentQuestion < questions.length) {
+            showQuestion(currentQuestion);
+          } else {
+            showResult();
+          }
+        };
+        choicesEl.appendChild(btn);
+      });
+    }
+
+    function showResult() {
+      const resultEl = document.getElementById("result");
+      const storyEl = document.getElementById("story");
+      const choicesEl = document.getElementById("choices");
+      storyEl.textContent = "測驗完成！你是：";
+      choicesEl.innerHTML = "";
+
+      const mbti =
+        (mbtiScores.E >= mbtiScores.I ? "E" : "I") +
+        (mbtiScores.S >= mbtiScores.N ? "S" : "N") +
+        (mbtiScores.T >= mbtiScores.F ? "T" : "F") +
+        (mbtiScores.J >= mbtiScores.P ? "J" : "P");
+
+      resultEl.textContent = `你的戀愛MBTI人格是：${mbti}`;
+    }
+
+    showQuestion(currentQuestion);
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>每日約會抽卡</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #fffaf0;
+      padding: 50px;
+    }
+    h1 {
+      color: #d6336c;
+    }
+    img {
+      max-width: 300px;
+      margin: 20px auto;
+      display: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #ff7f50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff6347;
+    }
+  </style>
+</head>
+<body>
+  <h1>每日約會抽卡</h1>
+  <button onclick="drawCard()">抽卡！</button>
+  <div>
+    <img id="cardImage" src="" alt="抽中的圖片">
+  </div>
+  <script>
+    const totalCards = 13;
+
+    function drawCard() {
+      const randomNum = Math.floor(Math.random() * totalCards) + 1;
+      const fileName = `card${randomNum}.jpg`; // 根據圖片命名而定
+      const img = document.getElementById('cardImage');
+      img.src = fileName;
+      img.style.display = 'block';
+      alert(`你今日的約會對象是: ${fileName}`);
+    }
+  </script>
+</body>
+</html>
