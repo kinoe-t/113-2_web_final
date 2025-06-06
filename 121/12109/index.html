@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>猜拳遊戲</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+      margin-top: 50px;
+    }
+    h1 {
+      color: #333;
+    }
+    .buttons {
+      margin: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #b30000;
+    }
+    .images {
+      margin-top: 20px;
+    }
+    .images img {
+      width: 100px;
+      height: 100px;
+      margin: 0 20px;
+    }
+    #fakeHint {
+      margin-top: 20px;
+      font-size: 20px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>剪刀石頭布！</h1>
+  <div class="buttons">
+    <button onclick="play('剪刀')">剪刀</button>
+    <button onclick="play('石頭')">石頭</button>
+    <button onclick="play('布')">布</button>
+  </div>
+
+  <div id="fakeHint"></div>
+
+  <div class="images">
+    <div>
+      <strong>你出：</strong><img id="player-img" src="" alt="你的選擇">
+      <strong>電腦出：</strong><img id="computer-img" src="" alt="電腦的選擇">
+    </div>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    const imgMap = {
+      '剪刀': 'https://i.imgur.com/SU3ueoX.png',
+      '石頭': 'https://i.imgur.com/Yr5iaQw.png',
+      '布': 'https://i.imgur.com/zM6YfMY.png'
+    };
+
+    let actualComputerChoice = '';
+    let fakeHint = '';
+
+    // 在按鈕被點之前先顯示電腦的「預告」
+    window.onload = () => {
+      generateFakeHint();
+    };
+
+    function generateFakeHint() {
+      const choices = ['剪刀', '石頭', '布'];
+      actualComputerChoice = choices[Math.floor(Math.random() * 3)];
+      const lieChance = Math.random();
+      fakeHint = lieChance < 0.6 ? actualComputerChoice : choices.filter(c => c !== actualComputerChoice)[Math.floor(Math.random() * 2)];
+      document.getElementById('fakeHint').textContent = `電腦：我可是正人君子，我要出「${fakeHint}」哦 😏`;
+    }
+
+    function play(playerChoice) {
+      // 顯示圖片
+      document.getElementById('player-img').src = imgMap[playerChoice];
+      document.getElementById('computer-img').src = imgMap[actualComputerChoice];
+
+      let outcome = '';
+      const wasLiedTo = fakeHint !== actualComputerChoice;
+
+      if (playerChoice === actualComputerChoice) {
+        outcome = `你出的是${playerChoice}，我出的是${actualComputerChoice}。平手？\uD83E\uDD2E 這就是你的極限？我都沒認真出招耶。`;
+      } else if (
+        (playerChoice === '剪刀' && actualComputerChoice === '布') ||
+        (playerChoice === '石頭' && actualComputerChoice === '剪刀') ||
+        (playerChoice === '布' && actualComputerChoice === '石頭')
+      ) {
+        if (wasLiedTo) {
+          outcome = `你出的是${playerChoice}，我本來說我要出${fakeHint}，但我其實出了${actualComputerChoice}。\n你居然贏了！？\uD83E\uDD2D 哎呀，該不會是你瞎貓碰上死老虎吧？`;
+        } else {
+          outcome = `你出的是${playerChoice}，我出的是${actualComputerChoice}。你贏了？\uD83E\uDD2D 行啦行啦，別太興奮，小丑贏場戲罷了。`;
+        }
+      } else {
+        if (wasLiedTo) {
+          outcome = `你出的是${playerChoice}，我說要出${fakeHint}，結果我出了${actualComputerChoice}。\n被我騙得團團轉還敢來？\uD83D\uDE1C 你這智商還想跟我鬥，太天真啦～`;
+        } else {
+          outcome = `你出的是${playerChoice}，我出的是${actualComputerChoice}。\n哈哈哈！\uD83E\uDD23 你是自願被羞辱的嗎？這水準也太感人了吧。`;
+        }
+      }
+
+      document.getElementById('result').textContent = outcome;
+      generateFakeHint();
+    }
+  </script>
+</body>
+</html>

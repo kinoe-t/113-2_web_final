@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>今日運勢抽籤</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f7f7f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 300px;
+    }
+
+    .lottery-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .date-line {
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 1rem;
+    }
+
+    .fortune-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      font-size: 1rem;
+      padding: 0.6rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      margin: 0.5rem 0;
+      transition: transform 0.1s ease;
+    }
+
+    .btn:active, .pressed {
+      transform: scale(0.95);
+    }
+
+    .result {
+      font-size: 2rem;
+      margin: 1.5rem 0 1rem 0;
+      color: #333;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .lucky-number {
+      font-size: 1.5rem;
+      margin-top: 1rem;
+      color: #28a745;
+    }
+
+    .restart-btn {
+      background-color: #28a745;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="lottery-icon">🎴</div>
+    <div class="date-line" id="date"></div>
+    <div class="fortune-title">今日運勢</div>
+    <button id="drawBtn" class="btn">抽籤</button>
+    <div id="result" class="result"></div>
+    <button id="luckyBtn" class="btn hidden">查看幸運數字</button>
+    <div id="luckyNumber" class="lucky-number"></div>
+    <button id="restartBtn" class="btn restart-btn hidden">重新開始</button>
+  </div>
+
+  <script>
+    const fortunes = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
+    const drawBtn = document.getElementById('drawBtn');
+    const resultDiv = document.getElementById('result');
+    const luckyBtn = document.getElementById('luckyBtn');
+    const luckyNumberDiv = document.getElementById('luckyNumber');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // 設定日期
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+    document.getElementById('date').innerText = dateStr;
+
+    function drawFortune() {
+      const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+      resultDiv.innerText = fortune;
+      drawBtn.classList.add('hidden');
+      luckyBtn.classList.remove('hidden');
+    }
+
+    function showLuckyNumber() {
+      const num = Math.floor(Math.random() * 10);
+      luckyNumberDiv.innerText = `幸運數字是：${num}`;
+      luckyBtn.classList.add('hidden');
+      restartBtn.classList.remove('hidden');
+    }
+
+    function restart() {
+      resultDiv.innerText = '';
+      luckyNumberDiv.innerText = '';
+      drawBtn.classList.remove('hidden');
+      luckyBtn.classList.add('hidden');
+      restartBtn.classList.add('hidden');
+    }
+
+    drawBtn.addEventListener('click', drawFortune);
+    luckyBtn.addEventListener('click', showLuckyNumber);
+    restartBtn.addEventListener('click', restart);
+
+    // 支援空白鍵觸發抽籤
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (!drawBtn.classList.contains('hidden')) {
+          drawBtn.classList.add('pressed');
+          setTimeout(() => drawBtn.classList.remove('pressed'), 100);
+          drawBtn.click();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

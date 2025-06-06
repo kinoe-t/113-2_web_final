@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>接水果遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: url('background.jpg') no-repeat center center;
+      background-size: cover;
+      font-family: "Microsoft JhengHei", sans-serif;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #character {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      width: 120px;
+      transform: translateX(-50%);
+    }
+
+    .item {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      top: 0;
+    }
+
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      color: white;
+      text-shadow: 1px 1px 3px black;
+    }
+
+    #game-over {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      color: yellow;
+      display: none;
+      text-shadow: 2px 2px 5px black;
+    }
+
+    #restart-btn {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      font-size: 20px;
+      border: none;
+      border-radius: 8px;
+      background-color: #ffc107;
+      color: black;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="score">分數：0</div>
+    <div id="game-over">你好棒棒 🎉</div>
+    <button id="restart-btn">再來一次</button>
+    <img id="character" src="character-right.png" />
+  </div>
+
+  <script>
+    const container = document.getElementById("game-container");
+    const character = document.getElementById("character");
+    const scoreDisplay = document.getElementById("score");
+    const gameOverDisplay = document.getElementById("game-over");
+    const restartBtn = document.getElementById("restart-btn");
+
+    const fruitImages = ["apple.png", "banana.png", "grape.png", "strawberry.png"];
+    let score = 0;
+    let characterX = window.innerWidth / 2 - 60;
+    const characterWidth = 120;
+    let keys = {};
+    let gameEnded = false;
+    let spawnInterval;
+
+    function moveCharacter() {
+      if (gameEnded) return;
+
+      if (keys["ArrowLeft"]) {
+        characterX -= 7;
+        character.src = "character-left.png";
+      }
+      if (keys["ArrowRight"]) {
+        characterX += 7;
+        character.src = "character-right.png";
+      }
+      characterX = Math.max(0, Math.min(window.innerWidth - characterWidth, characterX));
+      character.style.left = characterX + "px";
+
+      requestAnimationFrame(moveCharacter);
+    }
+
+    function spawnItem() {
+      const item = document.createElement("img");
+      const isFruit = Math.random() < 0.8;
+      item.src = isFruit
+        ? fruitImages[Math.floor(Math.random() * fruitImages.length)]
+        : "bomb.png";
+      item.className = "item";
+      item.dataset.type = isFruit ? "fruit" : "bomb";
+      item.style.left = Math.random() * (window.innerWidth - 50) + "px";
+      container.appendChild(item);
+
+      let y = 0;
+      const fallSpeed = 2 + Math.random() * 2;
+
+      const fall = setInterval(() => {
+        if (gameEnded) {
+          item.remove();
+          clearInterval(fall);
+          return;
+        }
+
+        y += fallSpeed;
+        item.style.top = y + "px";
+
+        const itemX = parseFloat(item.style.left);
+        const itemCenter = itemX + 25;
+        const characterCenter = characterX + characterWidth / 2;
+        const itemBottom = y + 50;
+        const characterTop = window.innerHeight - 20 - 120;
+
+        if (
+          itemBottom >= characterTop &&
+          Math.abs(itemCenter - characterCenter) < 50
+        ) {
+          if (item.dataset.type === "fruit") {
+            score += 5;
+          } else {
+            score -= 10;
+          }
+          scoreDisplay.textContent = "分數：" + score;
+          item.remove();
+          clearInterval(fall);
+          if (score >= 100) {
+            endGame();
+          }
+        }
+
+        if (y > window.innerHeight) {
+          item.remove();
+          clearInterval(fall);
+        }
+      }, 16);
+    }
+
+    function startSpawnLoop() {
+      spawnInterval = setInterval(() => {
+        if (gameEnded) return;
+        const count = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < count; i++) {
+          spawnItem();
+        }
+      }, 800);
+    }
+
+    function endGame() {
+      gameEnded = true;
+      clearInterval(spawnInterval);
+      gameOverDisplay.style.display = "block";
+      restartBtn.style.display = "block";
+    }
+
+    function restartGame() {
+      document.querySelectorAll(".item").forEach(item => item.remove());
+      score = 0;
+      scoreDisplay.textContent = "分數：0";
+      characterX = window.innerWidth / 2 - characterWidth / 2;
+      character.style.left = characterX + "px";
+      gameEnded = false;
+      gameOverDisplay.style.display = "none";
+      restartBtn.style.display = "none";
+      startSpawnLoop();
+      moveCharacter();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    restartBtn.addEventListener("click", () => {
+      restartGame();
+    });
+
+    moveCharacter();
+    startSpawnLoop();
+  </script>
+</body>
+</html>
+

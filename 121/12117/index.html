@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>小恐龍遊戲</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f7f7f7;
+      font-family: sans-serif;
+    }
+    canvas {
+      display: block;
+      margin: 40px auto;
+      background: #fff;
+      border: 2px solid #444;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 10px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>小恐龍遊戲 - 按空白鍵跳躍</h1>
+  <canvas id="gameCanvas" width="800" height="200"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const groundY = 160;
+
+    const dino = {
+      x: 50,
+      y: groundY,
+      width: 40,
+      height: 40,
+      color: '#555',
+      vy: 0,
+      gravity: 1.2,
+      jumpPower: -18,
+      isJumping: false,
+    };
+
+    const obstacles = [];
+    const obstacleTypes = [
+      { width: 20, height: 40, color: 'green' },
+      { width: 30, height: 30, color:

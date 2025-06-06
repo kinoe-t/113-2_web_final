@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>十二星座今日運勢</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(120deg, #e0c3fc, #8ec5fc);
+      margin: 0;
+      padding: 40px 20px;
+      text-align: center;
+      color: #333;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+    .zodiac-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 25px;
+      max-width: 1000px;
+      margin: 0 auto 40px auto;
+    }
+    .zodiac-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      padding: 30px;
+      transition: 0.3s;
+      cursor: pointer;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    .zodiac-card:hover {
+      transform: translateY(-5px);
+    }
+    .fortune-box {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 30px;
+      display: none;
+      text-align: left;
+    }
+    .fortune-box h2 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      color: #8e44ad;
+    }
+    .fortune-box p {
+      font-size: 1.1em;
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>十二星座今日運勢</h1>
+  <div class="zodiac-container">
+    <div class="zodiac-card" data-sign="牡羊座">牡羊座</div>
+    <div class="zodiac-card" data-sign="金牛座">金牛座</div>
+    <div class="zodiac-card" data-sign="雙子座">雙子座</div>
+    <div class="zodiac-card" data-sign="巨蟹座">巨蟹座</div>
+    <div class="zodiac-card" data-sign="獅子座">獅子座</div>
+    <div class="zodiac-card" data-sign="處女座">處女座</div>
+    <div class="zodiac-card" data-sign="天秤座">天秤座</div>
+    <div class="zodiac-card" data-sign="天蠍座">天蠍座</div>
+    <div class="zodiac-card" data-sign="射手座">射手座</div>
+    <div class="zodiac-card" data-sign="摩羯座">摩羯座</div>
+    <div class="zodiac-card" data-sign="水瓶座">水瓶座</div>
+    <div class="zodiac-card" data-sign="雙魚座">雙魚座</div>
+  </div>
+
+
+  <div class="fortune-box" id="fortuneBox">
+    <h2 id="fortuneTitle"></h2>
+    <p id="fortuneDate"></p>
+    <p id="fortuneCareer"></p>
+    <p id="fortuneMoney"></p>
+    <p id="fortuneLove"></p>
+    <p id="fortuneStudy"></p>
+    <p id="fortuneColor"></p>
+    <p id="fortuneLucky"></p>
+  </div>
+
+  <script>
+    const fortunes = {
+      "牡羊座": {
+        career: "工作活力十足，能迎難而上，贏得同事認可。",
+        money: "財運旺盛，適合小額投資。",
+        love: "單身者有機會遇見心儀對象。",
+        study: "學習進展順利，適合準備考試。",
+        color: "紅色",
+        luckySign: "獅子座"
+      },
+      "金牛座": {
+        career: "穩健處理事務，能取得上級信任。",
+        money: "財運平穩，注意開支比例。",
+        love: "感情穩定，適合安排家庭活動。",
+        study: "今日吸收新知效果佳。",
+        color: "綠色",
+        luckySign: "摩羯座"
+      },
+      "雙子座": {
+        career: "創意靈感豐富，適合提出新想法。",
+        money: "小心衝動購物，有破財之虞。",
+        love: "桃花旺，易遇聊得來的對象。",
+        study: "容易分心，需專注學習。",
+        color: "黃色",
+        luckySign: "天秤座"
+      },
+      "巨蟹座": {
+        career: "同事間的支持讓你工作事半功倍。",
+        money: "有偏財運，適合抽獎或投資。",
+        love: "感情細膩溫柔，深得人心。",
+        study: "適合整理筆記與複習。",
+        color: "白色",
+        luckySign: "雙魚座"
+      },
+      "獅子座": {
+        career: "領導力提升，是發揮實力的好時機。",
+        money: "財運中上，避免高風險操作。",
+        love: "吸引力強，容易受到注目。",
+        study: "適合做簡報或公開發表。",
+        color: "金色",
+        luckySign: "牡羊座"
+      },
+      "處女座": {
+        career: "細心讓你表現突出，專案順利完成。",
+        money: "適合理財規劃與儲蓄。",
+        love: "戀人間溝通順暢，甜蜜加分。",
+        study: "閱讀理解力佳，學習進步快。",
+        color: "米色",
+        luckySign: "金牛座"
+      },
+      "天秤座": {
+        career: "適合團隊合作，溝通能力佳。",
+        money: "財務穩定，可嘗試新理財工具。",
+        love: "浪漫機會多，適合告白。",
+        study: "適合學習語言與藝術類課程。",
+        color: "藍色",
+        luckySign: "雙子座"
+      },
+      "天蠍座": {
+        career: "目標明確，適合完成積壓任務。",
+        money: "財運上升，可小試身手。",
+        love: "感情深沉，適合傾訴心事。",
+        study: "研究能力強，適合進行深入學習。",
+        color: "黑色",
+        luckySign: "巨蟹座"
+      },
+      "射手座": {
+        career: "適合拓展新領域，有貴人相助。",
+        money: "有投資良機，但需謹慎評估。",
+        love: "熱情洋溢，易吸引異性注意。",
+        study: "適合戶外學習或探索式學習。",
+        color: "橘色",
+        luckySign: "水瓶座"
+      },
+      "摩羯座": {
+        career: "認真踏實的態度獲得好評。",
+        money: "節制支出，資金狀況良好。",
+        love: "感情穩定，關係深厚。",
+        study: "適合專注於長期計畫。",
+        color: "深灰色",
+        luckySign: "處女座"
+      },
+      "水瓶座": {
+        career: "靈感湧現，適合創新與突破。",
+        money: "財運佳，可能有意外之財。",
+        love: "友情有望昇華為愛情。",
+        study: "創意思維活躍，學習有趣主題特別有效。",
+        color: "青色",
+        luckySign: "雙子座"
+      },
+      "雙魚座": {
+        career: "直覺準確，適合做決策。",
+        money: "投資運良好，適合進場。",
+        love: "浪漫氛圍濃厚，適合告白與約會。",
+        study: "藝術與創意表現佳。",
+        color: "粉紅色",
+        luckySign: "巨蟹座"
+      }
+    };
+
+    function getTodayDate() {
+      const today = new Date();
+      return `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`;
+    }
+
+    document.querySelectorAll('.zodiac-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const sign = card.dataset.sign;
+        const data = fortunes[sign];
+
+        document.getElementById('fortuneTitle').innerText = `${sign} 今日運勢`;
+        document.getElementById('fortuneDate').innerText = `日期：${getTodayDate()}`;
+        document.getElementById('fortuneCareer').innerText = `事業：${data.career}`;
+        document.getElementById('fortuneMoney').innerText = `財運：${data.money}`;
+        document.getElementById('fortuneLove').innerText = `愛情：${data.love}`;
+        document.getElementById('fortuneStudy').innerText = `學業：${data.study}`;
+        document.getElementById('fortuneColor').innerText = `幸運色：${data.color}`;
+        document.getElementById('fortuneLucky').innerText = `當日幸運星座：${data.luckySign}`;
+
+        document.getElementById('fortuneBox').style.display = 'block';
+      });
+    });
+  </script>
+</body>
+</html>

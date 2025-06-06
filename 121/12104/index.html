@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>抽獎輪盤</title>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    input, textarea, button {
+      font-size: 16px;
+      margin: 0.3rem;
+    }
+
+    #item-list {
+      margin-top: 1rem;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.5rem 0;
+      background: #fff;
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 8px solid #333;
+      margin: 2rem auto;
+      position: relative;
+      transition: transform 5s ease-out;
+      overflow: hidden;
+    }
+
+    #fixed-pointer {
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 30px solid red;
+  position: absolute;
+  top: -30px;
+  left: calc(50% - 15px);
+  z-index: 10;
+}
+
+
+
+    textarea {
+      width: 300px;
+      height: 80px;
+      padding: 0.5rem;
+    }
+
+    .slice {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      transform-origin: center center;
+    }
+
+    .label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: center center;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    /* Modal */
+    #result-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #result-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      font-size: 24px;
+      min-width: 250px;
+    }
+
+    #close-btn {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>抽獎輪盤</h1>
+
+  <input type="text" id="new-item" placeholder="新增抽獎項目" />
+  <button onclick="addItem()">新增</button>
+  <button onclick="clearItems()">全部清除</button><br>
+
+  <textarea id="multi-items" placeholder="可用空白、逗號或換行分隔多項"></textarea><br>
+  <button onclick="addMultipleItems()">新增多項</button>
+
+  <div id="item-list"></div>
+
+  <div id="pointer"></div>
+  <div id="wheel"></div>
+  <button onclick="spinWheel()">開始抽獎</button>
+
+  <div id="result-modal">
+    <div id="result-box">
+      <div id="result-text">抽中：---</div>
+      <button id="close-btn" onclick="closeModal()">關閉</button>
+    </div>
+  </div>
+
+  <script>
+    let items = JSON.parse(localStorage.getItem("items")) || [];
+
+    function saveItems() {
+      localStorage.setItem("items", JSON.stringify(items));
+    }
+
+    function addItem() {
+      const input = document.getElementById("new-item");
+      const value = input.value.trim();
+      if (value && !items.includes(value)) {
+        items.push(value);
+        input.value = "";
+        saveItems();
+        renderItems();
+        renderWheel();
+      }
+    }
+
+    function addMultipleItems() {
+      const input = document.getElementById("multi-items");
+      const values = input.value
+        .split(/[\s,，\n]+/)
+        .map(v => v.trim())
+        .filter(v => v.length > 0 && !items.includes(v));
+      if (values.length === 0) {
+        alert("沒有有效的新項目可新增");
+        return;
+      }
+      items.push(...values);
+      input.value = "";
+      saveItems();
+      renderItems();
+      renderWheel();
+    }
+
+    function deleteItem(index) {
+      items.splice(index, 1);
+      saveItems();
+      renderItems();
+      renderWheel();
+    }
+
+    function clearItems() {
+      if (confirm("確定要清除所有項目嗎？")) {
+        items = [];
+        saveItems();
+        renderItems();
+        renderWheel();
+      }
+    }
+
+    function renderItems() {
+      const list = document.getElementById("item-list");
+      list.innerHTML = "";
+      items.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <span>${item}</span>
+          <button onclick="deleteItem(${index})">刪除</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function renderWheel() {
+      const wheel = document.getElementById("wheel");
+      const count = items.length;
+      wheel.innerHTML = "";
+
+      if (count === 0) {
+        wheel.innerHTML = "<p>請新增項目</p>";
+        return;
+      }
+
+      const angle = 360 / count;
+
+      for (let i = 0; i < count; i++) {
+        const slice = document.createElement("div");
+        slice.className = "slice";
+        slice.style.transform = `rotate(${i * angle}deg)`;
+
+        const color = `hsl(${(i * 360) / count}, 70%, 70%)`;
+        const labelAngle = angle * i + angle / 2;
+
+        slice.innerHTML = `
+          <div style="
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            background: ${color};
+            clip-path: polygon(100% 50%, 0% 0%, 0% 100%);
+            transform-origin: right center;
+            transform: rotate(${angle}deg);
+          "></div>
+          <div class="label" style="
+            transform: rotate(${labelAngle}deg) translate(0, -120px) rotate(${-labelAngle}deg);
+          ">
+            ${items[i]}
+          </div>
+        `;
+        wheel.appendChild(slice);
+      }
+    }
+
+    function spinWheel() {
+      if (items.length === 0) return alert("請先新增項目！");
+      const wheel = document.getElementById("wheel");
+      const count = items.length;
+      const anglePerItem = 360 / count;
+      const selectedIndex = Math.floor(Math.random() * count);
+      const stopAngle = 360 * 5 + (360 - selectedIndex * anglePerItem - anglePerItem / 2);
+
+      wheel.style.transform = `rotate(${stopAngle}deg)`;
+
+      setTimeout(() => {
+        showModal(`抽中：${items[selectedIndex]}`);
+      }, 5200);
+    }
+
+    function showModal(text) {
+      document.getElementById("result-text").textContent = text;
+      document.getElementById("result-modal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("result-modal").style.display = "none";
+    }
+
+    renderItems();
+    renderWheel();
+  </script>
+</body>
+</html>

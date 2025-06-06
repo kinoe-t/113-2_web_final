@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>鬆餅堆疊遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #fff8e1;
+    }
+    canvas {
+      background: #ffe0b2;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid #d2691e;
+    }
+    #score, #gameOver, #restartBtn {
+      font-size: 24px;
+      margin: 10px;
+    }
+    #gameOver {
+      color: red;
+    }
+    #restartBtn {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #ffcc80;
+      border: none;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>鬆餅堆疊遊戲</h1>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div id="score">得分：0</div>
+  <div id="gameOver"></div>
+  <button id="restartBtn" onclick="restartGame()">重新開始</button>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const gameOverEl = document.getElementById('gameOver');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let pancakes = [];
+    let fallingPancake = null;
+    let score = 0;
+    let isGameOver = false;
+    let direction = 1;
+
+    const PANCAKE_WIDTH = 80;
+    const PANCAKE_HEIGHT = 20;
+    const PANCAKE_SPEED = 3;
+    const FALL_SPEED = 5;
+
+    function createPancake() {
+      return {
+        x: 0,
+        y: 0,
+        width: PANCAKE_WIDTH,
+        height: PANCAKE_HEIGHT,
+        isFalling: false
+      };
+    }
+
+    function drawPancake(p) {
+      ctx.fillStyle = '#ffb74d';
+      ctx.fillRect(p.x, p.y, p.width, p.height);
+      ctx.strokeStyle = '#8d6e63';
+      ctx.strokeRect(p.x, p.y, p.width, p.height);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pancakes.forEach(drawPancake);
+      if (fallingPancake) drawPancake(fallingPancake);
+    }
+
+    function update() {
+      if (!fallingPancake || isGameOver) return;
+
+      if (!fallingPancake.isFalling) {
+        fallingPancake.x += PANCAKE_SPEED * direction;
+        if (fallingPancake.x <= 0 || fallingPancake.x + PANCAKE_WIDTH >= canvas.width) {
+          direction *= -1;
+        }
+      } else {
+        fallingPancake.y += FALL_SPEED;
+        const stackY = canvas.height - pancakes.length * PANCAKE_HEIGHT - PANCAKE_HEIGHT;
+
+        if (fallingPancake.y >= stackY) {
+          const prev = pancakes[0];
+
+          if (!prev || (fallingPancake.x + PANCAKE_WIDTH > prev.x && fallingPancake.x < prev.x + PANCAKE_WIDTH)) {
+            fallingPancake.y = stackY;
+            pancakes.unshift(fallingPancake);
+            score++;
+            scoreEl.textContent = `得分：${score}`;
+            fallingPancake = null;
+          } else {
+            endGame();
+          }
+        }
+      }
+    }
+
+    function gameLoop() {
+      if (!isGameOver) {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function endGame() {
+      isGameOver = true;
+      gameOverEl.textContent = '沒疊到！遊戲結束';
+      restartBtn.style.display = 'inline-block';
+    }
+
+    function restartGame() {
+      pancakes = [];
+      fallingPancake = null;
+      score = 0;
+      isGameOver = false;
+      scoreEl.textContent = '得分：0';
+      gameOverEl.textContent = '';
+      restartBtn.style.display = 'none';
+      direction = 1;
+      gameLoop();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (isGameOver) return;
+      if (e.code === 'Space' && !fallingPancake) {
+        fallingPancake = createPancake();
+      } else if (e.code === 'Space' && fallingPancake && !fallingPancake.isFalling) {
+        fallingPancake.isFalling = true;
+      }
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>
+

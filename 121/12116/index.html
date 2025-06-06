@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>午餐拉霸</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #fff9f0;
+    }
+
+    h1 {
+      font-size: 3em;
+      color: #d35400;
+    }
+
+    .slot-machine {
+      width: 300px;
+      height: 400px;
+      margin: 30px auto;
+      background: #f5f5f5;
+      border: 6px solid #d35400;
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .slot-machine:active {
+      transform: scale(0.97);
+    }
+
+    .slot-top {
+      font-size: 3em;
+      margin-top: 10px;
+    }
+
+    .slot-window {
+      width: 260px;
+      height: 260px;
+      margin: 20px auto;
+      background: white;
+      border: 4px solid #ccc;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .slot-window img {
+      width: 220px;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .food-name {
+      font-size: 1.5em;
+      margin-top: 10px;
+      color: #2c3e50;
+    }
+
+    .hint {
+      font-size: 1em;
+      color: #888;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>午餐拉霸</h1>
+  <div class="slot-machine" onclick="spin()">
+    <div class="slot-top">🎰</div>
+    <div class="slot-window">
+      <img id="foodImage" src="" alt="" style="display: none;">
+      <div id="foodName" class="food-name"></div>
+    </div>
+  </div>
+  <div class="hint">點擊拉霸機看看今天要吃什麼！</div>
+
+  <script>
+    const foods = [
+      {
+        name: "烏龍麵",
+        img: "./noodle.jpg"
+      },
+      {
+        name: "咖哩飯",
+        img: "./gali.jpg"
+      },
+      {
+        name: "炒飯",
+        img: "./fan.jpg"
+      },
+      {
+        name: "煎餃",
+        img: "./dump.jpg"
+      },
+      {
+        name: "飯糰",
+        img: "./rice.jpg"
+      },
+      {
+        name: "三明治",
+        img: "./sand.jpg"
+      },
+      {
+        name: "鍋燒意麵",
+        img: " ./band-huang-.jpg"
+      },
+      {
+        name: "漢堡",
+        img: "./ham.jpg"
+      }
+    ];
+
+   
+    function spin() {
+      const index = Math.floor(Math.random() * foods.length);
+      const food = foods[index];
+      const img = document.getElementById('foodImage');
+      const name = document.getElementById('foodName');
+
+      img.src = food.img;
+      img.alt = food.name;
+      img.style.display = "block";
+      name.textContent = food.name;
+    }
+  </script>
+</body>
+</html>

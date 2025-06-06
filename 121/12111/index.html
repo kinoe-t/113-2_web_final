@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>切水果遊戲</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #222; overflow: hidden; user-select: none; font-family: sans-serif; }
+    canvas { display: block; background: #111; }
+    #scoreBoard {
+      position: absolute; top: 10px; left: 10px; color: #fff;
+      font-size: 24px; z-index: 10;
+    }
+    #gameOver {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      color: #fff; text-align: center; display: none;
+    }
+    #gameOver h1 { font-size: 48px; margin-bottom: 20px; }
+    #gameOver button {
+      padding: 10px 20px; font-size: 20px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreBoard">分數：0</div>
+  <div id="gameOver">
+    <h1>遊戲結束</h1>
+    <button onclick="restartGame()">重新開始</button>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let fruits = [];
+    let score = 0;
+    let isGameOver = false;
+    let isMouseDown = false;
+    let gameRunning = false;
+
+    const fruitImg = new Image();
+    fruitImg.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.jpg/120px-Red_Apple.jpg';
+    const bombImg = new Image();
+    bombImg.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Bomb_icon.svg/1024px-Bomb_icon.svg.png';
+    const sliceSound = new Audio('https://www.soundjay.com/button/sounds/button-16.mp3');
+    const bombSound = new Audio('https://www.soundjay.com/button/sounds/button-10.mp3');
+
+    class Item {
+      constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.radius = 30;
+        this.speedX = (Math.random() - 0.5) * 6;
+        this.speedY = 3 + Math.random() * 4;
+        this.type = type; // 'fruit' or 'bomb'
+      }
+
+      draw() {
+        const img = this.type === 'fruit' ? fruitImg : bombImg;
+        ctx.drawImage(img, this.x - 30, this.y - 30, 60, 60);
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+      }
+
+      isHit(mouseX, mouseY) {
+        const dx = this.x - mouseX;
+        const dy = this.y - mouseY;
+        return Math.sqrt(dx * dx + dy * dy) < this.radius;
+      }
+    }
+
+    function spawnItems() {
+      const numItems = 3 + Math.floor(Math.random() * 3); // 每次 3~5 個
+      for (let i = 0; i < numItems; i++) {
+        const x = Math.random() * canvas.width;
+        const type = Math.random() < 0.85 ? 'fruit' : 'bomb';
+        fruits.push(new Item(x, -30, type));
+      }
+    }
+
+    function drawScore() {
+      document.getElementById('scoreBoard').innerText = '分數：' + score;
+    }
+
+    function gameOver() {
+      isGameOver = true;
+      gameRunning = false;
+      document.getElementById('gameOver').style.display = 'block';
+    }
+
+    function restartGame() {
+      score = 0;
+      fruits = [];
+      isGameOver = false;
+      gameRunning = true;
+      document.getElementById('gameOver').style.display = 'none';
+      drawScore();
+      gameLoop();
+    }
+
+    function gameLoop() {
+      if (!gameRunning) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawScore();
+
+      fruits.forEach((fruit, index) => {
+        fruit.update();
+        fruit.draw();
+        if (fruit.y > canvas.height + 50) {
+          fruits.splice(index, 1);
+        }
+      });
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 每 300ms 持續生成水果
+    setInterval(() => {
+      if (gameRunning && !isGameOver) {
+        spawnItems();
+      }
+    }, 300);
+
+    // 滑鼠操作
+    canvas.addEventListener('mousedown', () => isMouseDown = true);
+    canvas.addEventListener('mouseup', () => isMouseDown = false);
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isMouseDown || isGameOver) return;
+
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+
+      fruits = fruits.filter(fruit => {
+        if (fruit.isHit(mouseX, mouseY)) {
+          if (fruit.type === 'fruit') {
+            score += 2;
+            sliceSound.currentTime = 0;
+            sliceSound.play();
+          } else {
+            score -= 10;
+            bombSound.currentTime = 0;
+            bombSound.play();
+          }
+          if (score < 0) gameOver();
+          return false; // 被切到就移除
+        }
+        return true;
+      });
+    });
+
+    // 空白鍵重新開始
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        restartGame();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>

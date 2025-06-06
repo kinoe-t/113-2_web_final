@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>你在拉什麼?!</title>
+  <style>
+    body {
+      font-family: "Noto Sans TC", sans-serif;
+      background-color: #fef6e4;
+      color: #001858;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    h2 {
+      font-size: 1.2em;
+      color: #8d0801;
+      margin-bottom: 40px;
+    }
+    .slot-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .slot {
+      background-color: #ffffff;
+      border: 2px solid #f582ae;
+      border-radius: 15px;
+      padding: 20px;
+      width: 200px;
+      min-height: 80px;
+      font-size: 1.3em;
+      box-shadow: 3px 3px 6px rgba(0,0,0,0.1);
+    }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    button {
+      background-color: #f582ae;
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      font-size: 1em;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #f55d8c;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    #captureArea {
+      display: inline-block;
+      padding: 20px;
+      border: 3px dashed #f582ae;
+      border-radius: 20px;
+      background-color: #fff8f0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>你在拉什麼?!</h1>
+  <h2>每一次點擊，都是一場社會性死亡的冒險</h2>
+
+  <div id="captureArea">
+    <div class="slot-container">
+      <div class="slot" id="slot1">🤔</div>
+      <div class="slot" id="slot2">😳</div> <!-- 第二輪軸：情境 -->
+      <div class="slot" id="slot3">😵</div> <!-- 第三輪軸：動作 -->
+    </div>
+
+    <div class="result" id="resultText"></div>
+  </div>
+
+  <div class="buttons">
+    <button onclick="spin()">🎰 拉一下！</button>
+    <button onclick="downloadScreenshot()">📸 下載截圖</button>
+  </div>
+
+  <!-- html2canvas 函式庫 -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <script>   
+    const subjects = ["我媽", "隔壁阿伯", "老闆的貓", "外星人", "我昨天約會對象", "穿拖鞋的總統", "皇后","校長","我爸","穿比基尼的大叔"];   
+    const actions = ["模仿貓叫", "要我當伴郎", "吃了我的便當", "踩了我的腳趾", "跪下來唱國歌", "向我求婚", "宣稱他是我爸", "跳鋼管舞", "滑倒三次還站不穩","把鞋子當電話講","拿雞腿指揮交通","偷吃蛋糕"]; 
+    const places = ["在辦公室地板上", "在大眾運輸車廂裡", "在我洗澡的時候", "在我夢裡", "在總統府前", "在廁所門口","在高速公路正中央","在校長室","在國王的浴缸旁","在便利商店的屋頂"];
+
+    function getRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function spin() {
+      const s1 = getRandom(subjects);
+      const s2 = getRandom(places);  // 情境
+      const s3 = getRandom(actions); // 動作
+
+      document.getElementById("slot1").textContent = s1;
+      document.getElementById("slot2").textContent = s2;
+      document.getElementById("slot3").textContent = s3;
+
+      document.getElementById("resultText").textContent = `👉 ${s1} ${s2} ${s3}`;
+    }
+
+    function downloadScreenshot() {
+      const target = document.getElementById("captureArea");
+      html2canvas(target).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "你在拉什麼.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+    }
+  </script>
+
+</body>
+</html>

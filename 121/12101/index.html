@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>福利社轉盤</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin: 20px;
+      font-size: 28px;
+    }
+    #container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto;
+    }
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 5px solid #333;
+      transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    #pointer {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 30px solid red;
+      top: calc(50% - 85px); /* 尖端在圓上方 */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+    #spin-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="pointer"></div>
+    <canvas id="wheel" width="320" height="320"></canvas>
+  </div>
+  <h1>福利社轉盤</h1>
+  <button id="spin-btn">旋轉！</button>
+  <div id="result"></div>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const radius = canvas.width / 2;
+    const foods = ["冰淇淋", "滷味", "煎餃", "關東煮", "茶葉蛋", "餅乾", "便當", "麵包"];
+    const colors = ["#FF9999", "#FFCC99", "#FFFF99", "#CCFF99", "#99FFFF", "#99CCFF", "#CC99FF", "#FF99CC"];
+    const anglePerSlice = 360 / foods.length;
+    let rotation = 0;
+
+    function drawWheel() {
+      for (let i = 0; i < foods.length; i++) {
+        const startAngle = (anglePerSlice * i) * Math.PI / 180;
+        const endAngle = (anglePerSlice * (i + 1)) * Math.PI / 180;
+
+        // 區塊
+        ctx.beginPath();
+        ctx.moveTo(radius, radius);
+        ctx.fillStyle = colors[i];
+        ctx.arc(radius, radius, radius, startAngle, endAngle);
+        ctx.fill();
+
+        // 文字
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(startAngle + (endAngle - startAngle) / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "16px sans-serif";
+        ctx.fillText(foods[i], radius - 10, 5);
+        ctx.restore();
+      }
+    }
+
+    drawWheel();
+
+    document.getElementById("spin-btn").addEventListener("click", () => {
+      const extraRotation = 360 * 5; // 轉5圈
+      const randomAngle = Math.floor(Math.random() * 360);
+      rotation += extraRotation + randomAngle;
+      canvas.style.transform = `rotate(${rotation}deg)`;
+
+      setTimeout(() => {
+        const normalized = rotation % 360;
+        const pointerAngle = (360 - normalized + anglePerSlice / 2) % 360;
+        const index = Math.floor(pointerAngle / anglePerSlice) % foods.length;
+        const selectedFood = foods[index];
+        document.getElementById("result").textContent = `今天吃「${selectedFood}」`;
+      }, 5200);
+    });
+  </script>
+</body>
+</html>
