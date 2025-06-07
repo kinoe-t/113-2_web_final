@@ -4,168 +4,187 @@
   <meta charset="UTF-8">
   <title>切水果遊戲</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #222; overflow: hidden; user-select: none; font-family: sans-serif; }
-    canvas { display: block; background: #111; }
-    #scoreBoard {
-      position: absolute; top: 10px; left: 10px; color: #fff;
-      font-size: 24px; z-index: 10;
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
     }
-    #gameOver {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      color: #fff; text-align: center; display: none;
+
+    #gameCanvas {
+      display: block;
     }
-    #gameOver h1 { font-size: 48px; margin-bottom: 20px; }
-    #gameOver button {
-      padding: 10px 20px; font-size: 20px; cursor: pointer;
+
+    #startBtn, #stopBtn {
+      position: absolute;
+      top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      z-index: 10;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #startBtn {
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    #stopBtn {
+      left: 10px;
+      background-color: #f44336;
+      color: white;
+      display: none;
+    }
+
+    #scoreDisplay {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      color: #333;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
-  <div id="scoreBoard">分數：0</div>
-  <div id="gameOver">
-    <h1>遊戲結束</h1>
-    <button onclick="restartGame()">重新開始</button>
-  </div>
-  <canvas id="gameCanvas"></canvas>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <button id="startBtn">開始遊戲</button>
+  <button id="stopBtn">停止遊戲</button>
+  <div id="scoreDisplay">分數: 0</div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const scoreDisplay = document.getElementById('scoreDisplay');
 
-    let fruits = [];
-    let score = 0;
-    let isGameOver = false;
-    let isMouseDown = false;
     let gameRunning = false;
+    let fruits = [];
+    let effects = [];
+    let mouse = { x: 0, y: 0 };
+    let score = 0;
+    let dropInterval;
+    let gameLoopId;
 
-    const fruitImg = new Image();
-    fruitImg.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.jpg/120px-Red_Apple.jpg';
-    const bombImg = new Image();
-    bombImg.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Bomb_icon.svg/1024px-Bomb_icon.svg.png';
-    const sliceSound = new Audio('https://www.soundjay.com/button/sounds/button-16.mp3');
-    const bombSound = new Audio('https://www.soundjay.com/button/sounds/button-10.mp3');
+    const fruitImages = ['🍎', '🍌', '🍓', '🍉'];
 
-    class Item {
-      constructor(x, y, type) {
-        this.x = x;
-        this.y = y;
-        this.radius = 30;
-        this.speedX = (Math.random() - 0.5) * 6;
-        this.speedY = 3 + Math.random() * 4;
-        this.type = type; // 'fruit' or 'bomb'
-      }
-
-      draw() {
-        const img = this.type === 'fruit' ? fruitImg : bombImg;
-        ctx.drawImage(img, this.x - 30, this.y - 30, 60, 60);
-      }
-
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-      }
-
-      isHit(mouseX, mouseY) {
-        const dx = this.x - mouseX;
-        const dy = this.y - mouseY;
-        return Math.sqrt(dx * dx + dy * dy) < this.radius;
-      }
+    function randomFruit() {
+      return {
+        x: Math.random() * (canvas.width - 40),
+        y: -50,
+        speed: 2 + Math.random() * 3,
+        emoji: fruitImages[Math.floor(Math.random() * fruitImages.length)]
+      };
     }
 
-    function spawnItems() {
-      const numItems = 3 + Math.floor(Math.random() * 3); // 每次 3~5 個
-      for (let i = 0; i < numItems; i++) {
-        const x = Math.random() * canvas.width;
-        const type = Math.random() < 0.85 ? 'fruit' : 'bomb';
-        fruits.push(new Item(x, -30, type));
-      }
+    function drawBackground() {
+      const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      bg.addColorStop(0, "#87CEEB");
+      bg.addColorStop(0.8, "#98FB98");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(150, 100, 40, 0, Math.PI * 2);
+      ctx.arc(190, 100, 50, 0, Math.PI * 2);
+      ctx.arc(230, 100, 40, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    function drawScore() {
-      document.getElementById('scoreBoard').innerText = '分數：' + score;
+    function drawItem(item) {
+      ctx.font = '30px Arial';
+      ctx.fillText(item.emoji, item.x, item.y);
     }
 
-    function gameOver() {
-      isGameOver = true;
-      gameRunning = false;
-      document.getElementById('gameOver').style.display = 'block';
+    function updateItems() {
+      fruits.forEach(item => item.y += item.speed);
+      fruits = fruits.filter(item => item.y < canvas.height + 40);
     }
 
-    function restartGame() {
-      score = 0;
-      fruits = [];
-      isGameOver = false;
-      gameRunning = true;
-      document.getElementById('gameOver').style.display = 'none';
-      drawScore();
-      gameLoop();
-    }
+    function detectCollision() {
+      fruits.forEach((item, index) => {
+        const dx = item.x - mouse.x;
+        const dy = item.y - mouse.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < 30) {
+          score += 1;
 
-    function gameLoop() {
-      if (!gameRunning) return;
+          // 顯示特效
+          effects.push({
+            x: item.x + 15,
+            y: item.y,
+            radius: 10,
+            alpha: 1.0,
+            color: 'orange'
+          });
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawScore();
-
-      fruits.forEach((fruit, index) => {
-        fruit.update();
-        fruit.draw();
-        if (fruit.y > canvas.height + 50) {
           fruits.splice(index, 1);
         }
       });
-
-      requestAnimationFrame(gameLoop);
+      scoreDisplay.textContent = '分數: ' + score;
     }
 
-    // 每 300ms 持續生成水果
-    setInterval(() => {
-      if (gameRunning && !isGameOver) {
-        spawnItems();
-      }
-    }, 300);
-
-    // 滑鼠操作
-    canvas.addEventListener('mousedown', () => isMouseDown = true);
-    canvas.addEventListener('mouseup', () => isMouseDown = false);
-    canvas.addEventListener('mousemove', (e) => {
-      if (!isMouseDown || isGameOver) return;
-
-      const mouseX = e.clientX;
-      const mouseY = e.clientY;
-
-      fruits = fruits.filter(fruit => {
-        if (fruit.isHit(mouseX, mouseY)) {
-          if (fruit.type === 'fruit') {
-            score += 2;
-            sliceSound.currentTime = 0;
-            sliceSound.play();
-          } else {
-            score -= 10;
-            bombSound.currentTime = 0;
-            bombSound.play();
-          }
-          if (score < 0) gameOver();
-          return false; // 被切到就移除
-        }
-        return true;
+    function drawEffects() {
+      effects.forEach(effect => {
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,165,0,${effect.alpha})`;
+        ctx.fill();
+        effect.radius += 1;
+        effect.alpha -= 0.05;
       });
-    });
+      effects = effects.filter(e => e.alpha > 0);
+    }
 
-    // 空白鍵重新開始
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        restartGame();
+    function gameLoop() {
+      drawBackground();
+      updateItems();
+      detectCollision();
+      fruits.forEach(drawItem);
+      drawEffects();
+      if (gameRunning) {
+        gameLoopId = requestAnimationFrame(gameLoop);
       }
+    }
+
+    function startGame() {
+      score = 0;
+      fruits = [];
+      effects = [];
+      gameRunning = true;
+      startBtn.style.display = 'none';
+      stopBtn.style.display = 'inline-block';
+      scoreDisplay.textContent = '分數: 0';
+
+      dropInterval = setInterval(() => {
+        fruits.push(randomFruit());
+      }, 500);
+
+      gameLoop();
+    }
+
+    function stopGame() {
+      gameRunning = false;
+      clearInterval(dropInterval);
+      cancelAnimationFrame(gameLoopId);
+      startBtn.style.display = 'inline-block';
+      stopBtn.style.display = 'none';
+    }
+
+    canvas.addEventListener('mousemove', function (e) {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
     });
 
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    startBtn.addEventListener('click', startGame);
+    stopBtn.addEventListener('click', stopGame);
   </script>
 </body>
 </html>
