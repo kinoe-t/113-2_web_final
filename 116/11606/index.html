@@ -2,19 +2,20 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>小人與鬼遊戲</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>小人與鬼遊戲（手機支援）</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
       font-family: sans-serif;
+      touch-action: none;
     }
     #game {
       position: relative;
       width: 100vw;
       height: 100vh;
       background: #222;
-      overflow: hidden;
     }
     .player, .ghost {
       position: absolute;
@@ -31,7 +32,7 @@
       z-index: 1;
     }
     .ghost.tracker {
-      background: rgba(255, 255, 0, 0.8); /* 追蹤鬼：黃色 */
+      background: rgba(255, 255, 0, 0.8);
     }
     #gameOver {
       position: absolute;
@@ -58,6 +59,34 @@
       font-size: 20px;
       z-index: 3;
     }
+    .controls {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      touch-action: none;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn {
+      width: 60px;
+      height: 60px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      color: white;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -68,6 +97,16 @@
       <h1>遊戲結束</h1>
       <p id="finalScore"></p>
       <button onclick="restartGame()">再玩一次</button>
+    </div>
+
+    <!-- 虛擬按鍵控制器 -->
+    <div class="controls">
+      <div class="row"><div class="btn" data-dir="ArrowUp">▲</div></div>
+      <div class="row">
+        <div class="btn" data-dir="ArrowLeft">◀</div>
+        <div class="btn" data-dir="ArrowDown">▼</div>
+        <div class="btn" data-dir="ArrowRight">▶</div>
+      </div>
     </div>
   </div>
 
@@ -85,8 +124,26 @@
     let gameOver = false;
     let score = 0;
 
+    // 鍵盤控制
     document.addEventListener('keydown', e => keys[e.key] = true);
     document.addEventListener('keyup', e => keys[e.key] = false);
+
+    // 虛擬按鍵控制：支援 pointer/touch 事件
+    document.querySelectorAll('.btn').forEach(btn => {
+      const dir = btn.dataset.dir;
+
+      const start = () => {
+        keys[dir] = true;
+        movePlayer();
+      };
+      const stop = () => keys[dir] = false;
+
+      btn.addEventListener('pointerdown', e => { e.preventDefault(); start(); });
+      btn.addEventListener('pointerup', e => { e.preventDefault(); stop(); });
+      btn.addEventListener('touchstart', e => { e.preventDefault(); start(); });
+      btn.addEventListener('touchend', e => { e.preventDefault(); stop(); });
+      btn.addEventListener('touchcancel', e => { e.preventDefault(); stop(); });
+    });
 
     function movePlayer() {
       if (keys['ArrowUp']) playerY -= playerSpeed;
@@ -104,12 +161,27 @@
     function createGhost() {
       const ghost = document.createElement('div');
       ghost.classList.add('ghost');
-
       let isTracker = (ghosts.length + 1) % 10 === 0;
       if (isTracker) ghost.classList.add('tracker');
 
-      ghost.style.left = Math.random() * (window.innerWidth - 40) + 'px';
-      ghost.style.top = Math.random() * (window.innerHeight - 40) + 'px';
+      const edge = Math.floor(Math.random() * 4);
+      let x, y;
+      if (edge === 0) {
+        x = Math.random() * (window.innerWidth - 40);
+        y = -40;
+      } else if (edge === 1) {
+        x = Math.random() * (window.innerWidth - 40);
+        y = window.innerHeight;
+      } else if (edge === 2) {
+        x = -40;
+        y = Math.random() * (window.innerHeight - 40);
+      } else {
+        x = window.innerWidth;
+        y = Math.random() * (window.innerHeight - 40);
+      }
+
+      ghost.style.left = x + 'px';
+      ghost.style.top = y + 'px';
       game.appendChild(ghost);
 
       const baseSpeed = 1 + ghosts.length * 0.05;
@@ -117,8 +189,8 @@
 
       ghosts.push({
         el: ghost,
-        x: parseFloat(ghost.style.left),
-        y: parseFloat(ghost.style.top),
+        x: x,
+        y: y,
         dx: Math.cos(angle) * baseSpeed,
         dy: Math.sin(angle) * baseSpeed,
         tracker: isTracker
@@ -131,7 +203,7 @@
           const dx = playerX - ghost.x;
           const dy = playerY - ghost.y;
           const dist = Math.hypot(dx, dy);
-          const speed = 2 + ghosts.length * 0.05;
+          const speed = 2.5 + ghosts.length * 0.05;
           ghost.x += (dx / dist) * speed;
           ghost.y += (dy / dist) * speed;
         } else {
@@ -140,6 +212,9 @@
 
           if (ghost.x < 0 || ghost.x > window.innerWidth - 40) ghost.dx *= -1;
           if (ghost.y < 0 || ghost.y > window.innerHeight - 40) ghost.dy *= -1;
+
+          ghost.x = Math.max(0, Math.min(window.innerWidth - 40, ghost.x));
+          ghost.y = Math.max(0, Math.min(window.innerHeight - 40, ghost.y));
         }
 
         ghost.el.style.left = ghost.x + 'px';
@@ -149,7 +224,6 @@
 
     function checkGhostToGhostCollision() {
       const toRemove = new Set();
-
       for (let i = 0; i < ghosts.length; i++) {
         const g1 = ghosts[i];
         if (!g1.tracker || toRemove.has(i)) continue;
@@ -164,15 +238,13 @@
           const dist = Math.hypot(dx, dy);
 
           if (dist < 40) {
-            // 標記這兩隻要刪除
             toRemove.add(i);
             toRemove.add(j);
-            break; // 一次只碰一隻就夠了
+            break;
           }
         }
       }
 
-      // 移除標記的鬼
       const sortedIndexes = Array.from(toRemove).sort((a, b) => b - a);
       for (const index of sortedIndexes) {
         game.removeChild(ghosts[index].el);
@@ -183,7 +255,6 @@
     function checkCollisionWithPlayer() {
       const px = playerX + 20;
       const py = playerY + 20;
-
       for (const ghost of ghosts) {
         const gx = ghost.x + 20;
         const gy = ghost.y + 20;
@@ -241,5 +312,7 @@
   </script>
 </body>
 </html>
+
+
 
 
