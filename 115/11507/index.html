@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>每日籤筒占卜</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: url("bg-pattern.png") repeat, #fffdf5;
+      background-size: 300px;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      padding-top: 30px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 12px;
+    }
+
+    #shakeBox {
+      width: 80px;
+      height: 200px;
+      background: #d18b47;
+      margin: 0 auto;
+      border-radius: 10px;
+      border: 4px solid #8b4513;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #stick {
+      width: 60px;
+      height: 120px;
+      background-color: #fffacd;
+      border: 2px solid #c0a060;
+      border-radius: 6px;
+      position: absolute;
+      top: 0;
+      left: 10px;
+      transform: translateY(-150%);
+      opacity: 0;
+      transition: transform 0.5s ease-out, opacity 0.5s;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    #stick.open {
+      animation: unfold 0.4s ease forwards;
+    }
+
+    @keyframes unfold {
+      0% { width: 60px; }
+      100% { width: 200px; }
+    }
+
+    #stick.show {
+      transform: translateY(180%);
+      opacity: 1;
+    }
+
+    @keyframes shake {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      50% { transform: rotate(-5deg); }
+      75% { transform: rotate(5deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      background-color: #ffcc00;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    #result {
+      margin-top: 30px;
+    }
+
+    #result h2 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+
+    #result p {
+      font-size: 1.1em;
+      margin-bottom: 10px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #result img {
+      max-width: 300px;
+      margin: 10px auto;
+      display: block;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>每日籤筒占卜</h1>
+    <div id="shakeBox">
+      <div id="stick"></div>
+    </div>
+    <button onclick="drawFortune()">開始搖籤！</button>
+    <div id="result"></div>
+  </div>
+
+  <!-- 音效檔 -->
+  <audio id="soundShake" src="shake.mp3" preload="auto"></audio>
+  <audio id="soundScroll" src="scroll.mp3" preload="auto"></audio>
+
+  <script>
+    const fortunes = [
+      {
+        name: "大吉",
+        description: "御神簽之中最好的運勢。雖然是最好的運氣，但同時也被認為之後的運勢會呈下降趨勢。要注意努力維持現狀哟。",
+        image: "大吉.jpg"
+      },
+      {
+        name: "吉",
+        description: "僅次於「大吉」的第二好的運勢。沒有大吉那樣的運勢急劇下降的可能性，一段時間內可以放心。",
+        image: "吉.jpg"
+      },
+      {
+        name: "中吉",
+        description: "運氣是「吉」的一半。根據個人努力今後可能運氣會上升。",
+        image: "中吉.jpg"
+      },
+      {
+        name: "小吉",
+        description: "「中吉」和「末吉」之間的運勢，說不上好但也不算差。據說只會有小小的幸福，但不宜過度追求。",
+        image: "小吉.jpg"
+      },
+      {
+        name: "末吉",
+        description: "排在「吉」最後的運勢，是「吉」之中最差的。意味著有許多上升空間，可以期待今後的變化。",
+        image: "末吉.gif"
+      },
+      {
+        name: "凶",
+        description: "運勢不好，但也不一定絕對會發生壞事。需要小心謹慎，重新審視自身並加以改正，運勢會上升。",
+        image: "凶.jpg"
+      },
+      {
+        name: "大凶",
+        description: "最差的運勢，但反過來說不可能進一步變壞。翻身的機會到來為止，耐心等待是上策。",
+        image: "大凶.jpg"
+      }
+    ];
+
+    function drawFortune() {
+      const box = document.getElementById('shakeBox');
+      const stick = document.getElementById('stick');
+      const result = document.getElementById('result');
+      const shakeSound = document.getElementById('soundShake');
+      const scrollSound = document.getElementById('soundScroll');
+
+      // 清除舊籤與結果
+      stick.style.display = 'none';
+      stick.classList.remove('open');
+      stick.textContent = '';
+      result.innerHTML = '';
+
+      // 播放搖動音效
+      shakeSound.currentTime = 0;
+      shakeSound.play();
+
+      // 搖動籤筒動畫
+      box.style.animation = 'shake 0.5s ease-in-out';
+
+      setTimeout(() => {
+        box.style.animation = 'none';
+        const picked = fortunes[Math.floor(Math.random() * fortunes.length)];
+
+        // 籤條掉下來
+        stick.style.display = 'flex';
+        stick.classList.add('show');
+
+        // 書卷打開音效
+        scrollSound.currentTime = 0;
+        scrollSound.play();
+
+        setTimeout(() => {
+          stick.textContent = picked.name;
+          stick.classList.add('open');
+        }, 400);
+
+        setTimeout(() => {
+          result.innerHTML = `
+            <h2>${picked.name}</h2>
+            <p>${picked.description}</p>
+            ${picked.image ? `<img src="${picked.image}" alt="${picked.name}">` : ""}
+          `;
+        }, 800);
+      }, 500);
+    }
+  </script>
+</body>
+</html>
