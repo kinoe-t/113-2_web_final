@@ -1,316 +1,382 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>動物消消樂</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: "Microsoft JhengHei", sans-serif;
+      background-color: #fff9f5;
       text-align: center;
-      background: #f2f2f2;
     }
-    h1 {
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(9, 60px);
+      grid-template-rows: repeat(9, 60px);
+      gap: 2px;
+      justify-content: center;
       margin-top: 20px;
     }
-    #score, #goal, #level {
-      font-size: 18px;
-      margin: 5px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(16, 30px);
-      grid-template-rows: repeat(16, 30px);
-      gap: 1px;
-      margin: 0 auto;
-      width: fit-content;
-      display: none;
-    }
     .cell {
-      width: 30px;
-      height: 30px;
-      font-size: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 28px;
+      background-color: #ffe4c4;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: white;
-      border: 1px solid #ccc;
+      border-radius: 6px;
       cursor: pointer;
       user-select: none;
     }
+    .highlight {
+      background-color: #ffc0cb !important;
+    }
     .selected {
-      border: 2px solid #000;
+      border: 2px solid red;
     }
-    #instructions {
-      margin: 20px auto;
-      width: 300px;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-    #startBtn {
-      padding: 10px 20px;
-      font-size: 16px;
+    #info {
       margin-top: 10px;
-    }
-    #win-message {
-      font-size: 36px;
-      color: green;
-      display: none;
-      margin-top: 20px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <h1>動物消消樂</h1>
-  <div id="instructions">
-    <p>歡迎來到動物消消樂！</p>
-    <p>規則：</p>
-    <ul style="text-align: left;">
-      <li>點擊兩個相鄰的動物圖標進行交換</li>
-      <li>連線三個相同動物即可得分並消除</li>
-      <li>連線四個會產生道具 ⭐ 可消除一整列或行</li>
-      <li>連線五個會隨機消除一種動物</li>
-      <li>關卡目標：消除目標動物達指定數量</li>
-    </ul>
-    <button id="startBtn">開始遊戲</button>
-  </div>
-
-  <div id="level">關卡：1 / 10</div>
-  <div id="goal">目標：</div>
-  <div id="score">得分：0</div>
-  <div class="grid" id="grid"></div>
-  <div id="win-message">你贏了！</div>
+  <h1>🐾 動物消消樂</h1>
+  <p>連線規則：三個會消除，四個 ➜ 🧹 掃把、五個 ➜ 🕸️ 網子、2x2 ➜ ✈️ 飛機</p>
+  <button onclick="startGame()">開始遊戲</button>
+  <div id="info"></div>
+  <div id="gameBoard"></div>
 
   <script>
-    const width = 16;
-    const totalLevels = 10;
-    let level = 1;
-    let score = 0;
-    const emojis = ['\uD83D\uDC11', '\uD83D\uDC08', '\uD83D\uDC29', '\uD83D\uDC16', '\uD83D\uDC30', '\uD83D\uDC18'];
-    const specialSymbol = '⭐';
-    let goalEmoji = '';
-    let goalCount = 0;
-    let collected = 0;
+    const EMOJIS = ["🐷", "🐱", "🐶", "🐰", "🐑", "🐘"];
+    const TOOLS = { broom: "🧹", net: "🕸️", plane: "✈️" };
+    const BOARD_SIZE = 9;
+    let board = [], firstCell = null;
+    let stepsLeft = 30;
+    let targets = {}, cleared = {};
+    let currentLevel = 0;
 
-    const grid = document.getElementById('grid');
-    const scoreDisplay = document.getElementById('score');
-    const goalDisplay = document.getElementById('goal');
-    const levelDisplay = document.getElementById('level');
-    const winMessage = document.getElementById('win-message');
-    let cells = [];
-    let selected = null;
+    const gameBoard = document.getElementById("gameBoard");
+    const info = document.getElementById("info");
 
-    function createBoard() {
-      cells = [];
-      grid.innerHTML = '';
-      for (let i = 0; i < width * width; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.setAttribute('id', i);
-        cell.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        grid.appendChild(cell);
-        cells.push(cell);
-      }
+    const levelConfigs = [
+      { steps: 30, target: { "🐷": 10 } },
+      { steps: 28, target: { "🐱": 10, "🐷": 10 } },
+      { steps: 25, target: { "🐰": 10, "🐑": 10 } },
+      { steps: 25, target: { "🐶": 12, "🐘": 12 } },
+      { steps: 22, target: { "🐷": 10, "🐑": 10, "🐱": 8 } },
+      { steps: 20, target: { "🐰": 12, "🐱": 12, "🐶": 10 } },
+      { steps: 18, target: { "🐘": 15, "🐷": 15 } },
+      { steps: 17, target: { "🐰": 15, "🐶": 15 } },
+      { steps: 16, target: { "🐱": 18, "🐑": 18 } },
+      { steps: 14, target: { "🐘": 20, "🐶": 20, "🐱": 20 } }
+    ];
+    function updateInfo() {
+      const goal = Object.entries(targets)
+        .map(([k, v]) => `${k} ${cleared[k] || 0}/${v}`)
+        .join("，");
+      info.textContent = `🎯 目標：${goal}｜剩餘步數：${stepsLeft}`;
     }
 
-    function generateGoal() {
-      goalEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-      goalCount = level * 20;
-      collected = 0;
-      goalDisplay.textContent = `目標：消除 ${goalCount} 個 ${goalEmoji}`;
+    function getRandomEmoji() {
+      return EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
     }
 
-    function updateScore(val) {
-      score += val;
-      scoreDisplay.textContent = `得分：${score}`;
+    function generateBoard() {
+      board = Array.from({ length: BOARD_SIZE }, () =>
+        Array.from({ length: BOARD_SIZE }, () => getRandomEmoji()));
     }
 
-    function checkMatches() {
-      let matched = false;
-
-      for (let i = 0; i < width * width; i++) {
-        const icon = cells[i].textContent;
-        const rowEnd = Math.floor(i / width) * width + width;
-
-        if (!icon || icon === specialSymbol) continue;
-
-        // 橫向5連
-        if (i + 4 < rowEnd &&
-          cells[i + 1].textContent === icon &&
-          cells[i + 2].textContent === icon &&
-          cells[i + 3].textContent === icon &&
-          cells[i + 4].textContent === icon) {
-          const toClear = [i, i+1, i+2, i+3, i+4];
-          randomClear(icon);
-          toClear.forEach(idx => cells[idx].textContent = '');
-          updateScore(100);
-          matched = true;
-        }
-        // 橫向4連
-        else if (i + 3 < rowEnd &&
-          cells[i + 1].textContent === icon &&
-          cells[i + 2].textContent === icon &&
-          cells[i + 3].textContent === icon) {
-          cells[i + 2].textContent = specialSymbol;
-          [i, i + 1, i + 3].forEach(idx => cells[idx].textContent = '');
-          updateScore(40);
-          matched = true;
-        }
-        // 橫向3連
-        else if (i + 2 < rowEnd &&
-          cells[i + 1].textContent === icon &&
-          cells[i + 2].textContent === icon) {
-          [i, i + 1, i + 2].forEach(idx => cells[idx].textContent = '');
-          updateScore(10);
-          matched = true;
+    function drawBoard() {
+      gameBoard.innerHTML = "";
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.textContent = board[r][c];
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.onclick = () => handleClick(cell, r, c);
+          gameBoard.appendChild(cell);
         }
       }
+      updateInfo();
+    }
 
-      for (let i = 0; i < width * (width - 4); i++) {
-        const icon = cells[i].textContent;
-        if (!icon || icon === specialSymbol) continue;
+    function isAdjacent(r1, c1, r2, c2) {
+      return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+    }
 
-        // 垂直5連
-        if (cells[i + width]?.textContent === icon &&
-            cells[i + width * 2]?.textContent === icon &&
-            cells[i + width * 3]?.textContent === icon &&
-            cells[i + width * 4]?.textContent === icon) {
-          const toClear = [i, i + width, i + width * 2, i + width * 3, i + width * 4];
-          randomClear(icon);
-          toClear.forEach(idx => cells[idx].textContent = '');
-          updateScore(100);
-          matched = true;
-        }
-        // 垂直4連
-        else if (cells[i + width]?.textContent === icon &&
-                 cells[i + width * 2]?.textContent === icon &&
-                 cells[i + width * 3]?.textContent === icon) {
-          cells[i + width * 2].textContent = specialSymbol;
-          [i, i + width, i + width * 3].forEach(idx => cells[idx].textContent = '');
-          updateScore(40);
-          matched = true;
-        }
-        // 垂直3連
-        else if (cells[i + width]?.textContent === icon &&
-                 cells[i + width * 2]?.textContent === icon) {
-          [i, i + width, i + width * 2].forEach(idx => cells[idx].textContent = '');
-          updateScore(10);
-          matched = true;
-        }
+    function swap(r1, c1, r2, c2) {
+      [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+    }
+
+    function handleClick(cell, row, col) {
+      const val = board[row][col];
+      if ([TOOLS.broom, TOOLS.net, TOOLS.plane].includes(val)) {
+        handleToolClick(row, col, val);
+        return;
       }
 
-      // 更新目標
-      cells.forEach(cell => {
-        if (cell.textContent === '') collected++;
-      });
-      goalDisplay.textContent = `目標：消除 ${goalCount} 個 ${goalEmoji}（已消除 ${collected}）`;
-
-      if (collected >= goalCount) {
-        level++;
-        if (level > totalLevels) {
-          winMessage.style.display = 'block';
+      if (firstCell) {
+        const r1 = +firstCell.dataset.row;
+        const c1 = +firstCell.dataset.col;
+        if (isAdjacent(r1, c1, row, col)) {
+          swap(r1, c1, row, col);
+          const matches = findMatches();
+          if (matches.length > 0) {
+            stepsLeft--;
+            detectAndGenerateTool();
+            drawBoard();
+            removeMatches();
+          } else {
+            swap(r1, c1, row, col);
+            drawBoard();
+          }
+          firstCell.classList.remove("selected");
+          firstCell = null;
         } else {
-          alert(`通關成功！前往第 ${level} 關`);
-          nextLevel();
+          firstCell.classList.remove("selected");
+          firstCell = cell;
+          cell.classList.add("selected");
         }
-      }
-
-      return matched;
-    }
-
-    function randomClear(originIcon) {
-      const toClearEmoji = emojis.filter(e => e !== originIcon)[Math.floor(Math.random() * (emojis.length - 1))];
-      cells.forEach(cell => {
-        if (cell.textContent === toClearEmoji) cell.textContent = '';
-      });
-    }
-
-    function applyGravity() {
-      for (let i = width * (width - 1) - 1; i >= 0; i--) {
-        if (cells[i + width]?.textContent === '') {
-          cells[i + width].textContent = cells[i].textContent;
-          cells[i].textContent = '';
-        }
-      }
-      for (let i = 0; i < width; i++) {
-        if (cells[i].textContent === '') {
-          cells[i].textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        }
+      } else {
+        firstCell = cell;
+        cell.classList.add("selected");
       }
     }
+    function findMatches() {
+      const matches = [];
 
-    function setupEvents() {
-      cells.forEach(cell => {
-        cell.addEventListener('click', () => {
-          const id = parseInt(cell.id);
-          if (cell.textContent === specialSymbol) {
-            const isRow = Math.random() > 0.5;
-            if (isRow) {
-              const rowStart = Math.floor(id / width) * width;
-              for (let i = rowStart; i < rowStart + width; i++) cells[i].textContent = '';
-            } else {
-              for (let i = id % width; i < width * width; i += width) cells[i].textContent = '';
+      // 橫向連線
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c <= BOARD_SIZE - 3; c++) {
+          const e = board[r][c];
+          if (!e || Object.values(TOOLS).includes(e)) continue;
+          let count = 1;
+          while (c + count < BOARD_SIZE && board[r][c + count] === e) count++;
+          if (count >= 3) {
+            for (let i = 0; i < count; i++) {
+              matches.push([r, c + i]);
             }
-            cell.textContent = '';
-            updateScore(50);
+            c += count - 1;
+          }
+        }
+      }
+
+      // 直向連線
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        for (let r = 0; r <= BOARD_SIZE - 3; r++) {
+          const e = board[r][c];
+          if (!e || Object.values(TOOLS).includes(e)) continue;
+          let count = 1;
+          while (r + count < BOARD_SIZE && board[r + count][c] === e) count++;
+          if (count >= 3) {
+            for (let i = 0; i < count; i++) {
+              matches.push([r + i, c]);
+            }
+            r += count - 1;
+          }
+        }
+      }
+
+      // 正方形 (2x2)
+      for (let r = 0; r < BOARD_SIZE - 1; r++) {
+        for (let c = 0; c < BOARD_SIZE - 1; c++) {
+          const e = board[r][c];
+          if (!e || Object.values(TOOLS).includes(e)) continue;
+          if (board[r][c + 1] === e &&
+              board[r + 1][c] === e &&
+              board[r + 1][c + 1] === e) {
+            matches.push([r, c], [r, c + 1], [r + 1, c], [r + 1, c + 1]);
+          }
+        }
+      }
+
+      return matches;
+    }
+    function detectAndGenerateTool() {
+      // 五連線 ➜ 🕸️ 網子
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c <= BOARD_SIZE - 5; c++) {
+          const e = board[r][c];
+          if (!e || Object.values(TOOLS).includes(e)) continue;
+          if (board[r][c+1] === e && board[r][c+2] === e && board[r][c+3] === e && board[r][c+4] === e) {
+            board[r][c+2] = TOOLS.net;
             return;
           }
-
-          if (selected) {
-            const id1 = parseInt(selected.id);
-            const id2 = parseInt(cell.id);
-            const validMoves = [id1 - 1, id1 + 1, id1 - width, id1 + width];
-            if (validMoves.includes(id2)) {
-              selected.classList.remove('selected');
-              handleSwap(selected, cell);
-              selected = null;
-            } else {
-              selected.classList.remove('selected');
-              selected = cell;
-              cell.classList.add('selected');
-            }
-          } else {
-            selected = cell;
-            cell.classList.add('selected');
+        }
+      }
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        for (let r = 0; r <= BOARD_SIZE - 5; r++) {
+          const e = board[r][c];
+          if (!e || Object.values(TOOLS).includes(e)) continue;
+          if (board[r+1][c] === e && board[r+2][c] === e && board[r+3][c] === e && board[r+4][c] === e) {
+            board[r+2][c] = TOOLS.net;
+            return;
           }
-        });
-      });
-    }
+        }
+      }
 
-    function handleSwap(cell1, cell2) {
-      const temp = cell1.textContent;
-      cell1.textContent = cell2.textContent;
-      cell2.textContent = temp;
+      // 四連線 ➜ 🧹 掃把
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c <= BOARD_SIZE - 4; c++) {
+          const e = board[r][c];
+          if (!e || Object.values(TOOLS).includes(e)) continue;
+          if (board[r][c+1] === e && board[r][c+2] === e && board[r][c+3] === e) {
+            board[r][c+1] = TOOLS.broom;
+            return;
+          }
+        }
+      }
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        for (let r = 0; r <= BOARD_SIZE - 4; r++) {
+          const e = board[r][c];
+          if (!e || Object.values(TOOLS).includes(e)) continue;
+          if (board[r+1][c] === e && board[r+2][c] === e && board[r+3][c] === e) {
+            board[r+1][c] = TOOLS.broom;
+            return;
+          }
+        }
+      }
 
-      if (!checkMatches()) {
-        cell2.textContent = cell1.textContent;
-        cell1.textContent = temp;
-      } else {
-        let loop = setInterval(() => {
-          applyGravity();
-          if (!checkMatches()) clearInterval(loop);
-        }, 200);
+      // 2x2 正方形 ➜ ✈️ 飛機
+      for (let r = 0; r < BOARD_SIZE - 1; r++) {
+        for (let c = 0; c < BOARD_SIZE - 1; c++) {
+          const e = board[r][c];
+          if (!e || Object.values(TOOLS).includes(e)) continue;
+          if (board[r][c+1] === e && board[r+1][c] === e && board[r+1][c+1] === e) {
+            board[r][c] = TOOLS.plane;
+            return;
+          }
+        }
       }
     }
 
-    function nextLevel() {
-      levelDisplay.textContent = `關卡：${level} / ${totalLevels}`;
-      createBoard();
-      generateGoal();
-      setupEvents();
+    function handleToolClick(row, col, tool) {
+      const targetsToClear = [];
+
+     if (tool === TOOLS.broom) {
+  const horizontal = Math.random() < 0.5;  // 一半機率橫排／直排
+  if (horizontal) {
+    for (let i = 0; i < BOARD_SIZE; i++) targetsToClear.push([row, i]);  // 橫排
+  } else {
+    for (let i = 0; i < BOARD_SIZE; i++) targetsToClear.push([i, col]);  // 直排
+  }
+}
+       else if (tool === TOOLS.net) {
+        const targetAnimal = getRandomEmoji();
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
+            if (board[r][c] === targetAnimal) targetsToClear.push([r, c]);
+          }
+        }
+      } else if (tool === TOOLS.plane) {
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = row + dr, nc = col + dc;
+            if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE)
+              targetsToClear.push([nr, nc]);
+          }
+        }
+        const targetAnimal = getRandomEmoji();
+        outer: for (let r = 0; r < BOARD_SIZE; r++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
+            if (board[r][c] === targetAnimal) {
+              targetsToClear.push([r, c]);
+              break outer;
+            }
+          }
+        }
+      }
+
+      // ✅ 先變色
+for (const [r, c] of targetsToClear) {
+  const idx = r * BOARD_SIZE + c;
+  const cell = gameBoard.children[idx];
+  if (cell) cell.classList.add("highlight");
+}
+
+// ✅ 延遲後再消除
+setTimeout(() => {
+  for (const [r, c] of targetsToClear) {
+    const val = board[r][c];
+    if (targets[val]) cleared[val] = (cleared[val] || 0) + 1;
+    board[r][c] = getRandomEmoji();
+  }
+  drawBoard();
+  updateInfo();
+  checkWin();
+}, 400);
+
+    }
+    function removeMatches() {
+      const matches = findMatches();
+      if (matches.length === 0) return;
+
+      detectAndGenerateTool(); // 在消除前先標示道具
+
+      const seen = new Set();
+      for (const [r, c] of matches) {
+        seen.add(`${r},${c}`);
+        const val = board[r][c];
+        if (targets[val]) cleared[val] = (cleared[val] || 0) + 1;
+      }
+
+      for (const key of seen) {
+        const [r, c] = key.split(",").map(Number);
+        const idx = r * BOARD_SIZE + c;
+        const cell = gameBoard.children[idx];
+        if (cell) cell.classList.add("highlight");
+      }
+
+      setTimeout(() => {
+        for (const key of seen) {
+          const [r, c] = key.split(",").map(Number);
+          board[r][c] = getRandomEmoji();
+        }
+        drawBoard();
+        updateInfo();
+        removeMatches(); // 再次偵測連鎖
+        checkWin();
+      }, 400);
     }
 
-    document.getElementById('startBtn').addEventListener('click', () => {
-      document.getElementById('instructions').style.display = 'none';
-      grid.style.display = 'grid';
-      nextLevel();
-      setInterval(() => {
-        applyGravity();
-        checkMatches();
-      }, 1000);
-    });
+    function checkWin() {
+      const passed = Object.entries(targets).every(([emoji, goal]) => (cleared[emoji] || 0) >= goal);
+      if (passed) {
+        setTimeout(() => {
+          alert("🎉 通關成功！");
+          currentLevel++;
+          if (currentLevel >= levelConfigs.length) {
+            alert("🏆 你贏了！");
+          } else {
+            initLevel();
+          }
+        }, 300);
+      } else if (stepsLeft <= 0) {
+        setTimeout(() => {
+          alert("💥 關卡失敗，再試一次！");
+          initLevel();
+        }, 300);
+      }
+    }
+
+    function initLevel() {
+      const config = levelConfigs[currentLevel];
+      stepsLeft = config.steps;
+      targets = config.target;
+      cleared = {};
+      generateBoard();
+      removeMatches(); // 清除初始可連線
+      drawBoard();
+    }
+
+    function startGame() {
+      currentLevel = 0;
+      initLevel();
+    }
   </script>
 </body>
 </html>
