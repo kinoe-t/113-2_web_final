@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大樂透模擬器</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fef3e2;
+      font-family: "Arial", sans-serif;
+      overflow-x: hidden;
+    }
+
+    .container {
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .red-paper {
+      background-color: #d32f2f;
+      width: 90%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px;
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .title {
+      color: yellow;
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+
+    .numbers {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .number-box {
+      background-color: white;
+      width: 60px;
+      height: 60px;
+      font-size: 28px;
+      font-weight: bold;
+      color: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+    }
+
+    .gold-button {
+      margin-top: 30px;
+      background: linear-gradient(45deg, #ffd700, #fff8dc);
+      border: none;
+      padding: 15px 30px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #8b7500;
+      border-radius: 10px;
+      cursor: pointer;
+      animation: glow 1.5s infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        box-shadow: 0 0 10px #ffd700;
+      }
+      to {
+        box-shadow: 0 0 20px #ffeb3b, 0 0 30px #ffd700;
+      }
+    }
+
+    .message {
+      margin-top: 30px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #b71c1c;
+    }
+
+    .money {
+      position: fixed;
+      top: -100px;
+      font-size: 24px;
+      color: green;
+      animation: fall linear infinite;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    a {
+      color: #b71c1c;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="red-paper">
+      <div class="title">大樂透</div>
+      <div class="numbers" id="numberContainer">
+        <div class="number-box"></div>
+        <div class="number-box"></div>
+        <div class="number-box"></div>
+        <div class="number-box"></div>
+        <div class="number-box"></div>
+        <div class="number-box"></div>
+      </div>
+    </div>
+    <button class="gold-button" id="drawButton">讓我重大樂透頭獎吧!</button>
+    <div id="messageArea"></div>
+  </div>
+
+  <script>
+    const drawButton = document.getElementById("drawButton");
+    const numberBoxes = document.querySelectorAll(".number-box");
+    const messageArea = document.getElementById("messageArea");
+
+    function getRandomNumbers() {
+      const numbers = [];
+      while (numbers.length < 6) {
+        const num = String(Math.floor(Math.random() * 49) + 1).padStart(2, "0");
+        if (!numbers.includes(num)) {
+          numbers.push(num);
+        }
+      }
+      return numbers;
+    }
+
+    function createMoneyRain() {
+      for (let i = 0; i < 50; i++) {
+        const money = document.createElement("div");
+        money.className = "money";
+        money.style.left = Math.random() * 100 + "vw";
+        money.style.animationDuration = (Math.random() * 2 + 3) + "s";
+        money.textContent = "$";
+        document.body.appendChild(money);
+
+        setTimeout(() => {
+          money.remove();
+        }, 6000);
+      }
+    }
+
+    drawButton.addEventListener("click", () => {
+      const numbers = getRandomNumbers();
+      numberBoxes.forEach((box, index) => {
+        box.textContent = numbers[index];
+      });
+
+      drawButton.remove();
+
+      // 撒錢動畫啟動
+      const interval = setInterval(createMoneyRain, 300);
+
+      // 顯示訊息與按鈕
+      const message = document.createElement("div");
+      message.className = "message";
+      message.innerHTML = `
+        祝您一夜暴富！<br>
+        <a href="https://www.taiwanlottery.com/lotto/result/lotto649" target="_blank">👉 點我查看中獎號碼 👈</a><br><br>
+      `;
+
+      const restartButton = document.createElement("button");
+      restartButton.className = "gold-button";
+      restartButton.textContent = "好運多多再來一次";
+      restartButton.onclick = () => location.reload();
+
+      messageArea.appendChild(message);
+      messageArea.appendChild(restartButton);
+
+      // 點任一元素即可停止撒錢動畫
+      document.body.addEventListener("click", () => clearInterval(interval), { once: true });
+    });
+  </script>
+</body>
+</html>
