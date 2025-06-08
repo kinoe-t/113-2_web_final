@@ -1,55 +1,122 @@
-<style>
-  body {
-    margin: 0;
-    background-color: #e0f7f4;
-    font-family: '微軟正黑體', sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>今日運勢籤</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #e0f7f4; /* 柔和湖水綠 */
+      font-family: '微軟正黑體', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
 
-  #fortune-container {
-    position: relative;
-    display: none;
-  }
+    #fortune-container {
+      position: relative;
+      display: none;
+    }
 
-  #fortune-image {
-    max-width: 90vw;
-    max-height: 80vh;
-    border-radius: 10px;
-  }
+    #fortune-image {
+      max-width: 90vw;
+      max-height: 80vh;
+      border-radius: 10px;
+    }
 
-  #fortune-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 4.5em; /* 字體變大囉 */
-    color: #5c3a00;
-    font-weight: bold;
-    text-shadow: 3px 3px 6px #fff8;
-  }
+    #fortune-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4.5em; /* 字變更大 */
+      color: #5c3a00;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px #fff8;
+      white-space: nowrap;
+    }
 
-  #again-btn {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 1.2em;
-    background-color: #fff;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    cursor: pointer;
-    display: none;
-  }
+    #again-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      background-color: #fff;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+    }
 
-  #instruction {
-    font-size: 1.5em;
-    color: #666;
-    position: absolute;
-    top: 20%;
-  }
-</style>
+    #instruction {
+      font-size: 1.5em;
+      color: #666;
+      position: absolute;
+      top: 20%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 初始提示文字 -->
+  <div id="instruction">請按下空白鍵來抽今日運勢！</div>
+
+  <!-- 籤圖片及運勢文字容器 -->
+  <div id="fortune-container">
+    <img id="fortune-image" src="" alt="運勢籤圖">
+    <div id="fortune-text"></div>
+  </div>
+
+  <!-- 再來一次按鈕 -->
+  <button id="again-btn">再來一次</button>
+
+  <script>
+    const images = ['籤.jpg', '籤02.jpg', '籤03.jpg'];
+
+    // 每種運勢加上對應的表情符號 🎉✨🎈💥💫
+    const fortunes = [
+      '🎉 大吉 🎉',
+      '✨ 中吉 ✨',
+      '🎈 小吉 🎈',
+      '🎊 吉 🎊',
+      '💫 末吉 💫',
+      '💥 凶 💥',
+      '💥💀 大凶 💀💥'
+    ];
+
+    const imageElement = document.getElementById('fortune-image');
+    const textElement = document.getElementById('fortune-text');
+    const container = document.getElementById('fortune-container');
+    const againBtn = document.getElementById('again-btn');
+    const instruction = document.getElementById('instruction');
+
+    function drawFortune() {
+      const randomImage = images[Math.floor(Math.random() * images.length)];
+      const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+
+      imageElement.src = randomImage;
+      textElement.textContent = randomFortune;
+
+      container.style.display = 'block';
+      againBtn.style.display = 'inline-block';
+      instruction.style.display = 'none';
+    }
+
+    againBtn.addEventListener('click', () => {
+      drawFortune();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        drawFortune();
+      }
+    });
+  </script>
+</body>
+</html>
+
 
 
 
