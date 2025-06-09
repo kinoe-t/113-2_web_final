@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>小火雞</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#000; color:#fff; font-family:sans-serif; overflow:hidden; }
+    canvas { display:block; margin:0 auto; background: linear-gradient(#ff8c00, #333); }
+    #overlay, #gameOver {
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      background:rgba(0,0,0,0.7); font-size:24px;
+    }
+    button { padding:10px 20px; font-size:20px; margin-top:20px; }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="800" height="300"></canvas>
+
+  <!-- 開始畫面 -->
+  <div id="overlay">
+    <h1>小火雞</h1>
+    <div style="font-size:72px;">🥚</div>
+    <button id="startBtn">開始遊戲</button>
+    <div>最高分：<span id="bestStart">0</span></div>
+  </div>
+
+  <!-- 遊戲結束畫面 -->
+  <div id="gameOver" style="display:none;">
+    <div style="font-size:72px;">🍗</div>
+    <div>遊戲結束!</div>
+    <div>分數：<span id="finalScore">0</span></div>
+    <div>最高分：<span id="bestOver">0</span></div>
+    <button id="retryBtn">重玩</button>
+  </div>
+
+  <script>
+    const c = document.getElementById('game');
+    const ctx = c.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const gameOverEl = document.getElementById('gameOver');
+    const startBtn = document.getElementById('startBtn');
+    const retryBtn = document.getElementById('retryBtn');
+    const bestStart = document.getElementById('bestStart');
+    const bestOver = document.getElementById('bestOver');
+    const finalScoreEl = document.getElementById('finalScore');
+
+    let frames, score, bestScore = localStorage.getItem('turkeyBest') || 0;
+    let speed, gravity = 0.7, jumpV = 12;
+    const groundY = c.height - 40;
+    let player, obstacles, particles;
+    let startDelay = 100;
+
+    bestStart.textContent = bestScore;
+
+    const runFrames = [
+      ["..11..","..11..","..11..","111*11","11~~11","11..11","1....1"],
+      ["..11..","..11..","..11..","111111","11~~11","..11..","..11.."]
+    ];
+    const jumpFrame = ["..11..","..11..",".1111.","111*11","11~~11","1....1","1....1"];
+
+    function drawChicken(fx, fy, sprite) {
+      for (let y = 0; y < sprite.length; y++) {
+        for (let x = 0; x < sprite[y].length; x++) {
+          const ch = sprite[y][x];
+          if (ch === '1') { ctx.fillStyle = '#fff'; ctx.fillRect(fx+x*4, fy+y*4, 4,4); }
+          if (ch === '*') { ctx.fillStyle = '#f00'; ctx.fillRect(fx+x*4, fy+y*4, 4,4); }
+          if (ch === '~') { ctx.fillStyle = '#ff0'; ctx.fillRect(fx+x*4, fy+y*4, 4,4); }
+        }
+      }
+    }
+
+    function init() {
+      frames = 0;
+      score = 0;
+      speed = 6;
+      startDelay = 100;
+      player = {x:50, y:groundY-28, w:28, h:28, vy:0, jumping:false};
+      obstacles = [];
+      particles = [];
+      gameOverEl.style.display = 'none';
+      overlay.style.display = 'none';
+      animate();
+    }
+
+    function createObs(){
+      const h = 30 + Math.random() * 30;
+      obstacles.push({x:c.width, y:groundY-h, w:20, h:h});
+    }
+
+    function updateObs(){
+      obstacles = obstacles.filter(o => {
+        o.x -= speed;
+        if (o.x + o.w < 0) {
+          score += 10;
+          speed += 0.1;
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function drawObs(){
+      ctx.fillStyle = '#FF4500';
+      obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+        for (let i = 0; i < 3; i++) {
+          particles.push({x: o.x + o.w/2, y: o.y, vx: (Math.random()-0.5)*2, vy: -Math.random()*2, life: 20});
+        }
+      });
+    }
+
+    function updateParticles() {
+      particles = particles.filter(p => p.life-- > 0);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        ctx.fillStyle = 'rgba(255, 140, 0, 0.7)';
+        ctx.fillRect(p.x, p.y, 2, 2);
+      });
+    }
+
+    function checkHit(){
+      return obstacles.some(o =>
+        player.x < o.x + o.w &&
+        player.x + player.w > o.x &&
+        player.y < o.y + o.h &&
+        player.y + player.h > o.y
+      );
+    }
+
+    function drawBackground(){
+      ctx.fillStyle = '#FF8C00';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.fillStyle = '#333';
+      ctx.fillRect(0, groundY, c.width, 40);
+      ctx.beginPath();
+      ctx.moveTo(150, groundY);
+      ctx.lineTo(250, 120);
+      ctx.lineTo(350, groundY);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(500, groundY);
+      ctx.lineTo(600, 100);
+      ctx.lineTo(700, groundY);
+      ctx.fill();
+    }
+
+    function drawScore(){
+      ctx.font = "20px sans-serif";
+      ctx.fillStyle = "#000";
+      ctx.fillText("分數: " + score, c.width - 120, 30);
+      ctx.fillText("最高: " + bestScore, c.width - 120, 55);
+    }
+
+    function animate() {
+      frames++;
+      ctx.clearRect(0, 0, c.width, c.height);
+      drawBackground();
+      drawScore();
+
+      if (player.jumping) {
+        player.vy -= gravity;
+        player.y -= player.vy;
+        if (player.y >= groundY - player.h) {
+          player.y = groundY - player.h;
+          player.jumping = false;
+          player.vy = 0;
+        }
+      }
+
+      const sprite = player.jumping ? jumpFrame : (frames % 12 < 6 ? runFrames[0] : runFrames[1]);
+      drawChicken(player.x, player.y, sprite);
+
+      if (startDelay <= 0 && Math.random() < 0.02) createObs();
+      if (startDelay > 0) startDelay--;
+
+      updateObs();
+      drawObs();
+      updateParticles();
+
+      if (checkHit()) {
+        setTimeout(() => showGameOver(), 300);
+        return;
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function showGameOver(){
+      finalScoreEl.textContent = score;
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem('turkeyBest', bestScore);
+      }
+      bestOver.textContent = bestScore;
+      gameOverEl.style.display = 'flex';
+    }
+
+    startBtn.onclick = init;
+    retryBtn.onclick = init;
+
+    document.addEventListener('keydown', e => {
+      if((e.code === "Space" || e.key === " ") && !player.jumping) {
+        player.jumping = true;
+        player.vy = jumpV;
+      }
+    });
+  </script>
+</body>
+</html>
