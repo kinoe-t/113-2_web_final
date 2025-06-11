@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>今天帶誰的小卡</title>
   <style>
     body {
@@ -58,8 +58,8 @@
 </head>
 <body>
   <h1>今天帶誰的小卡 🎴</h1>
-  <input type="text" id="nameInput" placeholder="輸入名字">
-  <input type="file" id="imgInput" accept="image/*">
+  <input type="text" id="nameInput" placeholder="輸入名字" />
+  <input type="file" id="imgInput" accept="image/*" />
   <button id="addItemBtn">新增老公/老婆</button>
   <button id="spinBtn">今天被寵幸的是</button>
   <ul id="itemsList"></ul>
@@ -81,24 +81,34 @@
     addItemBtn.addEventListener("click", () => {
       const name = nameInput.value.trim();
       const file = imgInput.files[0];
-      if (!name || !file) {
-        alert("請輸入名字並選擇圖片！");
+
+      if (!name) {
+        alert("請輸入名字！");
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = () => {
-          items.push({ name, image: img });
-          nameInput.value = "";
-          imgInput.value = "";
-          updateItemList();
-          drawWheel();
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = () => {
+            items.push({ name, image: img });
+            nameInput.value = "";
+            imgInput.value = "";
+            updateItemList();
+            drawWheel();
+          };
+          img.src = e.target.result;
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+      } else {
+        // 沒有圖片，只有名字
+        items.push({ name, image: null });
+        nameInput.value = "";
+        imgInput.value = "";
+        updateItemList();
+        drawWheel();
+      }
     });
 
     function updateItemList() {
@@ -138,12 +148,27 @@
         ctx.fillStyle = `hsl(${(i * 360) / items.length}, 70%, 90%)`;
         ctx.fill();
 
-        // 畫圖片
+        // 繪製圖片或名字
         ctx.save();
         ctx.translate(radius, radius);
         ctx.rotate(startAngle + step / 2);
-        const img = items[i].image;
-        ctx.drawImage(img, radius * 0.4, -40, 60, 60);
+
+        if (items[i].image) {
+          const img = items[i].image;
+          ctx.drawImage(img, radius * 0.4, -40, 60, 60); // 圖片
+          // 名字文字在圖片下方
+          ctx.font = "14px sans-serif";
+          ctx.fillStyle = "#333";
+          ctx.textAlign = "center";
+          ctx.fillText(items[i].name, radius * 0.4 + 30, 35);
+        } else {
+          // 沒有圖片，文字放中間偏右邊的位置
+          ctx.font = "16px sans-serif";
+          ctx.fillStyle = "#333";
+          ctx.textAlign = "center";
+          ctx.fillText(items[i].name, radius * 0.4 + 30, 0);
+        }
+
         ctx.restore();
       }
 
@@ -177,10 +202,7 @@
           requestAnimationFrame(animate);
         } else {
           spinning = false;
-          const normalizedAngle = (angle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-          const selectedIndex = Math.floor(items.length - (normalizedAngle / (2 * Math.PI)) * items.length) % items.length;
-          const selected = items[selectedIndex];
-          alert("今天被寵幸的是：" + selected.name + " ❤️");
+          // 取消 alert
         }
       }
 
@@ -196,4 +218,3 @@
   </script>
 </body>
 </html>
-

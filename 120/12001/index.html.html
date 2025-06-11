@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>暑假測試系統</title>
+  <style>
+    body {
+      font-family: "微軟正黑體", sans-serif;
+      background-color: #008080; /* 藍綠色背景 */
+      color: white;
+      padding: 2em;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1em;
+    }
+    select, input, button {
+      margin: 0.5em;
+      padding: 0.5em;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+    }
+    select, input {
+      width: 200px;
+    }
+    button {
+      background-color: #00cccc;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #00aaaa;
+    }
+    .form-section {
+      margin-top: 2em;
+    }
+    img {
+      max-width: 80%;
+      height: auto;
+      margin-bottom: 1.5em;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <img src="subject-banner.jpg" alt="科目圖片" width="300">
+  <h1>嗨嗨！這是一個測測你暑假可不可以不要看到我們的網頁！！</h1>
+
+  <div class="form-section">
+    <label for="subject">選擇科目：</label>
+    <select id="subject">
+      <option value="" disabled selected>請選擇</option>
+      <option>國文</option>
+      <option>數學</option>
+      <option>歷史</option>
+      <option>英文</option>
+      <option>公民</option>
+      <option>化學</option>
+      <option>物理</option>
+      <option>生物</option>
+      <option>地科</option>
+      <option>地理</option>
+    </select>
+    <br>
+
+    <label for="score1">第一次段考分數：</label>
+    <input type="number" id="score1" min="0" max="100"><br>
+
+    <label for="score2">第二次段考分數：</label>
+    <input type="number" id="score2" min="0" max="100"><br>
+
+    <button id="checkButton">點我看暑假命運</button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("checkButton").addEventListener("click", function () {
+        const subject = document.getElementById('subject').value;
+        const score1Input = document.getElementById('score1').value;
+        const score2Input = document.getElementById('score2').value;
+
+        if (!subject) {
+          alert("請選擇一個科目！");
+          return;
+        }
+
+        if (score1Input === "" || score2Input === "") {
+          alert("請輸入兩次段考的分數！");
+          return;
+        }
+
+        const score1 = Number(score1Input);
+        const score2 = Number(score2Input);
+
+        if (isNaN(score1) || isNaN(score2)) {
+          alert("請輸入有效的數字！");
+          return;
+        }
+
+        const total = score1 + score2;
+
+        if (total >= 180) {
+          alert("你豪厲害😍");
+        } else if (total >= 80) {
+          const needed = 180 - total;
+          alert(`你需要再考${needed}分喔！嘎油💪`);
+        } else if (total >= 20) {
+          alert("暑假要見面囉😓一起拚補考！");
+        } else {
+          alert("暑假重修加油，趁著暑假把觀念搞懂叭(｡･∀･)ﾉﾞ");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
