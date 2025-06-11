@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>圖片選擇</title>
+  <style>
+    body {
+      background-color: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      gap: 50px;
+    }
+    img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      box-shadow: 0 0 20px #000;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <img id="left" src="" alt="左邊圖片">
+  <img id="right" src="" alt="右邊圖片">
+
+  <script>
+    // @ts-nocheck
+    // const images = {{ images | tojson }};
+
+    // 全域變數
+    let images = [];
+    let remaining = [];
+
+    // 1. 頁面載入時向後端 API 拉取圖片列表
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('/api/images')
+        .then(res => res.json())
+        .then(data => {
+          images = data.images || [];
+          remaining = [...images];
+          //console.log(images)
+          //console.log(remaining)
+          // 如果沒有圖片，顯示提示
+          if (!images.length) {
+            document.getElementById('thumbs').textContent = '目前沒有可用圖片';
+            return;
+          }
+          console.log('Fetch 完成，images:', images);
+          console.log('Fetch 完成，remaining:', remaining);
+          setImages();
+          // 建立縮圖列表
+          //const thumbs = document.getElementById('thumbs');
+          //thumbs.innerHTML = '';  // 清空「載入中」
+          //images.forEach(url => {
+          //  const img = document.createElement('img');
+          //  img.src = url;
+            // 點縮圖就顯示該圖
+          //  img.addEventListener('click', () => {
+          //    showImage(url);
+          //  });
+           // thumbs.appendChild(img);
+          //});
+        })
+        .catch(err => {
+          console.error('無法取得圖片列表：', err);
+          document.getElementById('thumbs').textContent = '讀取圖片列表失敗';
+        });
+    });
+    let currentLeft, currentRight;
+
+
+    function getRandomImage() {
+      console.log(remaining)
+      if (remaining.length === 0) return null;
+      const idx = Math.floor(Math.random() * remaining.length);
+      return remaining.splice(idx, 1)[0];
+    }
+
+    function setImages() {
+      if (!currentLeft) currentLeft = getRandomImage();
+      if (!currentRight) currentRight = getRandomImage();
+
+      document.getElementById('left').src = currentLeft;
+      document.getElementById('right').src = currentRight;
+    }
+
+    function handleSelection(choice) {
+      if (choice === 'left') {
+        currentRight = getRandomImage();
+      } else if (choice === 'right') {
+        currentLeft = getRandomImage();
+      }
+
+      if (!currentLeft || !currentRight) {
+        document.body.innerHTML = `<img src="${currentLeft || currentRight}" style="width:400px;height:400px;">`;
+        return;
+      }
+
+      setImages();
+    }
+
+    document.body.addEventListener('mousedown', (event) => {
+      if (event.button === 0) {
+        handleSelection('left');
+      } else if (event.button === 2) {
+        handleSelection('right');
+      }
+    });
+
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    setImages();
+  </script>
+</body>
+</html>
