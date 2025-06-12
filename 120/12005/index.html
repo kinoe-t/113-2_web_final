@@ -2,204 +2,157 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>轉盤抽獎</title>
+  <title>轉盤抽選器</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f9f9f9;
+      font-family: Arial, sans-serif;
       text-align: center;
-      padding: 20px;
+      margin: 30px;
     }
     canvas {
-      border: 3px solid #444;
-      border-radius: 50%;
-      margin: 20px 0;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid #333;
+      background: #fff;
     }
     textarea {
       width: 300px;
-      height: 120px;
-    }
-    input, button {
-      margin: 6px;
-      padding: 8px 16px;
-      font-size: 16px;
-    }
-    #result {
-      font-size: 26px;
-      color: #d63384;
-      margin-top: 20px;
-      white-space: pre-line;
+      height: 100px;
     }
   </style>
 </head>
 <body>
-  <h1>🎯 平均機率轉盤</h1>
+  <h1>轉盤抽選器</h1>
 
-  <p>每行輸入一個選項：</p>
-  <textarea id="optionsInput"></textarea><br>
+  <div>
+    <label>請輸入選項（每行一個）：</label><br>
+    <textarea id="optionsInput" placeholder="選項1&#10;選項2&#10;選項3"></textarea><br>
+    <button onclick="initializeWheel()">建立轉盤</button>
+    <button onclick="clearWheel()">清空轉盤</button>
+  </div>
 
-  <label>抽取幾個項目：</label>
-  <input type="number" id="drawCount" min="1" value="1"><br>
-
-  <button id="drawBtn">開始抽獎</button>
-  <button id="clearBtn">清空</button>
-  <button id="saveBtn">💾 儲存</button>
-  <button id="loadBtn">📂 載入</button>
-
-  <canvas id="wheel" width="400" height="400"></canvas>
-
-  <div id="result"></div>
+  <canvas id="wheelCanvas" width="500" height="500"></canvas>
+  <button onclick="startSpin()">開始抽選</button>
 
   <script>
-    const canvas = document.getElementById('wheel');
+    const canvas = document.getElementById('wheelCanvas');
     const ctx = canvas.getContext('2d');
-    const input = document.getElementById('optionsInput');
-    const drawBtn = document.getElementById('drawBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const resultDiv = document.getElementById('result');
-    const drawCountInput = document.getElementById('drawCount');
-    const saveBtn = document.getElementById('saveBtn');
-    const loadBtn = document.getElementById('loadBtn');
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
 
-    let fullOptions = []; // 所有剩下可抽選項
-    let drawnResults = [];
+    let options = [];
+    let spinning = false;
+    let currentAngle = 0;
+    let showPointer = false;
 
-    function parseOptions(text) {
-      return text.trim().split('\n')
-        .map(line => line.trim())
-        .filter(x => x);
+    function drawStaticPointer() {
+      if (!showPointer) return;
+
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.beginPath();
+      ctx.moveTo(0, -centerY + 10); // 頂端
+      ctx.lineTo(-15, -centerY + 40); // 左側
+      ctx.lineTo(15, -centerY + 40); // 右側
+      ctx.closePath();
+      ctx.fillStyle = 'red';
+      ctx.fill();
+      ctx.restore();
     }
 
-    function drawWheel(options) {
+    function drawWheel(rotationAngle = 0) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!options.length) return;
-      const radius = canvas.width / 2;
-      const anglePer = 2 * Math.PI / options.length;
 
-      options.forEach((name, i) => {
-        const angleStart = i * anglePer;
-        const angleEnd = angleStart + anglePer;
-        ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 60%)`;
+      const anglePerSlice = (2 * Math.PI) / options.length;
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(rotationAngle);
+
+      for (let i = 0; i < options.length; i++) {
+        const startAngle = i * anglePerSlice;
+        const endAngle = startAngle + anglePerSlice;
 
         ctx.beginPath();
-        ctx.moveTo(radius, radius);
-        ctx.arc(radius, radius, radius, angleStart, angleEnd);
-        ctx.lineTo(radius, radius);
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, centerX - 10, startAngle, endAngle);
+        ctx.fillStyle = `hsl(${(i * 360) / options.length}, 70%, 60%)`;
         ctx.fill();
+        ctx.stroke();
 
+        // 文字（可省略也可保留）
         ctx.save();
-        ctx.translate(radius, radius);
-        ctx.rotate(angleStart + anglePer / 2);
-        ctx.fillStyle = '#000';
-        ctx.font = '14px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(name, radius - 10, 5);
+        ctx.rotate(startAngle + anglePerSlice / 2);
+        ctx.translate(centerX - 40, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillStyle = "#000";
+        ctx.font = "14px sans-serif";
+        ctx.fillText(options[i], 0, 0);
         ctx.restore();
-      });
+      }
 
-      // 指針
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.moveTo(radius - 10, 10);
-      ctx.lineTo(radius + 10, 10);
-      ctx.lineTo(radius, 40);
-      ctx.fill();
+      ctx.restore();
+
+      // 如果設定為顯示指針，則畫出
+      drawStaticPointer();
     }
 
-    function spinToOption(optionName, options, callback) {
-      const index = options.indexOf(optionName);
-      const anglePer = 360 / options.length;
-      const stopAngle = 360 - (index * anglePer + anglePer / 2);
-      const finalAngle = 360 * 5 + stopAngle;
+    function initializeWheel() {
+      const input = document.getElementById("optionsInput").value.trim();
+      const lines = input.split("\n").map(line => line.trim()).filter(Boolean);
+      if (lines.length < 1) {
+        alert("請輸入至少一個選項！");
+        return;
+      }
+      options = [...lines];
+      currentAngle = 0;
+      showPointer = false; // 還不畫指針
+      drawWheel();
 
-      let start = null;
+      // 模擬延遲出現指針（例如等動畫結束或畫完後）
+      setTimeout(() => {
+        showPointer = true;
+        drawWheel(currentAngle);
+      }, 300); // 0.3秒後畫出指針，可自行調整
+    }
+
+    function clearWheel() {
+      options = [];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById("optionsInput").value = "";
+      showPointer = false;
+    }
+
+    function startSpin() {
+      if (spinning || options.length === 0) return;
+
+      spinning = true;
+      const anglePerSlice = (2 * Math.PI) / options.length;
+      const spins = 5 + Math.random() * 3;
+      const targetIndex = Math.floor(Math.random() * options.length);
+      const targetAngle = (targetIndex * anglePerSlice) + anglePerSlice / 2;
+      const totalRotation = spins * 2 * Math.PI + (2 * Math.PI - targetAngle);
       const duration = 3000;
+      const start = performance.now();
 
-      function animate(timestamp) {
-        if (!start) start = timestamp;
-        const progress = timestamp - start;
-        const t = Math.min(progress / duration, 1);
-        const ease = 1 - Math.pow(1 - t, 4);
-        const currentRotation = (finalAngle * ease) * Math.PI / 180;
+      function animate(now) {
+        const elapsed = now - start;
+        const t = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 4); // ease-out
+        const angle = currentAngle + totalRotation * eased;
 
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(currentRotation);
-        ctx.translate(-canvas.width / 2, -canvas.height / 2);
-        drawWheel(options);
-        ctx.restore();
+        drawWheel(angle);
 
         if (t < 1) {
           requestAnimationFrame(animate);
         } else {
-          callback();
+          currentAngle += totalRotation;
+          spinning = false;
+          drawWheel(currentAngle); // 最終定格
         }
       }
 
       requestAnimationFrame(animate);
     }
-
-    drawBtn.addEventListener('click', () => {
-      if (!fullOptions.length) {
-        fullOptions = parseOptions(input.value);
-      }
-      const drawCount = parseInt(drawCountInput.value);
-      if (fullOptions.length < drawCount || drawCount < 1) {
-        alert('請輸入正確格式與足夠選項');
-        return;
-      }
-
-      drawnResults = [];
-
-      function drawNext(count) {
-        if (count <= 0) {
-          resultDiv.innerText = `🎉 抽中：\n${drawnResults.join('\n')}`;
-          input.value = fullOptions.join('\n');
-          drawWheel(fullOptions);
-          return;
-        }
-
-        const chosenIndex = Math.floor(Math.random() * fullOptions.length);
-        const chosenName = fullOptions[chosenIndex];
-
-        spinToOption(chosenName, fullOptions, () => {
-          drawnResults.push(chosenName);
-          fullOptions.splice(chosenIndex, 1); // 移除已抽選項
-          drawNext(count - 1);
-        });
-      }
-
-      resultDiv.innerText = '🔄 正在抽取中...';
-      drawNext(drawCount);
-    });
-
-    clearBtn.addEventListener('click', () => {
-      input.value = '';
-      resultDiv.innerText = '';
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      fullOptions = [];
-      drawnResults = [];
-    });
-
-    saveBtn.addEventListener('click', () => {
-      localStorage.setItem('wheelOptionsSimple', input.value);
-      alert('✅ 已儲存選項');
-    });
-
-    loadBtn.addEventListener('click', () => {
-      const saved = localStorage.getItem('wheelOptionsSimple');
-      if (saved) {
-        input.value = saved;
-        fullOptions = [];
-        resultDiv.innerText = '';
-        drawWheel(parseOptions(saved));
-        alert('✅ 已載入儲存選項');
-      } else {
-        alert('⚠️ 尚未儲存過選項');
-      }
-    });
-
-    drawWheel([]);
   </script>
 </body>
 </html>

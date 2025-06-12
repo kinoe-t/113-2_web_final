@@ -5,193 +5,344 @@
   <title>抽鬼牌遊戲</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f2f2f2;
+      font-family: "微軟正黑體", sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #2e8b57;
+      overflow: hidden;
     }
-    h1 {
+    .game-area {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+    .player-area {
+      position: absolute;
       text-align: center;
     }
     .hand {
       display: flex;
-      flex-wrap: wrap;
       gap: 5px;
-      margin: 10px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 5px;
     }
     .card, .card-back {
-      width: 50px;
-      height: 70px;
-      border: 1px solid #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 18px;
-      font-weight: bold;
+      width: 60px;
+      height: 90px;
+      border: 1px solid #000;
       border-radius: 5px;
-      box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
-    }
-    .card {
       background-color: white;
-    }
-    .card-back {
-      background-color: #333;
-      color: white;
+      text-align: center;
+      line-height: 90px;
+      font-size: 24px;
       cursor: pointer;
     }
-    .player {
-      margin-top: 20px;
+    .card.red { color: red; }
+    .card.black { color: black; }
+    .card-back.cpu1 {
+      background-color: black;
+      color: white;
     }
-    .log {
-      white-space: pre-wrap;
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: 10px;
+    .card-back.cpu2 {
+      background-color: white;
+      color: black;
+    }
+    .center-area {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      width: 100px;
+    }
+    .discard-pile {
+      width: 100px;
+      height: 140px;
+      position: relative;
+      border: 2px dashed #ccc;
+      background: #f0f0f0;
+      margin: 10px auto;
+      cursor: pointer;
+    }
+    .card-count {
+      color: white;
+      font-weight: bold;
+    }
+    .message-box {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      background: rgba(255, 255, 0, 0.85);
+      padding: 5px 15px;
+      border-radius: 10px;
+      z-index: 10;
+    }
+    .draw-result {
+      position: absolute;
+      top: 35%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      color: white;
+    }
+    .log-box {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 250px;
       height: 200px;
-      overflow-y: scroll;
+      background: rgba(255,255,255,0.9);
+      overflow-y: auto;
+      border: 1px solid #aaa;
+      padding: 10px;
+      font-size: 14px;
+    }
+    .end-screen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      font-size: 24px;
+    }
+    .restart-button {
       margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 20px;
+      background-color: #ffcc00;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>抽鬼牌遊戲</h1>
-  <div class="player" id="playerArea">
-    <strong>你的牌:</strong>
-    <div class="hand" id="playerHand"></div>
+  <div class="game-area">
+    <div class="player-area" style="top: 20px; left: 50%; transform: translateX(-50%);" id="player0">
+      <div class="player-name">你</div>
+      <div class="card-count" id="count0"></div>
+      <div class="hand" id="hand0"></div>
+    </div>
+    <div class="player-area" style="bottom: 80px; left: 30px;" id="player1">
+      <div class="player-name">電腦1</div>
+      <div class="card-count" id="count1"></div>
+      <div class="hand" id="hand1"></div>
+    </div>
+    <div class="player-area" style="bottom: 80px; right: 30px;" id="player2">
+      <div class="player-name">電腦2</div>
+      <div class="card-count" id="count2"></div>
+      <div class="hand" id="hand2"></div>
+    </div>
+
+    <div class="center-area">
+      <div>棄牌區</div>
+      <div class="discard-pile" id="discardPile" onclick="alert(discardPile.join('\\n'))"></div>
+    </div>
+
+    <div class="draw-result" id="drawResult"></div>
+    <div class="message-box" id="turnMessage"></div>
+    <div class="log-box" id="logBox"></div>
+
+    <div class="end-screen" id="endScreen">
+      <div id="result"></div>
+      <div class="restart-button" onclick="restartGame()">再玩一次</div>
+    </div>
   </div>
-  <div class="player" id="opponentArea">
-    <strong>請從右手邊玩家中選擇一張抽牌:</strong>
-    <div class="hand" id="opponentHand"></div>
-  </div>
-  <div class="log" id="log"></div>
 
   <script>
     const suits = ['♠', '♥', '♦', '♣'];
-    const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-    let deck = [];
-    let players = [[], [], []]; // 玩家, 電腦1, 電腦2
+    const values = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+    let deck = [], players = [[],[],[]], discardPile = [], ranks = [];
     let currentPlayer = 0;
-    let gameOver = false;
+    let gameEnded = false;
 
     function createDeck() {
+      let d = [];
       for (let suit of suits) {
-        for (let value of values) {
-          deck.push(value + suit);
+        for (let val of values) {
+          d.push(val + suit);
         }
       }
-      deck.push('Joker1');
-      deck.push('Joker2');
+      d.push("Joker1");
+      d.push("Joker2");
+      return d;
     }
 
     function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
+      for (let i = array.length -1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i+1));
         [array[i], array[j]] = [array[j], array[i]];
       }
     }
 
-    function removePairs(hand) {
-      let count = {};
+    function removePairs(hand, playerIndex) {
+      let map = {};
       for (let card of hand) {
-        let key = card.includes('Joker') ? card : card.slice(0, -1);
-        count[key] = (count[key] || 0) + 1;
+        let key = card.includes("Joker") ? card : card.slice(0,-1);
+        map[key] = map[key] || [];
+        map[key].push(card);
       }
-      return hand.filter(card => {
-        let key = card.includes('Joker') ? card : card.slice(0, -1);
-        if (count[key] >= 2) {
-          count[key] -= 2;
-          return false;
+      let rest = [];
+      for (let key in map) {
+        while (map[key].length >= 2) {
+          let c1 = map[key].pop();
+          let c2 = map[key].pop();
+          discardPile.push(c1, c2);
+          log(`${getPlayerName(playerIndex)}丟棄了${c1}以及${c2}`);
         }
-        return true;
-      });
+        rest.push(...map[key]);
+      }
+      return rest;
+    }
+
+    function getPlayerName(i) {
+      return i === 0 ? "你" : `電腦${i}`;
     }
 
     function dealCards() {
-      createDeck();
+      deck = createDeck();
       shuffle(deck);
+      players = [[],[],[]];
+      discardPile = [];
+      ranks = [];
+      gameEnded = false;
+
       for (let i = 0; i < deck.length; i++) {
-        players[i % 3].push(deck[i]);
+        players[i%3].push(deck[i]);
       }
+
       for (let i = 0; i < 3; i++) {
-        players[i] = removePairs(players[i]);
+        players[i] = removePairs(players[i], i);
       }
+
+      currentPlayer = 0;
       updateUI();
-      log("遊戲開始！請選擇右手邊玩家一張牌。");
+      showTurnMessage();
     }
 
     function updateUI() {
-      let playerHand = document.getElementById("playerHand");
-      let opponentHand = document.getElementById("opponentHand");
-      playerHand.innerHTML = '';
-      opponentHand.innerHTML = '';
-
-      players[0].forEach(card => {
-        let div = document.createElement("div");
-        div.className = "card";
-        div.textContent = card;
-        playerHand.appendChild(div);
-      });
-
-      if (!gameOver && currentPlayer === 0) {
-        let target = (currentPlayer + 1) % 3;
-        players[target].forEach((_, i) => {
+      for (let i = 0; i < 3; i++) {
+        let handDiv = document.getElementById("hand"+i);
+        handDiv.innerHTML = "";
+        document.getElementById("count"+i).textContent = `剩餘: ${players[i].length}`;
+        players[i].forEach((card, idx) => {
           let div = document.createElement("div");
-          div.className = "card-back";
-          div.textContent = "?";
-          div.onclick = () => {
-            drawSpecificCard(target, 0, i);
-          };
-          opponentHand.appendChild(div);
+          if (i === 0) {
+            let suit = card.slice(-1);
+            let val = card.slice(0, -1);
+            div.className = "card " + (suit === '♥' || suit === '♦' ? 'red' : 'black');
+            div.textContent = val + suit;
+          } else {
+            div.className = "card-back " + (i === 1 ? "cpu1" : "cpu2");
+            div.textContent = "?";
+            if (currentPlayer === 0 && i === getNextTarget(0)) {
+              div.onclick = () => drawCard(i, idx);
+            }
+          }
+          handDiv.appendChild(div);
         });
       }
+      let pile = document.getElementById("discardPile");
+      pile.innerHTML = "";
+      discardPile.slice(-4).forEach((card, i) => {
+        let div = document.createElement("div");
+        let suit = card.slice(-1);
+        let val = card.slice(0, -1);
+        div.className = "card " + (suit === '♥' || suit === '♦' ? 'red' : 'black');
+        div.textContent = card;
+        div.style.position = "absolute";
+        div.style.top = `${i}px`;
+        div.style.left = `${i}px`;
+        pile.appendChild(div);
+      });
     }
 
-    function log(message) {
-      const logDiv = document.getElementById("log");
-      logDiv.textContent += message + "\n";
-      logDiv.scrollTop = logDiv.scrollHeight;
-    }
+    function drawCard(fromPlayer, index) {
+      if (players[fromPlayer].length === 0 || gameEnded) return;
+      let card = players[fromPlayer].splice(index,1)[0];
+      players[currentPlayer].push(card);
+      showDrawResult(`${getPlayerName(currentPlayer)}從${getPlayerName(fromPlayer)}那抽到${card}`);
+      players[currentPlayer] = removePairs(players[currentPlayer], currentPlayer);
+      checkWin();
+      if (gameEnded) return;
 
-    function drawSpecificCard(from, to, index) {
-      if (players[from].length === 0 || gameOver) return;
-      let card = players[from].splice(index, 1)[0];
-      players[to].push(card);
-      players[to] = removePairs(players[to]);
-      log(`你從電腦${from} 抽了一張牌。`);
+      do {
+        currentPlayer = (currentPlayer + 1) % 3;
+      } while (players[currentPlayer].length === 0 || getNextTarget(currentPlayer) === -1);
+
       updateUI();
-      checkWin();
-      if (!gameOver) {
-        currentPlayer = 1;
-        setTimeout(computerTurn, 1000);
-      }
+      showTurnMessage();
+      if (currentPlayer !== 0) setTimeout(cpuTurn, 1200);
     }
 
-    function computerTurn() {
-      if (gameOver) return;
-      let from = currentPlayer;
-      let to = (from + 1) % 3;
-      if (players[to].length === 0) return;
-      let cardIndex = Math.floor(Math.random() * players[to].length);
-      let card = players[to].splice(cardIndex, 1)[0];
-      players[from].push(card);
-      players[from] = removePairs(players[from]);
-      log(`電腦${from} 抽了電腦${to} 的一張牌。`);
-      checkWin();
-      currentPlayer = (currentPlayer + 1) % 3;
-      if (currentPlayer === 0 && !gameOver) {
-        updateUI();
-        log("請選擇右手邊玩家一張牌。");
-      } else if (!gameOver) {
-        setTimeout(computerTurn, 1000);
+    function getNextTarget(i) {
+      for (let step = 1; step < 3; step++) {
+        let t = (i + 3 - step) % 3;
+        if (players[t].length > 0) return t;
       }
+      return -1;
+    }
+
+    function cpuTurn() {
+      if (gameEnded) return;
+      let target = getNextTarget(currentPlayer);
+      if (target === -1) return;
+      let cardIndex = Math.floor(Math.random() * players[target].length);
+      drawCard(target, cardIndex);
+    }
+
+    function showTurnMessage() {
+      if (gameEnded) {
+        document.getElementById("turnMessage").textContent = "";
+        return;
+      }
+      let target = getNextTarget(currentPlayer);
+      document.getElementById("turnMessage").textContent =
+        target === -1 ? "" : `輪到${getPlayerName(currentPlayer)}抽${getPlayerName(target)}的牌`;
+    }
+
+    function showDrawResult(msg) {
+      if (currentPlayer !== 0) return;
+      let el = document.getElementById("drawResult");
+      el.textContent = msg;
+      setTimeout(() => el.textContent = "", 3000);
+    }
+
+    function log(msg) {
+      let logBox = document.getElementById("logBox");
+      logBox.innerHTML += `<div>${msg}</div>`;
+      logBox.scrollTop = logBox.scrollHeight;
     }
 
     function checkWin() {
-      let activePlayers = players.filter(hand => hand.length > 0);
-      if (activePlayers.length === 1) {
-        gameOver = true;
-        let loser = players.findIndex(hand => hand.length > 0);
-        log(`遊戲結束！玩家 ${loser === 0 ? '你' : '電腦' + loser} 剩下最後一張牌，輸了！`);
+      for (let i = 0; i < 3; i++) {
+        if (players[i].length === 0 && !ranks.includes(i)) {
+          ranks.push(i);
+          showImmediateEnd(i);
+          return;
+        }
       }
+    }
+
+    function showImmediateEnd(winnerIndex) {
+      gameEnded = true;
+      document.getElementById("turnMessage").textContent = "";
+      const result = document.getElementById("result");
+      result.innerHTML = `遊戲結束！<br>勝者：${getPlayerName(winnerIndex)}`;
+      document.getElementById("endScreen").style.display = "flex";
+    }
+
+    function restartGame() {
+      document.getElementById("endScreen").style.display = "none";
+      document.getElementById("logBox").innerHTML = "";
+      dealCards();
     }
 
     dealCards();
