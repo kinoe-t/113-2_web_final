@@ -10,98 +10,139 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
       font-family: sans-serif;
       color: white;
+      padding-top: 20px;
     }
-
     canvas {
       background-color: #222;
       border: 2px solid #fff;
     }
-
     #score {
       margin-top: 10px;
       font-size: 1.2em;
     }
-
     .controls {
       margin-top: 15px;
       display: grid;
       grid-template-columns: repeat(3, 60px);
       grid-template-rows: repeat(3, 60px);
       gap: 5px;
-      justify-content: center;
-      align-items: center;
     }
-
     .control-btn {
       width: 60px;
       height: 60px;
       font-size: 20px;
-      font-weight: bold;
       background-color: #333;
       color: white;
       border: 2px solid white;
       border-radius: 10px;
       cursor: pointer;
     }
-
     .invisible {
       visibility: hidden;
+    }
+    #restart {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #555;
+      border: 2px solid white;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <h1>貪吃蛇遊戲</h1>
-  <canvas id="game" width="400" height="400"></canvas>
+  <canvas id="game" width="600" height="600"></canvas>
   <div id="score">分數：0</div>
 
   <div class="controls">
     <div class="invisible"></div>
-    <button class="control-btn" onclick="setDirection('UP')">↑</button>
+    <button class="control-btn" onclick="queueDirection('UP')">↑</button>
     <div class="invisible"></div>
-    <button class="control-btn" onclick="setDirection('LEFT')">←</button>
+    <button class="control-btn" onclick="queueDirection('LEFT')">←</button>
     <div class="invisible"></div>
-    <button class="control-btn" onclick="setDirection('RIGHT')">→</button>
+    <button class="control-btn" onclick="queueDirection('RIGHT')">→</button>
     <div class="invisible"></div>
-    <button class="control-btn" onclick="setDirection('DOWN')">↓</button>
+    <button class="control-btn" onclick="queueDirection('DOWN')">↓</button>
     <div class="invisible"></div>
   </div>
+
+  <button id="restart" onclick="restartGame()">重新開始</button>
 
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const box = 20;
-    const canvasSize = 400;
+    const canvasSize = 600;
     const rows = canvasSize / box;
     const columns = canvasSize / box;
 
-    let snake = [{ x: 9 * box, y: 9 * box }];
-    let direction = "RIGHT"; // 預設移動方向
-    let food = {
-      x: Math.floor(Math.random() * columns) * box,
-      y: Math.floor(Math.random() * rows) * box,
-    };
-    let score = 0;
-    let speed = 200; // 初始速度（ms）
-    let game; // 遊戲循環控制
+    let snake, direction, directionQueue, food, bomb, score, speed, game;
+    let snakeColor = "#0f0";
+    let foodColor = "#f00";
 
-    // 控制方向
+    function randomColor() {
+      const letters = "0123456789ABCDEF";
+      let color = "#";
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    function initGame() {
+      snake = [{ x: 9 * box, y: 9 * box }];
+      direction = "RIGHT";
+      directionQueue = [];
+      score = 0;
+      speed = 200;
+      snakeColor = "#0f0";
+      foodColor = "#f00";
+      document.getElementById("score").textContent = "分數：0";
+      food = generateFood();
+      bomb = generateBomb();
+      startGameLoop();
+    }
+
+    function generateFood() {
+      return {
+        x: Math.floor(Math.random() * (columns - 2) + 1) * box,
+        y: Math.floor(Math.random() * (rows - 2) + 1) * box,
+      };
+    }
+
+    function generateBomb() {
+      return {
+        x: Math.floor(Math.random() * (columns - 2) + 1) * box,
+        y: Math.floor(Math.random() * (rows - 2) + 1) * box,
+      };
+    }
+
+    function queueDirection(dir) {
+      directionQueue.push(dir);
+    }
+
     document.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowLeft") setDirection("LEFT");
-      else if (e.key === "ArrowUp") setDirection("UP");
-      else if (e.key === "ArrowRight") setDirection("RIGHT");
-      else if (e.key === "ArrowDown") setDirection("DOWN");
+      if (e.key === "ArrowLeft") queueDirection("LEFT");
+      else if (e.key === "ArrowUp") queueDirection("UP");
+      else if (e.key === "ArrowRight") queueDirection("RIGHT");
+      else if (e.key === "ArrowDown") queueDirection("DOWN");
     });
 
-    function setDirection(dir) {
-      if (dir === "LEFT" && direction !== "RIGHT") direction = "LEFT";
-      if (dir === "UP" && direction !== "DOWN") direction = "UP";
-      if (dir === "RIGHT" && direction !== "LEFT") direction = "RIGHT";
-      if (dir === "DOWN" && direction !== "UP") direction = "DOWN";
+    function drawBorder() {
+      ctx.fillStyle = "#666";
+      for (let i = 0; i < columns; i++) {
+        ctx.fillRect(i * box, 0, box, box); // 上
+        ctx.fillRect(i * box, (rows - 1) * box, box, box); // 下
+      }
+      for (let i = 1; i < rows - 1; i++) {
+        ctx.fillRect(0, i * box, box, box); // 左
+        ctx.fillRect((columns - 1) * box, i * box, box, box); // 右
+      }
     }
 
     function startGameLoop() {
@@ -111,16 +152,31 @@
 
     function draw() {
       ctx.clearRect(0, 0, canvasSize, canvasSize);
+      drawBorder();
 
-      // 畫蛇
+      while (directionQueue.length > 0) {
+        const next = directionQueue.shift();
+        const opposite = {
+          UP: "DOWN", DOWN: "UP",
+          LEFT: "RIGHT", RIGHT: "LEFT"
+        };
+        if (next !== opposite[direction]) {
+          direction = next;
+          break;
+        }
+      }
+
       for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? "#0f0" : "#0a0";
+        ctx.fillStyle = i === 0 ? "#fff" : snakeColor;
         ctx.fillRect(snake[i].x, snake[i].y, box, box);
       }
 
-      // 畫食物
-      ctx.fillStyle = "#f00";
+      ctx.fillStyle = foodColor;
       ctx.fillRect(food.x, food.y, box, box);
+
+      ctx.fillStyle = "#ff0";
+      ctx.font = `${box - 4}px Arial`;
+      ctx.fillText("💣", bomb.x + 2, bomb.y + box - 4);
 
       let headX = snake[0].x;
       let headY = snake[0].y;
@@ -130,13 +186,10 @@
       if (direction === "RIGHT") headX += box;
       if (direction === "DOWN") headY += box;
 
-      if (
-        headX < 0 || headY < 0 ||
-        headX >= canvasSize || headY >= canvasSize ||
-        collision({ x: headX, y: headY }, snake)
-      ) {
+      // ✅ 修正貼牆判定
+      if (headX < box || headY < box || headX > (columns - 2) * box || headY > (rows - 2) * box) {
         clearInterval(game);
-        alert("遊戲結束！分數：" + score);
+        alert("你撞到牆壁啦！遊戲結束！分數：" + score);
         return;
       }
 
@@ -145,17 +198,24 @@
       if (headX === food.x && headY === food.y) {
         score++;
         document.getElementById("score").textContent = "分數：" + score;
-        food = {
-          x: Math.floor(Math.random() * columns) * box,
-          y: Math.floor(Math.random() * rows) * box,
-        };
-
-        // 提升速度（最小間隔 50ms）
+        food = generateFood();
+        bomb = generateBomb();
+        snakeColor = randomColor();
+        foodColor = randomColor();
         if (speed > 50) {
           speed -= 10;
           startGameLoop();
         }
-
+      } else if (headX === bomb.x && headY === bomb.y) {
+        score--;
+        document.getElementById("score").textContent = "分數：" + score;
+        bomb = generateBomb();
+        if (score < 0) {
+          clearInterval(game);
+          alert("分數低於 0，遊戲結束！");
+          return;
+        }
+        snake.pop();
       } else {
         snake.pop();
       }
@@ -163,16 +223,12 @@
       snake.unshift(newHead);
     }
 
-    function collision(head, body) {
-      for (let i = 0; i < body.length; i++) {
-        if (head.x === body[i].x && head.y === body[i].y) {
-          return true;
-        }
-      }
-      return false;
+    function restartGame() {
+      clearInterval(game);
+      initGame();
     }
 
-    startGameLoop(); // 啟動遊戲
+    initGame();
   </script>
 </body>
 </html>

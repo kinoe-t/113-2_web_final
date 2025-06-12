@@ -3,36 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>小恐龍障礙賽</title>
+  <title>小恐龍障礙賽 (加速版)</title>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       overflow: hidden;
+      background-color: lightblue;
     }
     #game {
       position: relative;
       width: 100vw;
       height: 100vh;
       background-color: lightblue;
-      border: 2px solid #ccc;
       overflow: hidden;
     }
     .dino {
       position: absolute;
       bottom: 0;
+      left: 80px;
       width: 60px;
       height: 60px;
       background-color: green;
       transition: background-color 0.3s, transform 0.2s ease;
     }
-    .jumping {
-      animation: jump 0.6s ease;
-    }
-    .ducking {
-      height: 30px !important;
-    }
+    .jumping { animation: jump 0.6s ease; }
+    .ducking { height: 30px !important; }
     .obstacle {
       position: absolute;
       bottom: 0;
@@ -40,7 +37,7 @@
       background-color: brown;
     }
     #score {
-      position: absolute;
+      position: fixed;
       top: 10px;
       left: 20px;
       font-size: 24px;
@@ -49,7 +46,7 @@
       z-index: 10;
     }
     #game-over {
-      position: absolute;
+      position: fixed;
       top: 40%;
       width: 100%;
       text-align: center;
@@ -60,7 +57,7 @@
       z-index: 10;
     }
     #restart-btn {
-      position: absolute;
+      position: fixed;
       top: 55%;
       left: 50%;
       transform: translateX(-50%);
@@ -102,8 +99,8 @@
     let obstacleInterval;
     let gameStarted = false;
 
-    let obstacleSpeed = 3;      // 初始障礙物速度
-    let obstacleDelay = 2500;   // 初始障礙物間隔時間（毫秒）
+    let obstacleSpeed = 5;   // 初始速度提高
+    let obstacleDelay = 1800; // 初始出現間隔加快
 
     function jump() {
       if (isJumping || isGameOver) return;
@@ -117,14 +114,10 @@
     }
 
     function duck() {
-      if (!isJumping && !isGameOver) {
-        dino.classList.add('ducking');
-      }
+      if (!isJumping && !isGameOver) dino.classList.add('ducking');
     }
 
-    function stand() {
-      dino.classList.remove('ducking');
-    }
+    function stand() { dino.classList.remove('ducking'); }
 
     function changeDinoColor(direction) {
       dinoColorIndex = direction === 'left'
@@ -145,13 +138,10 @@
     function updateScore(amount) {
       currentScore += amount;
       scoreText.textContent = `分數：${currentScore}`;
-
       if (currentScore % 100 === 0) {
         changeBackgroundColor();
-
-        // 隨分數加快速度與生成頻率
-        obstacleSpeed = Math.min(obstacleSpeed + 1, 10);       // 最快10
-        obstacleDelay = Math.max(obstacleDelay - 200, 800);    // 最短800ms
+        obstacleSpeed = Math.min(obstacleSpeed + 1, 10);
+        obstacleDelay = Math.max(obstacleDelay - 200, 800);
         restartObstacleLoop();
       }
     }
@@ -165,11 +155,9 @@
       if (isGameOver) return;
       const obstacle = document.createElement('div');
       obstacle.classList.add('obstacle');
-
       const height = Math.random() > 0.5 ? 60 : 30;
       obstacle.style.height = height + 'px';
-      obstacle.style.left = '100vw';
-
+      obstacle.style.left = window.innerWidth + 'px';
       game.appendChild(obstacle);
 
       let moveInterval = setInterval(() => {
@@ -222,7 +210,6 @@
 
     function resetGame() {
       document.querySelectorAll('.obstacle').forEach(o => o.remove());
-
       currentScore = 0;
       isJumping = false;
       isGameOver = false;
@@ -234,11 +221,8 @@
       gameOverText.style.display = 'none';
       restartBtn.style.display = 'none';
       ensureBgColorNotMatch();
-
-      // 重置速度與延遲
-      obstacleSpeed = 3;
-      obstacleDelay = 2500;
-
+      obstacleSpeed = 5;
+      obstacleDelay = 1800;
       if (!gameStarted) {
         gameStarted = true;
         setTimeout(startObstacleLoop, 5000);
@@ -251,35 +235,19 @@
       if (isGameOver) return;
       switch (e.key) {
         case 'ArrowUp':
-        case ' ':
-          jump();
-          break;
-        case 'ArrowDown':
-          duck();
-          break;
-        case 'ArrowLeft':
-          changeDinoColor('left');
-          break;
-        case 'ArrowRight':
-          changeDinoColor('right');
-          break;
+        case ' ': jump(); break;
+        case 'ArrowDown': duck(); break;
+        case 'ArrowLeft': changeDinoColor('left'); break;
+        case 'ArrowRight': changeDinoColor('right'); break;
       }
     });
 
-    document.addEventListener('keyup', (e) => {
-      if (e.key === 'ArrowDown') stand();
-    });
-
+    document.addEventListener('keyup', (e) => { if (e.key === 'ArrowDown') stand(); });
     restartBtn.addEventListener('click', resetGame);
 
     ensureBgColorNotMatch();
-    setTimeout(() => {
-      gameStarted = true;
-      startObstacleLoop();
-    }, 5000);
+    setTimeout(() => { gameStarted = true; startObstacleLoop(); }, 5000);
   </script>
 </body>
 </html>
-
-
 
