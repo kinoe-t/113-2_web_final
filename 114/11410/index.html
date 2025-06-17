@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>今日愛情運勢</title>
+  <style>
+    body {
+      font-family: "微軟正黑體", sans-serif;
+      text-align: center;
+      background: #ffe6f0;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { color: #d6336c; }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .heart {
+      color: #ff3366;
+      font-size: 24px;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .btn {
+      background: #ff6699;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover { background: #ff3366; }
+    .fortune {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+    .spinner {
+      margin: 15px auto;
+      width: 100px;
+      height: 100px;
+      border: 8px solid #ffcce0;
+      border-top: 8px solid #ff3366;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+  </style>
+</head>
+<body>
+  <h1>🌸 今日愛情運勢 🌸</h1>
+  <label>生日：<input type="date" id="birth"></label>
+  <button class="btn" onclick="showLuck()">查看運勢</button>
+
+  <div class="result" id="result" style="display:none;">
+    <div id="starSign"></div>
+    <div id="loveScore"></div>
+    <div id="advice"></div>
+    <div id="color"></div>
+    <div id="item"></div>
+    <div class="fortune" id="quote"></div>
+    <button class="btn" onclick="spin()">簡單占卜</button>
+    <div class="spinner" id="spinner" style="display:none;"></div>
+    <br><br>
+    <a class="btn" href="https://line.me" target="_blank">分享到 LINE</a>
+    <a class="btn" href="https://www.facebook.com/sharer/sharer.php?u=https://example.com" target="_blank">分享到 FB</a>
+  </div>
+
+  <script>
+    function getZodiac(month, day) {
+      const signs = [
+        "摩羯", "水瓶", "雙魚", "牡羊", "金牛", "雙子",
+        "巨蟹", "獅子", "處女", "天秤", "天蠍", "射手", "摩羯"
+      ];
+      const dates = [20, 19, 21, 21, 21, 22, 23, 23, 23, 23, 23, 22];
+      return day < dates[month-1] ? signs[month-1] : signs[month];
+    }
+
+    function showLuck(){
+      const birth = document.getElementById("birth").value;
+      if(!birth) { alert("請輸入生日！"); return; }
+      const date = new Date(birth);
+      const zodiac = getZodiac(date.getMonth()+1, date.getDate());
+      document.getElementById("starSign").innerHTML = "你的星座是：" + zodiac;
+
+      const score = Math.floor(Math.random()*5)+1;
+      document.getElementById("loveScore").innerHTML = "愛情指數：" + "❤️".repeat(score);
+
+      const advices = ["適合告白", "別太強求緣分", "耐心等好運", "今天多笑笑", "可嘗試主動出擊"];
+      document.getElementById("advice").innerHTML = "建議：" + advices[Math.floor(Math.random()*advices.length)];
+
+      const colors = ["粉紅色", "紅色", "金色", "湖水藍", "白色"];
+      document.getElementById("color").innerHTML = "幸運色：" + colors[Math.floor(Math.random()*colors.length)];
+
+      const items = ["幸運手鍊", "小熊吊飾", "香水", "愛心氣球", "粉色飲料"];
+      document.getElementById("item").innerHTML = "幸運物：" + items[Math.floor(Math.random()*items.length)];
+
+      const quotes = [
+        "喜歡是一瞬間的怦然，愛是長久的陪伴。",
+        "你是我心裡藏著的小確幸。",
+        "愛情像糖，甜了又怕蛀牙。",
+        "今天，也要對自己溫柔一點。",
+        "愛要及時，別讓遺憾說出口。"
+      ];
+      document.getElementById("quote").innerHTML = "💌 " + quotes[Math.floor(Math.random()*quotes.length)];
+
+      document.getElementById("result").style.display = "block";
+    }
+
+    function spin(){
+      document.getElementById("spinner").style.display = "block";
+      setTimeout(()=>{
+        document.getElementById("spinner").style.display = "none";
+        alert("💖今日占卜：戀愛運上升中！");
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

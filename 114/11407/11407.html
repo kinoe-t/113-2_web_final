@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>小型記帳本</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --main-color: #009688;
+      --accent-color: #4db6ac;
+      --light-bg: #e0f2f1;
+      --text-color: #333;
+      --btn-height: 28px;
+      --btn-font-size: 0.85rem;
+      --btn-padding: 0 10px;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Noto Sans TC', 'Inter', sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: var(--main-color);
+      color: white;
+      padding: 1em;
+      text-align: center;
+    }
+    main {
+      padding: 1em;
+      max-width: 1000px;
+      margin: auto;
+    }
+    section {
+      background: #fff;
+      padding: 1em;
+      margin-bottom: 1em;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    }
+    h1, h2 {
+      font-weight: 700;
+      color: var(--main-color);
+      margin-top: 0;
+    }
+    input, select {
+      padding: 0.5em;
+      margin: 0.3em 0;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-family: inherit;
+      font-size: 1rem;
+      width: 100%;
+    }
+    button {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      height: var(--btn-height);
+      font-size: var(--btn-font-size);
+      padding: var(--btn-padding);
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: var(--main-color);
+    }
+    /* 按鈕靠右排列 */
+    .btn-right {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5em;
+      margin-top: 0.3em;
+    }
+    .btn-right > button {
+      flex: 0 0 auto;
+    }
+    /* 記帳紀錄 */
+    .record {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.3em 0.5em;
+      border-radius: 4px;
+      margin-bottom: 0.3em;
+      font-size: 0.95rem;
+    }
+    .record.income { border-left: 4px solid #4db6ac; background: #e0f7f5; }
+    .record.expense { border-left: 4px solid #f06292; background: #fce4ec; }
+    .record button {
+      margin-left: 1em;
+      padding: 0 8px;
+      font-size: 0.8rem;
+      height: 24px;
+    }
+    /* 總計區 */
+    .totals {
+      background: var(--light-bg);
+      padding: 1em;
+      border-radius: 6px;
+      margin-top: 1em;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    /* 分類列表 */
+    .category-item {
+      display: flex;
+      align-items: center;
+      background: #f9f9f9;
+      padding: 0.3em 0.6em;
+      border-radius: 4px;
+      margin-bottom: 0.3em;
+      font-size: 0.95rem;
+    }
+    .category-item input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0 0.3em;
+    }
+    .category-item button {
+      margin-left: 0.4em;
+      height: 24px;
+      padding: 0 6px;
+      font-size: 0.75rem;
+    }
+    /* 兩欄排版圖表 */
+    #charts {
+      display: flex;
+      gap: 2em;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    canvas {
+      flex: 1 1 45%;
+      max-width: 45%;
+      height: 300px !important;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+    }
+    /* 手機版自適應 */
+    @media (max-width: 720px) {
+      #charts {
+        flex-direction: column;
+      }
+      canvas {
+        max-width: 100%;
+        flex-basis: auto;
+        height: 250px !important;
+      }
+      .btn-right {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>小型記帳本</h1>
+  </header>
+  <main>
+    <section id="entry-section">
+      <h2>新增記帳</h2>
+      <input type="date" id="date" />
+      <input type="text" id="desc" placeholder="描述（例如：早餐）" />
+      <input type="number" id="amount" placeholder="金額" />
+      <select id="type">
+        <option value="expense">支出</option>
+        <option value="income">收入</option>
+      </select>
+      <select id="category"></select>
+      <div class="btn-right">
+        <button onclick="addRecord()">新增記帳</button>
+      </div>
+    </section>
+
+    <section id="category-section">
+      <h2>分類管理</h2>
+      <div style="display:flex; gap:0.5em; margin-bottom: 0.3em;">
+        <input type="text" id="newCategoryInput" placeholder="新增分類名稱" />
+        <button onclick="addCategory()" style="flex: 0 0 auto; height: 28px; font-size: 0.85rem;">新增</button>
+      </div>
+      <div id="categoryList"></div>
+    </section>
+
+    <section class="totals">
+      <h2>總計</h2>
+      <p>收入總額：$<span id="totalIncome">0</span></p>
+      <p>支出總額：$<span id="totalExpense">0</span></p>
+      <p>淨收入：$<span id="netTotal">0</span></p>
+    </section>
+
+    <section>
+      <h2>記帳紀錄</h2>
+      <div id="recordList"></div>
+    </section>
+
+    <section id="charts">
+      <canvas id="pieChart"></canvas>
+      <canvas id="lineChart"></canvas>
+    </section>
+
+    <div class="btn-right" style="margin-top: 1em;">
+      <button onclick="exportPDF()">匯出 PDF</button>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+    let records = JSON.parse(localStorage.getItem('records')) || [];
+    let categories = JSON.parse(localStorage.getItem('categories')) || ["食物", "交通", "娛樂", "收入"];
+
+    function save() {
+      localStorage.setItem('records', JSON.stringify(records));
+      localStorage.setItem('categories', JSON.stringify(categories));
+    }
+
+    function renderCategoryOptions() {
+      const catSelect = document.getElementById('category');
+      catSelect.innerHTML = '';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        catSelect.appendChild(opt);
+      });
+    }
+
+    function renderCategoryList() {
+      const list = document.getElementById('categoryList');
+      list.innerHTML = '';
+      categories.forEach((cat, index) => {
+        const div = document.createElement('div');
+        div.className = 'category-item';
+
+        const input = document.createElement('input');
+        input.value = cat;
+        input.onchange = () => {
+          categories[index] = input.value.trim() || categories[index];
+          save();
+          renderCategoryOptions();
+        };
+
+        const upBtn = document.createElement('button');
+        upBtn.textContent = '↑';
+        upBtn.title = '上移';
+        upBtn.onclick = () => {
+          if (index > 0) {
+            [categories[index - 1], categories[index]] = [categories[index], categories[index - 1]];
+            save();
+            renderCategoryOptions();
+            renderCategoryList();
+          }
+        };
+
+        const downBtn = document.createElement('button');
+        downBtn.textContent = '↓';
+        downBtn.title = '下移';
+        downBtn.onclick = () => {
+          if (index < categories.length - 1) {
+            [categories[index + 1], categories[index]] = [categories[index], categories[index + 1]];
+            save();
+            renderCategoryOptions();
+            renderCategoryList();
+          }
+        };
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '刪除';
+        delBtn.title = '刪除分類';
+        delBtn.onclick = () => {
+          if (confirm(`確定要刪除分類「${categories[index]}」嗎？此分類下的記錄將不受影響。`)) {
+            categories.splice(index, 1);
+            save();
+            renderCategoryOptions();
+            renderCategoryList();
+          }
+        };
+
+        div.appendChild(input);
+        div.appendChild(upBtn);
+        div.appendChild(downBtn);
+        div.appendChild(delBtn);
+        list.appendChild(div);
+      });
+    }
+
+    function addCategory() {
+      const input = document.getElementById('newCategoryInput');
+      const name = input.value.trim();
+      if (!name) {
+        alert('請輸入分類名稱');
+        return;
+      }
+      if (categories.includes(name)) {
+        alert('分類名稱已存在');
+        return;
+      }
+      categories.push(name);
+      input.value = '';
+      save();
+      renderCategoryOptions();
+      renderCategoryList();
+    }
+
+    function addRecord() {
+      const date = document.getElementById('date').value;
+      const desc = document.getElementById('desc').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value);
+      const type = document.getElementById('type').value;
+      const category = document.getElementById('category').value;
+
+      if (!date || !desc || isNaN(amount) || amount <= 0) {
+        alert('請填寫完整且有效的資訊');
+        return;
+      }
+
+      records.push({ date, desc, amount, type, category });
+      save();
+      renderRecords();
+      updateCharts();
+
+      // 清空輸入框，日期保留
+      document.getElementById('desc').value = '';
+      document.getElementById('amount').value = '';
+    }
+
+    function renderRecords() {
+      const list = document.getElementById('recordList');
+      list.innerHTML = '';
+      let income = 0, expense = 0;
+
+      records.forEach((r, index) => {
+        const div = document.createElement('div');
+        div.className = `record ${r.type}`;
+        div.innerHTML = `
+          <div style="flex:1;">
+            ${r.date} | ${r.desc} | ${r.category} | ${r.type === 'income' ? '+' : '-'}$${r.amount.toFixed(2)}
+          </div>
+          <button onclick="deleteRecord(${index})" title="刪除記錄">刪除</button>
+        `;
+        list.appendChild(div);
+        if (r.type === 'income') income += r.amount;
+        else expense += r.amount;
+      });
+
+      document.getElementById('totalIncome').textContent = income.toFixed(2);
+      document.getElementById('totalExpense').textContent = expense.toFixed(2);
+      document.getElementById('netTotal').textContent = (income - expense).toFixed(2);
+    }
+
+    function deleteRecord(index) {
+      if (confirm('確定要刪除此筆記錄嗎？')) {
+        records.splice(index, 1);
+        save();
+        renderRecords();
+        updateCharts();
+      }
+    }
+
+    let pieChart, lineChart;
+
+    function updateCharts() {
+      const ctx1 = document.getElementById('pieChart').getContext('2d');
+      const ctx2 = document.getElementById('lineChart').getContext('2d');
+
+      const categoryTotals = {};
+      const dailyTotals = {};
+
+      records.forEach(r => {
+        if (r.type === 'expense') {
+          categoryTotals[r.category] = (categoryTotals[r.category] || 0) + r.amount;
+        }
+        const day = r.date;
+        dailyTotals[day] = (dailyTotals[day] || 0) + (r.type === 'income' ? r.amount : -r.amount);
+      });
+
+      const pieData = {
+        labels: Object.keys(categoryTotals),
+        datasets: [{
+          data: Object.values(categoryTotals),
+          backgroundColor: [
+            '#4db6ac', '#81c784', '#64b5f6', '#ffb74d', '#e57373', '#9575cd',
+            '#f06292', '#4fc3f7', '#aed581', '#ba68c8'
+          ]
+        }]
+      };
+
+      // 對 dailyTotals 做日期排序
+      const sortedDates = Object.keys(dailyTotals).sort();
+
+      const lineData = {
+        labels: sortedDates,
+        datasets: [{
+          label: '每日收支淨額',
+          data: sortedDates.map(d => dailyTotals[d]),
+          borderColor: '#009688',
+          backgroundColor: 'rgba(0,150,136,0.2)',
+          fill: true,
+          tension: 0.1,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+        }]
+      };
+
+      if (pieChart) pieChart.destroy();
+      if (lineChart) lineChart.destroy();
+
+      pieChart = new Chart(ctx1, { type: 'pie', data: pieData, options: { responsive:true, plugins: { legend: { position: 'right' } } } });
+      lineChart = new Chart(ctx2, { type: 'line', data: lineData, options: { responsive:true, scales: { x: { title: { display: true, text: '日期' } }, y: { title: { display: true, text: '淨收入' } } } } });
+    }
+
+    function exportPDF() {
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text("小型記帳本 - 匯出報告", 10, 10);
+
+      doc.setFontSize(12);
+      let y = 20;
+      records.forEach(r => {
+        const line = `${r.date} | ${r.desc} | ${r.category} | ${r.type === 'income' ? '+' : '-'}$${r.amount.toFixed(2)}`;
+        doc.text(line, 10, y);
+        y += 7;
+        if (y > 270) {
+          doc.addPage();
+          y = 10;
+        }
+      });
+
+      doc.save("記帳紀錄.pdf");
+    }
+
+    // 初始化
+    renderCategoryOptions();
+    renderCategoryList();
+    renderRecords();
+    updateCharts();
+  </script>
+</body>
+</html>

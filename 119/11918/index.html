@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>貪吃蛇遊戲 - 多模式</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    canvas {
+      background-color: #222;
+      border: 2px solid #555;
+    }
+    #score {
+      margin: 10px;
+      font-size: 20px;
+    }
+    #message {
+      font-size: 18px;
+      margin: 10px;
+      color: #ccc;
+      text-align: center;
+    }
+    .mode-select {
+      margin-bottom: 10px;
+    }
+    .mode-select label {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐍 貪吃蛇遊戲</h1>
+  <div class="mode-select">
+    <label><input type="radio" name="mode" value="classic" checked> 經典模式</label>
+    <label><input type="radio" name="mode" value="infinite"> 無限模式</label>
+    <label><input type="radio" name="mode" value="floating"> 無限游移模式</label>
+  </div>
+  <div id="score">得分：0</div>
+  <canvas id="game" width="400" height="400"></canvas>
+  <div id="message">選擇模式後按空白鍵開始遊戲</div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const box = 20;
+    const canvasSize = 400;
+    const rows = canvasSize / box;
+    const cols = canvasSize / box;
+
+    let snake, direction, food, foodDir, score, gameLoop, gameRunning = false;
+    let gameMode = "classic";
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.querySelectorAll('input[name="mode"]').forEach(input => {
+      input.addEventListener("change", () => {
+        gameMode = document.querySelector('input[name="mode"]:checked').value;
+      });
+    });
+
+    function handleKeyDown(e) {
+      const key = e.key.toLowerCase();
+      if (key === " ") {
+        startGame();
+        return;
+      }
+
+      if (!gameRunning) return;
+
+      if ((key === "arrowleft" || key === "a") && direction !== "RIGHT") direction = "LEFT";
+      if ((key === "arrowup" || key === "w") && direction !== "DOWN") direction = "UP";
+      if ((key === "arrowright" || key === "d") && direction !== "LEFT") direction = "RIGHT";
+      if ((key === "arrowdown" || key === "s") && direction !== "UP") direction = "DOWN";
+    }
+
+    function startGame() {
+      clearInterval(gameLoop);
+      snake = [{ x: 9 * box, y: 9 * box }];
+      direction = "";
+      food = randomFood();
+      foodDir = randomDirection();
+      score = 0;
+      gameRunning = true;
+      document.getElementById("score").textContent = "得分：" + score;
+      document.getElementById("message").textContent = "";
+      gameLoop = setInterval(draw, 150);
+    }
+
+    function endGame() {
+      clearInterval(gameLoop);
+      gameRunning = false;
+      document.getElementById("message").textContent = "遊戲結束！按空白鍵重新開始";
+    }
+
+    function randomFood() {
+      return {
+        x: Math.floor(Math.random() * cols) * box,
+        y: Math.floor(Math.random() * rows) * box
+      };
+    }
+
+    function randomDirection() {
+      const dirs = ["LEFT", "UP", "RIGHT", "DOWN"];
+      return dirs[Math.floor(Math.random() * dirs.length)];
+    }
+
+    function moveFood() {
+      if (!food) return;
+
+      let newX = food.x;
+      let newY = food.y;
+
+      if (foodDir === "LEFT") newX -= box;
+      if (foodDir === "RIGHT") newX += box;
+      if (foodDir === "UP") newY -= box;
+      if (foodDir === "DOWN") newY += box;
+
+      // 邊界處理（無限游移 = 穿牆）
+      if (newX < 0) newX = canvasSize - box;
+      if (newX >= canvasSize) newX = 0;
+      if (newY < 0) newY = canvasSize - box;
+      if (newY >= canvasSize) newY = 0;
+
+      food = { x: newX, y: newY };
+
+      // 每隔幾次改變方向
+      if (Math.random() < 0.1) {
+        foodDir = randomDirection();
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
+
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = i === 0 ? "#76FF03" : "#AEEA00";
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+      }
+
+      ctx.fillStyle = "#FF5252";
+      ctx.fillRect(food.x, food.y, box, box);
+
+      let headX = snake[0].x;
+      let headY = snake[0].y;
+
+      if (direction === "LEFT") headX -= box;
+      if (direction === "UP") headY -= box;
+      if (direction === "RIGHT") headX += box;
+      if (direction === "DOWN") headY += box;
+
+      // 邊界處理
+      if (gameMode === "infinite" || gameMode === "floating") {
+        if (headX < 0) headX = canvasSize - box;
+        if (headX >= canvasSize) headX = 0;
+        if (headY < 0) headY = canvasSize - box;
+        if (headY >= canvasSize) headY = 0;
+      }
+
+      if (gameMode === "classic" &&
+        (headX < 0 || headY < 0 || headX >= canvasSize || headY >= canvasSize)) {
+        endGame();
+        return;
+      }
+
+      const newHead = { x: headX, y: headY };
+
+      if (collision(newHead, snake)) {
+        endGame();
+        return;
+      }
+
+      if (headX === food.x && headY === food.y) {
+        score++;
+        document.getElementById("score").textContent = "得分：" + score;
+        food = randomFood();
+        foodDir = randomDirection();
+      } else {
+        snake.pop();
+      }
+
+      snake.unshift(newHead);
+
+      if (gameMode === "floating") {
+        moveFood(); // 移動食物
+      }
+    }
+
+    function collision(head, array) {
+      return array.some(segment => head.x === segment.x && head.y === segment.y);
+    }
+  </script>
+</body>
+</html>

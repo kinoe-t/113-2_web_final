@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>人生選擇模擬器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f2f2f2;
+      color: #333;
+      margin: 0 auto;
+      padding: 20px;
+      max-width: 960px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .choice {
+      background: #fff;
+      padding: 15px 20px;
+      margin: 10px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .choice:hover {
+      background: #e2e8f0;
+      transform: scale(1.02);
+    }
+    .result {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-top: 30px;
+    }
+    .score {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+    }
+    .score div {
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      flex: 1;
+      margin: 0 5px;
+    }
+    button {
+      margin-top: 30px;
+      display: block;
+      padding: 10px 20px;
+      background: #5a67d8;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #f6ef2c;
+    }
+  </style>
+</head>
+<body>
+  <h1>你的人生選擇模擬器</h1>
+  <div id="game"></div>
+
+  <script>
+    const stages = [
+      {
+        question: "你出生在哪種家庭？",
+        choices: [
+          { text: "富裕", effects: { wealth: 30 }, summary: "富裕家庭" },
+          { text: "普通", effects: { wealth: 15 }, summary: "普通家庭" },
+          { text: "貧窮", effects: { wealth: 0, happiness: 5 }, summary: "貧困家庭" },
+        ]
+      },
+      {
+        question: "青少年時期你選擇？",
+        choices: [
+          { text: "拚命念書", effects: { happiness: -5, success: 30 }, summary: "努力讀書" },
+          { text: "均衡生活", effects: { happiness: 10, success: 15 }, summary: "平衡發展" },
+          { text: "玩樂為主", effects: { happiness: 20, success: 0 }, summary: "玩樂青春" },
+        ]
+      },
+      {
+        question: "你進入哪所大學？",
+        choices: [
+          { text: "頂尖名校", effects: { success: 25 }, summary: "頂尖名校" },
+          { text: "國立大學", effects: { success: 15 }, summary: "國立大學" },
+          { text: "沒唸大學", effects: { success: 5 }, summary: "直接就業" },
+        ]
+      },
+      {
+        question: "你的職業是？",
+        choices: [
+          { text: "科技業", effects: { wealth: 30, happiness: -5 }, summary: "科技業工程師" },
+          { text: "穩定公職", effects: { wealth: 15, happiness: 5 }, summary: "公務員" },
+          { text: "創業冒險", effects: { wealth: 10, happiness: 10 }, summary: "創業者" },
+        ]
+      },
+      {
+        question: "退休前你選擇？",
+        choices: [
+          { text: "專注家庭", effects: { happiness: 30 }, summary: "重視家庭" },
+          { text: "持續工作", effects: { wealth: 20 }, summary: "努力工作" },
+          { text: "環遊世界", effects: { happiness: 20 }, summary: "旅遊世界" },
+        ]
+      }
+    ];
+
+    let currentStage = 0;
+    let stats = { wealth: 0, happiness: 0, success: 0 };
+    let summary = [];
+
+    const gameDiv = document.getElementById("game");
+
+    function renderStage() {
+      const stage = stages[currentStage];
+      gameDiv.innerHTML = `<h2>${stage.question}</h2>`;
+      stage.choices.forEach((choice, i) => {
+        const div = document.createElement("div");
+        div.className = "choice";
+        div.innerHTML = `<strong>${choice.text}</strong>`;
+        div.onclick = () => handleChoice(choice);
+        gameDiv.appendChild(div);
+        gsap.from(div, { opacity: 0, y: 30, duration: 0.5, delay: i * 0.1 });
+      });
+    }
+
+    function handleChoice(choice) {
+      for (const key in choice.effects) {
+        stats[key] += choice.effects[key];
+      }
+      summary.push(choice.summary);
+      gsap.to(".choice", {
+        opacity: 0,
+        y: -30,
+        duration: 0.5,
+        onComplete: () => {
+          currentStage++;
+          if (currentStage < stages.length) {
+            renderStage();
+          } else {
+            showResult();
+          }
+        }
+      });
+    }
+
+    function showResult() {
+      let description = "";
+
+      if (stats.success >= 80) {
+        description += "你的人生一路順風，是眾人稱羨的成功典範。";
+      } else if (stats.success >= 50) {
+        description += "你過上了穩定且平凡的人生，有自己的小確幸。";
+      } else {
+        description += "你嘗試過不同選擇，雖不耀眼，但也自在安穩地過完一生。";
+      }
+
+      if (stats.happiness >= 50) {
+        description += "你的生活充滿快樂與愛，留下許多美好回憶。";
+      } else if (stats.happiness <= 10) {
+        description += "儘管你擁有許多成就，卻總覺得少了點什麼。";
+      }
+
+      if (stats.wealth >= 60) {
+        description += "你財富自由，晚年生活過得非常充裕。";
+      } else if (stats.wealth <= 10) {
+        description += "你雖然不富裕，但你學會了如何用心生活。";
+      }
+
+      const lifespan = 60 + Math.floor(stats.happiness / 2);
+
+      const resultHTML = `
+        <div class="result">
+          <h2>你的人生回顧</h2>
+          <p>${description}</p>
+          <div class="score">
+            <div><strong>幸福感</strong><br>${stats.happiness}</div>
+            <div><strong>財富</strong><br>${stats.wealth}</div>
+            <div><strong>成功度</strong><br>${stats.success}</div>
+          </div>
+          <p style="text-align: center; margin-top: 15px;"><strong>享年：約 ${lifespan} 歲</strong></p>
+          <h3 style="margin-top:20px;">你曾選擇：</h3>
+          <ul style="padding-left: 20px;">${summary.map(item => `<li>${item}</li>`).join("")}</ul>
+          <button onclick="location.reload()">再玩一次</button>
+        </div>
+      `;
+      gameDiv.innerHTML = resultHTML;
+      gsap.from(".result", { opacity: 0, y: 30, duration: 1 });
+    }
+
+    renderStage();
+  </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>叢林貪吃蛇冒險</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      font-family: "Arial", sans-serif;
+      text-align: center;
+    }
+    canvas {
+      background: url('jungle-background.jpg');
+      background-size: cover;
+      display: block;
+      margin: 20px auto;
+      border: 4px dashed #ffa5c3;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #fff;
+      font-size: 2rem;
+      margin-top: 20px;
+      text-shadow: 1px 1px 4px #000;
+    }
+    #score {
+      color: #fff;
+      font-size: 1.2rem;
+      text-shadow: 1px 1px 3px #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>🦎 叢林貪吃蛇大冒險</h1>
+  <div id="score">分數：0</div>
+  <canvas id="game" width="600" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const box = 20;
+    const cols = canvas.width / box;
+    const rows = canvas.height / box;
+
+    const snakeEmojis = ["🐍", "🦎", "🐛", "🐢"];
+    const obstacleEmojis = ["🦖", "🪨"];
+    const fruitEmojis = ["🍓", "🍎", "🍇"];
+
+    let direction = "";
+    let score = 0;
+
+    function randomPosition() {
+      return {
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows)
+      };
+    }
+
+    const playerSnake = {
+      body: [{ x: 10, y: 10 }],
+      emoji: snakeEmojis[0]
+    };
+
+    const aiSnakes = Array.from({ length: 2 }, () => ({
+      body: [randomPosition()],
+      emoji: snakeEmojis[Math.floor(Math.random() * snakeEmojis.length)],
+      direction: ["UP", "DOWN", "LEFT", "RIGHT"][Math.floor(Math.random() * 4)]
+    }));
+
+    let fruits = Array.from({ length: 3 }, randomPosition);
+    let obstacles = Array.from({ length: 3 }, randomPosition);
+
+    document.addEventListener("keydown", e => {
+      const key = e.key;
+      if (key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      else if (key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+      else if (key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      else if (key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+    });
+
+    function moveSnake(snake, dir) {
+      const head = { ...snake.body[0] };
+      if (dir === "UP") head.y--;
+      else if (dir === "DOWN") head.y++;
+      else if (dir === "LEFT") head.x--;
+      else if (dir === "RIGHT") head.x++;
+      snake.body.unshift(head);
+      snake.body.pop();
+    }
+
+    function moveObstacles() {
+      for (let obs of obstacles) {
+        const dir = Math.floor(Math.random() * 4);
+        if (dir === 0 && obs.y > 0) obs.y--;
+        else if (dir === 1 && obs.y < rows - 1) obs.y++;
+        else if (dir === 2 && obs.x > 0) obs.x--;
+        else if (dir === 3 && obs.x < cols - 1) obs.x++;
+      }
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let f of fruits) {
+        ctx.font = "20px serif";
+        ctx.fillText(fruitEmojis[Math.floor(Math.random() * fruitEmojis.length)], f.x * box, f.y * box + box);
+      }
+
+      for (let o of obstacles) {
+        ctx.font = "20px serif";
+        ctx.fillText(obstacleEmojis[Math.floor(Math.random() * obstacleEmojis.length)], o.x * box, o.y * box + box);
+      }
+
+      for (let ai of aiSnakes) {
+        for (let p of ai.body) {
+          ctx.font = "20px serif";
+          ctx.fillText(ai.emoji, p.x * box, p.y * box + box);
+        }
+      }
+
+      for (let part of playerSnake.body) {
+        ctx.font = "20px serif";
+        ctx.fillText(playerSnake.emoji, part.x * box, part.y * box + box);
+      }
+    }
+
+    function update() {
+      const head = { ...playerSnake.body[0] };
+      if (direction === "UP") head.y--;
+      else if (direction === "DOWN") head.y++;
+      else if (direction === "LEFT") head.x--;
+      else if (direction === "RIGHT") head.x++;
+
+      if (head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows) {
+        return gameOver("你撞到叢林邊界啦！\n你死掉了嘿嘿");
+      }
+
+      for (let o of obstacles) {
+        if (o.x === head.x && o.y === head.y) {
+          return gameOver("你撞到障礙物啦！\n你死掉了嘿嘿");
+        }
+      }
+
+      for (let ai of aiSnakes) {
+        for (let part of ai.body) {
+          if (part.x === head.x && part.y === head.y) {
+            return gameOver("你撞到其他蛇啦！\n你死掉了嘿嘿");
+          }
+        }
+      }
+
+      const fruitIndex = fruits.findIndex(f => f.x === head.x && f.y === head.y);
+      if (fruitIndex !== -1) {
+        playerSnake.body.unshift(head);
+        fruits[fruitIndex] = randomPosition();
+        score++;
+        document.getElementById("score").innerText = "分數：" + score;
+      } else {
+        playerSnake.body.pop();
+        playerSnake.body.unshift(head);
+      }
+
+      for (let ai of aiSnakes) {
+        moveSnake(ai, ai.direction);
+        if (Math.random() < 0.1) {
+          ai.direction = ["UP", "DOWN", "LEFT", "RIGHT"][Math.floor(Math.random() * 4)];
+        }
+      }
+
+      moveObstacles();
+      drawGame();
+    }
+
+    function gameOver(msg) {
+      clearInterval(loop);
+      setTimeout(() => {
+        alert(msg);
+        location.reload();
+      }, 100);
+    }
+
+    const loop = setInterval(update, 200);
+  </script>
+</body>
+</html>

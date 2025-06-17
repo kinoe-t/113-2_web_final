@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>小恐龍遊戲（比例修正）</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; background: #f4f4f4; }
+    canvas {
+      display: block;
+      margin: 30px auto;
+      background: #fff;
+      border: 2px solid #333;
+    }
+    #score {
+      text-align: center;
+      font-size: 24px;
+      margin-top: 10px;
+    }
+    #restart {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+    }
+    #restart button {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="200"></canvas>
+  <div id="score">分數: 0</div>
+  <div id="restart"><button onclick="restartGame()">重新開始</button></div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("score");
+    const restartDiv = document.getElementById("restart");
+
+    const gravity = 0.6;
+    let gameSpeed = 6;
+    let score = 0;
+    let gameOver = false;
+
+    const dinoImg = new Image();
+    dinoImg.src = "dino.png";
+    const cactusImg = new Image();
+    cactusImg.src = "cactus.png";
+    const birdImg = new Image();
+    birdImg.src = "bird.png";
+    const bgImg = new Image();
+    bgImg.src = "background.png";
+
+    class Dino {
+      constructor() {
+        this.width = 60;
+        this.height = 60;
+        this.x = 50;
+        this.y = canvas.height - this.height - 10;
+        this.vy = 0;
+        this.ducking = false;
+      }
+
+      draw() {
+        if (this.ducking) {
+          ctx.drawImage(dinoImg, this.x, this.y + 30, this.width, this.height - 30);
+        } else {
+          ctx.drawImage(dinoImg, this.x, this.y, this.width, this.height);
+        }
+      }
+
+      update() {
+        this.vy += gravity;
+        this.y += this.vy;
+        if (this.y > canvas.height - this.height - 10) {
+          this.y = canvas.height - this.height - 10;
+          this.vy = 0;
+        }
+      }
+
+      jump() {
+        if (this.y >= canvas.height - this.height - 10) {
+          this.vy = -12;
+          this.ducking = false;
+        }
+      }
+
+      duck(val) {
+        if (this.y >= canvas.height - this.height - 10) {
+          this.ducking = val;
+        }
+      }
+
+      getHitbox() {
+        if (this.ducking) {
+          return {
+            x: this.x,
+            y: this.y + 30,
+            width: this.width,
+            height: this.height - 30,
+          };
+        } else {
+          return {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height,
+          };
+        }
+      }
+    }
+
+    class Obstacle {
+      constructor(type = "cactus") {
+        this.type = type;
+        this.passed = false;
+
+        if (type === "cactus") {
+          this.width = 40;
+          this.height = 60;
+          this.y = canvas.height - this.height - 10;
+        } else {
+          this.width = 50;
+          this.height = 30;
+          this.y = canvas.height - 90; // 降低飛鳥位置，要蹲下才能閃過
+        }
+
+        this.x = canvas.width + Math.random() * 200;
+      }
+
+      draw() {
+        const img = this.type === "cactus" ? cactusImg : birdImg;
+        ctx.drawImage(img, this.x, this.y, this.width, this.height);
+      }
+
+      update() {
+        this.x -= gameSpeed;
+      }
+
+      isOffScreen() {
+        return this.x + this.width < 0;
+      }
+
+      getHitbox() {
+        return {
+          x: this.x,
+          y: this.y,
+          width: this.width,
+          height: this.height,
+        };
+      }
+    }
+
+    const dino = new Dino();
+    let obstacles = [];
+    let spawnTimer = 0;
+
+    function resetGame() {
+      score = 0;
+      gameOver = false;
+      obstacles = [];
+      gameSpeed = 6;
+      dino.y = canvas.height - dino.height - 10;
+      dino.vy = 0;
+      dino.duck(false);
+      restartDiv.style.display = "none";
+    }
+
+    function restartGame() {
+      resetGame();
+      animate();
+    }
+
+    function collide(a, b) {
+      return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+      );
+    }
+
+    function animate() {
+      if (gameOver) return;
+
+      ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+      dino.update();
+      dino.draw();
+
+      spawnTimer--;
+      if (spawnTimer <= 0) {
+        const type = Math.random() > 0.7 ? "bird" : "cactus";
+        obstacles.push(new Obstacle(type));
+        spawnTimer = 60 + Math.random() * 60;
+      }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.update();
+        obs.draw();
+
+        if (!obs.passed && obs.x < dino.x) {
+          score++;
+          obs.passed = true;
+        }
+
+        if (collide(dino.getHitbox(), obs.getHitbox())) {
+          gameOver = true;
+          restartDiv.style.display = "block";
+        }
+
+        if (obs.isOffScreen()) {
+          obstacles.splice(i, 1);
+        }
+      }
+
+      scoreDisplay.textContent = "分數: " + score;
+      gameSpeed += 0.002;
+
+      requestAnimationFrame(animate);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "ArrowUp") {
+        e.preventDefault();
+        dino.jump();
+      } else if (e.code === "ArrowDown") {
+        e.preventDefault();
+        dino.duck(true);
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.code === "ArrowDown") {
+        e.preventDefault();
+        dino.duck(false);
+      }
+    });
+
+    resetGame();
+    animate();
+  </script>
+</body>
+</html>

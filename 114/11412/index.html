@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>正向語錄抽籤</title>
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #fff8e7;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+    }
+    .fortune-box {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      transition: transform 0.5s ease;
+    }
+    .fortune-box.shake {
+      animation: shake 0.5s;
+    }
+    @keyframes shake {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      50% { transform: rotate(-5deg); }
+      75% { transform: rotate(5deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .stick {
+      margin-top: 20px;
+      font-size: 24px;
+      background: #fff5c3;
+      padding: 20px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      display: none;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .mascot {
+      margin-top: 20px;
+    }
+    .mascot img {
+      width: 120px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="fortune-box" id="drawBox">
+      <img src="/mnt/data/pngtree-red-hand-drawn-cartoon-draw-barrel-new-year-sign-lottery-cartoon-png-image_465465.jpg" alt="籤筒" width="200">
+    </div>
+    <div class="stick" id="fortuneText"></div>
+    <div class="mascot">
+      <img src="/mnt/data/pngtree-cartoon-japanese-girl-in-pretty-red-kimono-png-image_2751700.png" alt="人偶">
+    </div>
+  </div>
+
+  <audio id="shakeSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_dacb624abb.mp3?filename=shaking-bamboo-jar-8962.mp3"></audio>
+
+  <script>
+    const quotes = [
+      "你很棒，繼續加油！",
+      "每一天都是新的開始。",
+      "相信自己，你做得到！",
+      "微笑是最好的裝扮。",
+      "堅持就是勝利。",
+      "你值得被愛。",
+      "今天會是美好的一天。",
+      "困難只是暫時的。",
+      "你比你想像的更強大。",
+      "一步一腳印，終會到達。",
+      "善良是一種力量。",
+      "做自己最真實的樣子。",
+      "每天進步一點點。",
+      "愛是改變的起點。",
+      "不要害怕失敗，從中學習。",
+      "給自己一點鼓勵。",
+      "你的努力不會白費。",
+      "放慢腳步，享受過程。",
+      "感謝當下的一切。",
+      "世界因你而美好。",
+      "保持好奇心，探索世界。",
+      "心存感激，幸福自然來。",
+      "你值得擁有最好的一切。",
+      "接納自己的不完美。",
+      "只要開始就不算晚。",
+      "每天都是新的機會。",
+      "活在當下，把握每一刻。",
+      "願你心中常存光明。",
+      "學習是永遠的旅程。",
+      "與其抱怨，不如行動。",
+      "不怕慢，只怕站。",
+      "樂觀是最強大的力量。",
+      "你是獨一無二的存在。",
+      "快樂是一種選擇。",
+      "今天你微笑了嗎？",
+      "用愛對待自己與他人。",
+      "心中有夢，就有希望。",
+      "照顧好自己，是最重要的事。",
+      "做一個溫暖的人。",
+      "你有無限潛力。"
+    ];
+
+    while (quotes.length < 100) {
+      quotes.push(quotes[Math.floor(Math.random() * quotes.length)]);
+    }
+
+    const drawBox = document.getElementById('drawBox');
+    const fortuneText = document.getElementById('fortuneText');
+    const shakeSound = document.getElementById('shakeSound');
+
+    drawBox.addEventListener('click', () => {
+      drawBox.classList.add('shake');
+      shakeSound.play();
+      fortuneText.style.display = 'none';
+
+      setTimeout(() => {
+        drawBox.classList.remove('shake');
+        const randomIndex = Math.floor(Math.random() * quotes.length);
+        fortuneText.textContent = quotes[randomIndex];
+        fortuneText.style.display = 'block';
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>心晴日記</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: #f4f4f4;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 1rem;
+    }
+    .color-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .color-button {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .color-button:hover {
+      transform: scale(1.1);
+    }
+    .result, .games {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 1.5rem auto;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+    .show {
+      opacity: 1;
+    }
+    .label {
+      font-weight: bold;
+      color: #666;
+      margin-top: 1rem;
+    }
+    .text {
+      font-size: 1.2rem;
+      color: #333;
+      margin-top: 0.5rem;
+    }
+    iframe {
+      margin-top: 1rem;
+      width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: 10px;
+    }
+    select {
+      margin-top: 1rem;
+      font-size: 1rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 選擇今日的心情色彩</h1>
+  <div class="color-buttons" id="colorSelection">
+    <div class="color-button" style="background-color:#f44336;" data-mood="angry"></div>
+    <div class="color-button" style="background-color:#2196f3;" data-mood="calm"></div>
+    <div class="color-button" style="background-color:#ffeb3b;" data-mood="happy"></div>
+    <div class="color-button" style="background-color:#9e9e9e;" data-mood="sad"></div>
+    <div class="color-button" style="background-color:#4caf50;" data-mood="hopeful"></div>
+    <div class="color-button" style="background-color:#ff9800;" data-mood="excited"></div>
+  </div>
+
+  <div class="result" id="resultBox">
+    <div class="label">🌟 今日運勢</div>
+    <div class="text" id="fortuneText">請選擇顏色</div>
+    <div class="label">💬 心靈雞湯</div>
+    <div class="text" id="quoteText">等你點選後就會顯示喔！</div>
+  </div>
+
+  <div class="games" id="gameBox">
+    <div class="label">🎮 小遊戲時間：放鬆一下吧！</div>
+    <iframe id="gameFrame" src=""></iframe>
+  </div>
+
+  <script>
+    const fortunes = {
+      angry: ["別讓情緒主宰你，深呼吸，轉個念會更順利。", "今天建議多聽少說，避免爭執帶來困擾。"],
+      calm: ["平靜是一種力量，你會輕鬆化解一切。", "今天適合思考與整理，放慢腳步反而更有效率。"],
+      happy: ["你的好心情會感染身邊的人，發光吧！", "今天是適合冒險的一天，快去嘗試新事物！"],
+      sad: ["難過是正常的，給自己一點空間吧。", "不必急著好起來，你已經很努力了。"],
+      hopeful: ["相信會變好，未來正悄悄準備驚喜給你。", "努力的你正在閃光，別小看每一小步。"],
+      excited: ["今天有驚喜降臨的可能，別浪費這股衝勁！", "熱情是最強的武器，用它來開創可能吧！"]
+    };
+
+    const quotes = {
+      angry: ["「你能控制的不是他人，而是你的反應。」", "「情緒來了就接住它，它也會慢慢走開。」"],
+      calm: ["「平靜不是逃避，而是理解。」", "「靜水深流，最深的力量總是無聲的。」"],
+      happy: ["「快樂是一種選擇，你今天做得很好！」", "「把快樂分享出去，它會變得更大。」"],
+      sad: ["「黑夜再長，也會迎來早晨。」", "「淚水是心靈在洗滌，不是軟弱的證明。」"],
+      hopeful: ["「再黑的夜也擋不住黎明的到來。」", "「願你心中有光，眼中有星。」"],
+      excited: ["「興奮的心，就是你與生活和好的證明。」", "「燃燒吧！這世界需要熱情的你。」"]
+    };
+
+    const games = [
+      { name: "2048", url: "https://play2048.co/" },
+      { name: "小恐龍", url: "https://chromedino.com/" },
+      { name: "俄羅斯方塊", url: "https://tetris.com/play-tetris" },
+      { name: "Flappy Bird", url: "https://flappybird.io/" },
+      { name: "Snake 貪食蛇", url: "https://playsnake.org/" }
+    ];
+
+    const resultBox = document.getElementById("resultBox");
+    const fortuneText = document.getElementById("fortuneText");
+    const quoteText = document.getElementById("quoteText");
+    const gameBox = document.getElementById("gameBox");
+    const gameFrame = document.getElementById("gameFrame");
+
+    // 建立遊戲選單
+    const gameSelect = document.createElement("select");
+    const defaultOption = document.createElement("option");
+    defaultOption.text = "🎮 選擇其他遊戲";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    gameSelect.appendChild(defaultOption);
+
+    games.forEach((game, index) => {
+      const option = document.createElement("option");
+      option.value = index;
+      option.textContent = game.name;
+      gameSelect.appendChild(option);
+    });
+
+    gameSelect.addEventListener("change", () => {
+      const selectedGame = games[gameSelect.value];
+      gameFrame.src = selectedGame.url;
+    });
+
+    function showGame() {
+      const game = games[Math.floor(Math.random() * games.length)];
+      gameFrame.src = game.url;
+      gameBox.classList.add("show");
+    }
+
+    document.querySelectorAll(".color-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const mood = button.dataset.mood;
+        const fortune = fortunes[mood];
+        const quote = quotes[mood];
+        fortuneText.textContent = fortune[Math.floor(Math.random() * fortune.length)];
+        quoteText.textContent = quote[Math.floor(Math.random() * quote.length)];
+
+        resultBox.classList.add("show");
+        showGame();
+
+        if (!gameBox.contains(gameSelect)) {
+          gameBox.appendChild(gameSelect);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>猜拳贏飯捲遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #fffaf2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .game-wrapper {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      width: 1000px;
+      max-width: 100%;
+    }
+    .side-panel {
+      width: 180px;
+      background-color: #fff3d1;
+      border-radius: 10px;
+      padding: 10px;
+      height: 360px;
+      box-sizing: border-box;
+      font-size: 1em;
+      overflow-y: auto;
+      user-select: none;
+    }
+    .side-panel h3 {
+      text-align: center;
+      margin-top: 0;
+    }
+    .game-container {
+      background-color: #ffffff;
+      border-radius: 15px;
+      padding: 20px;
+      width: 640px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      user-select: none;
+    }
+    .computer {
+      font-size: 48px;
+      margin-bottom: 8px;
+      user-select: none;
+    }
+    .riceball-info {
+      font-size: 1.2em;
+      margin: 15px;
+      padding: 10px;
+      background: #ffe5b4;
+      border-radius: 10px;
+      text-align: center;
+      user-select: none;
+    }
+    .vs-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+      height: 100px;
+      user-select: none;
+    }
+    .hand {
+      font-size: 60px;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    .result {
+      font-size: 1.3em;
+      margin: 10px;
+      font-weight: bold;
+      user-select: none;
+    }
+    .final {
+      font-size: 2em;
+      margin-top: 10px;
+      user-select: none;
+    }
+    #restartBtn {
+      display: none;
+      padding: 10px 20px;
+      font-size: 1em;
+      margin-top: 10px;
+      background-color: #aaffcc;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    #restartBtn:hover {
+      background-color: #88d6b4;
+    }
+    .choices {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      user-select: none;
+    }
+    .choices button {
+      font-size: 1.8em;
+      padding: 10px;
+      background-color: #ffd58f;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      user-select: none;
+    }
+    .choices button:hover:not(:disabled) {
+      background-color: #ffc777;
+    }
+    .choices button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .list {
+      list-style: none;
+      padding-left: 10px;
+      user-select: none;
+    }
+    .list li {
+      margin: 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrapper">
+    <div class="side-panel">
+      <h3>你的飯捲</h3>
+      <ul class="list" id="playerRollsList"><li>無</li></ul>
+    </div>
+
+    <div class="game-container">
+      <div class="computer">🖥️</div>
+      <div class="riceball-info" id="currentRiceball">🎲 本局可獲得的飯捲是...</div>
+
+      <div class="vs-section">
+        <div class="hand" id="playerHand">✊</div>
+        <div class="hand" id="computerHand">✊</div>
+      </div>
+
+      <div class="result" id="resultText">請出拳或使用慢出技巧</div>
+      <div class="final" id="finalResult"></div>
+      <button id="restartBtn" onclick="resetGame()">再玩一次</button>
+
+      <div class="choices">
+        <button id="btnScissors" onclick="handlePlayerMove('剪刀', false)">✌</button>
+        <button id="btnRock" onclick="handlePlayerMove('石頭', false)">✊</button>
+        <button id="btnPaper" onclick="handlePlayerMove('布', false)">✋</button>
+        <button id="btnSlow" onclick="handlePlayerMove('慢出', true)">🐢 慢出</button>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <h3>電腦的飯捲</h3>
+      <ul class="list" id="computerRollsList"><li>無</li></ul>
+    </div>
+  </div>
+
+  <script>
+    const moves = ["剪刀", "石頭", "布"];
+    const icons = { "剪刀": "✌", "石頭": "✊", "布": "✋" };
+    const riceBallsAll = ["德式香腸", "卡啦雞", "素三色", "深海鮪魚", "培根蛋"];
+    let playerRolls = [];
+    let computerRolls = [];
+    let currentRiceball = "";
+    let gameInProgress = false;
+
+    function getAvailableRiceballs() {
+      // 只能移除雙方都擁有的口味
+      return riceBallsAll.filter(rb => !(playerRolls.includes(rb) && computerRolls.includes(rb)));
+    }
+
+    function showNextRiceball() {
+      const available = getAvailableRiceballs();
+      if (available.length === 0) {
+        document.getElementById("currentRiceball").textContent = "🥢 無更多飯捲可獲得";
+        return;
+      }
+      currentRiceball = available[Math.floor(Math.random() * available.length)];
+      document.getElementById("currentRiceball").textContent = `🎲 本局可獲得的飯捲：「${currentRiceball}」`;
+    }
+
+    function updateRolls() {
+      const playerList = document.getElementById("playerRollsList");
+      const computerList = document.getElementById("computerRollsList");
+      playerList.innerHTML = playerRolls.length
+        ? playerRolls.map(r => `<li>🍙 ${r}</li>`).join("")
+        : "<li>無</li>";
+      computerList.innerHTML = computerRolls.length
+        ? computerRolls.map(r => `<li>🍙 ${r}</li>`).join("")
+        : "<li>無</li>";
+    }
+
+    function disableButtons(state) {
+      document.getElementById("btnScissors").disabled = state;
+      document.getElementById("btnRock").disabled = state;
+      document.getElementById("btnPaper").disabled = state;
+      document.getElementById("btnSlow").disabled = state;
+    }
+
+    function handlePlayerMove(playerMove, isCheating) {
+      if (gameInProgress) return; // 避免重複點擊
+      if (playerRolls.length === 5 || computerRolls.length === 5) return;
+
+      gameInProgress = true;
+      disableButtons(true);
+
+      // 對決開始，先雙方都握拳
+      document.getElementById("playerHand").textContent = "✊";
+      document.getElementById("computerHand").textContent = "✊";
+      document.getElementById("resultText").textContent = "思考中...";
+
+      setTimeout(() => {
+        if (isCheating) {
+          // 慢出模式，有 30% 機率被抓
+          const caught = Math.random() < 0.3;
+          if (caught) {
+            alert("你被電腦發現慢出了！你的飯捲被沒收！");
+            playerRolls = [];
+            updateRolls();
+            showNextRiceball();
+            document.getElementById("resultText").textContent = "被抓清空飯捲！請重新出拳。";
+            gameInProgress = false;
+            disableButtons(false);
+            return;
+          } else {
+            // 慢出必勝
+            playerWin(currentRiceball);
+            gameInProgress = false;
+            disableButtons(false);
+            return;
+          }
+        }
+
+        // 正常出拳，電腦隨機
+        const computerMove = moves[Math.floor(Math.random() * moves.length)];
+        const playerIcon = icons[playerMove];
+        const computerIcon = icons[computerMove];
+
+        // 揭曉雙方出拳
+        document.getElementById("playerHand").textContent = playerIcon;
+        document.getElementById("computerHand").textContent = computerIcon;
+
+        // 判定勝負
+        if (playerMove === computerMove) {
+          document.getElementById("resultText").textContent = "平手！";
+          // 平手不換飯捲，保留本局飯捲
+        } else if (
+          (playerMove === "剪刀" && computerMove === "布") ||
+          (playerMove === "石頭" && computerMove === "剪刀") ||
+          (playerMove === "布" && computerMove === "石頭")
+        ) {
+          playerWin(currentRiceball);
+        } else {
+          computerWin(currentRiceball);
+        }
+        gameInProgress = false;
+        disableButtons(false);
+      }, 1500);
+    }
+
+    function playerWin(riceball) {
+      if (!playerRolls.includes(riceball)) playerRolls.push(riceball);
+      document.getElementById("resultText").textContent = `你贏了！獲得「${riceball}」！`;
+      updateRolls();
+      checkWin();
+      showNextRiceball();
+    }
+
+    function computerWin(riceball) {
+      if (!computerRolls.includes(riceball)) computerRolls.push(riceball);
+      document.getElementById("resultText").textContent = `你輸了，電腦獲得「${riceball}」！`;
+      updateRolls();
+      checkWin();
+      showNextRiceball();
+    }
+
+    function checkWin() {
+      const final = document.getElementById("finalResult");
+      if (playerRolls.length === 5) {
+        final.textContent = "🎉 WIN 🎉";
+        disableButtons(true);
+        document.getElementById("restartBtn").style.display = "inline-block";
+      } else if (computerRolls.length === 5) {
+        final.textContent = "😢 LOSE 😢";
+        disableButtons(true);
+        document.getElementById("restartBtn").style.display = "inline-block";
+      } else {
+        document.getElementById("finalResult").textContent = "";
+      }
+    }
+
+    function resetGame() {
+      playerRolls = [];
+      computerRolls = [];
+      currentRiceball = "";
+      document.getElementById("playerHand").textContent = "✊";
+      document.getElementById("computerHand").textContent = "✊";
+      document.getElementById("resultText").textContent = "請出拳或使用慢出技巧";
+      document.getElementById("finalResult").textContent = "";
+      document.getElementById("restartBtn").style.display = "none";
+      updateRolls();
+      showNextRiceball();
+      disableButtons(false);
+      gameInProgress = false;
+    }
+
+    // 初始化
+    updateRolls();
+    showNextRiceball();
+  </script>
+</body>
+</html>

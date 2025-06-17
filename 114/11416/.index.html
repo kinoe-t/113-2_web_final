@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>打地鼠遊戲</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f8ff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .info {
+            font-size: 20px;
+            margin: 10px;
+        }
+        .game-area {
+            display: grid;
+            grid-template-columns: repeat(3, 150px);
+            grid-template-rows: repeat(3, 150px);
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .hole {
+            width: 150px;
+            height: 150px;
+            background-color: #cce;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        .mole {
+            width: 100px;
+            height: 100px;
+            background-color: brown;
+            border-radius: 50%;
+            position: absolute;
+            top: 25px;
+            left: 25px;
+        }
+        #restartBtn {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>打地鼠遊戲</h1>
+    <div class="info">
+        時間剩餘：<span id="time">60</span> 秒 |
+        分數：<span id="score">0</span> |
+        最高分：<span id="highScore">0</span>
+    </div>
+    <div class="game-area" id="gameArea">
+        <!-- 共9個地鼠洞 -->
+        <div class="hole" data-index="0"></div>
+        <div class="hole" data-index="1"></div>
+        <div class="hole" data-index="2"></div>
+        <div class="hole" data-index="3"></div>
+        <div class="hole" data-index="4"></div>
+        <div class="hole" data-index="5"></div>
+        <div class="hole" data-index="6"></div>
+        <div class="hole" data-index="7"></div>
+        <div class="hole" data-index="8"></div>
+    </div>
+    <button id="restartBtn">重新開始</button>
+
+    <script>
+        // 遊戲狀態變數
+        let score = 0;
+        let timeLeft = 60;
+        let gameInterval;
+        let moleTimeout;
+        let currentMoleIndex = -1;
+
+        const timeDisplay = document.getElementById('time');
+        const scoreDisplay = document.getElementById('score');
+        const highScoreDisplay = document.getElementById('highScore');
+        const gameArea = document.getElementById('gameArea');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // 從本地儲存載入最高分
+        let highScore = localStorage.getItem('whackMoleHighScore') || 0;
+        highScoreDisplay.textContent = highScore;
+
+        // 啟動遊戲
+        function startGame() {
+            score = 0;
+            timeLeft = 60;
+            scoreDisplay.textContent = score;
+            timeDisplay.textContent = timeLeft;
+            restartBtn.style.display = 'none';
+
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                timeDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            showMole();
+        }
+
+        // 顯示地鼠
+        function showMole() {
+            // 清除上一隻地鼠
+            if (currentMoleIndex >= 0) {
+                gameArea.children[currentMoleIndex].innerHTML = '';
+            }
+
+            // 隨機選擇一個地鼠洞出現地鼠
+            const index = Math.floor(Math.random() * 9);
+            const hole = gameArea.children[index];
+
+            const mole = document.createElement('div');
+            mole.classList.add('mole');
+
+            // 設定點擊事件
+            mole.onclick = () => {
+                score += 10;
+                scoreDisplay.textContent = score;
+                mole.onclick = null; // 防止重複點擊加分
+                clearTimeout(moleTimeout); // 馬上出現下一隻
+                showMole();
+            };
+
+            hole.appendChild(mole);
+            currentMoleIndex = index;
+
+            // 設定0.8秒後換下一隻
+            moleTimeout = setTimeout(showMole, 800);
+        }
+
+        // 結束遊戲
+        function endGame() {
+            clearInterval(gameInterval);
+            clearTimeout(moleTimeout);
+
+            // 清除所有地鼠
+            for (let hole of gameArea.children) {
+                hole.innerHTML = '';
+            }
+
+            // 更新最高分紀錄
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('whackMoleHighScore', highScore);
+                highScoreDisplay.textContent = highScore;
+            }
+
+            alert(`遊戲結束！你的得分是：${score}`);
+            restartBtn.style.display = 'inline-block';
+        }
+
+        // 重新開始遊戲
+        restartBtn.onclick = () => {
+            startGame();
+        };
+
+        // 初始啟動
+        window.onload = () => {
+            startGame();
+        };
+    </script>
+</body>
+</html>

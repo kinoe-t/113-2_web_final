@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>投胎抽卡機 - Rebirth Card Machine</title>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      font-size: 2em;
+      margin-top: 20px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+    .card {
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 500px;
+      text-align: center;
+    }
+    #map {
+      height: 400px;
+      width: 90%;
+      max-width: 800px;
+      margin-top: 30px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌏 投胎抽卡機</h1>
+  <button onclick="drawCard()">抽卡！</button>
+  <div class="card" id="result"></div>
+  <div id="map"></div>
+
+  <script>
+    const countries = [
+      { name: "中國", population: 1444216107, info: "擁有龐大的市場與勞動力，但政治與人權議題受到關注。", lat: 35.8617, lon: 104.1954 },
+      { name: "印度", population: 1393409038, info: "年輕人口多，就業與基礎建設面臨挑戰。", lat: 20.5937, lon: 78.9629 },
+      { name: "美國", population: 331893745, info: "高生活水準，貧富差距明顯。", lat: 37.0902, lon: -95.7129 },
+      { name: "印尼", population: 273523621, info: "多元宗教與民族組成，經濟發展中。", lat: -0.7893, lon: 113.9213 },
+      { name: "巴西", population: 212559409, info: "資源豐富但治安與貧窮問題嚴重。", lat: -14.2350, lon: -51.9253 },
+      { name: "奈及利亞", population: 206139587, info: "非洲人口最多國家，發展潛力高但挑戰也多。", lat: 9.0820, lon: 8.6753 },
+      { name: "孟加拉", population: 164689383, info: "密度高，服裝工業發達但貧困問題嚴重。", lat: 23.6850, lon: 90.3563 },
+      { name: "俄羅斯", population: 145912025, info: "資源豐富，地理廣大，但經濟與政治局勢不穩。", lat: 61.5240, lon: 105.3188 },
+      { name: "墨西哥", population: 128932753, info: "文化豐富、治安為主挑戰。", lat: 23.6345, lon: -102.5528 },
+      { name: "日本", population: 126476458, info: "高齡化嚴重，科技發達，生活品質高。", lat: 36.2048, lon: 138.2529 },
+      { name: "台灣", population: 23800000, info: "醫療與教育普及，民主自由，生活品質良好。", lat: 23.6978, lon: 120.9605 },
+      { name: "德國", population: 83190556, info: "歐洲經濟龍頭，制度健全，生活水準高。", lat: 51.1657, lon: 10.4515 },
+      { name: "英國", population: 68207116, info: "歷史悠久，醫療與教育完善，生活壓力較高。", lat: 55.3781, lon: -3.4360 },
+      { name: "法國", population: 65426179, info: "文化底蘊深厚，社會福利良好。", lat: 46.2276, lon: 2.2137 },
+      { name: "南韓", population: 51709098, info: "科技發展快速，競爭壓力大。", lat: 35.9078, lon: 127.7669 },
+      { name: "加拿大", population: 38388419, info: "自然環境優美，社會包容，福利制度良好。", lat: 56.1304, lon: -106.3468 },
+      { name: "澳洲", population: 26702452, info: "氣候宜人，社會安定，移民友善。", lat: -25.2744, lon: 133.7751 },
+      { name: "義大利", population: 58870762, info: "文化藝術豐富，生活步調慢但失業率較高。", lat: 41.8719, lon: 12.5674 },
+      { name: "埃及", population: 109262178, info: "歷史悠久，經濟與政治轉型中。", lat: 26.8206, lon: 30.8025 },
+      { name: "越南", population: 98168829, info: "經濟快速發展中，生活成本較低。", lat: 14.0583, lon: 108.2772 }
+    ];
+
+    const totalPopulation = countries.reduce((sum, c) => sum + c.population, 0);
+    let count = 0;
+    let map, marker;
+
+    function drawCard() {
+      count++;
+      const rand = Math.random();
+      let cumulative = 0;
+      let selected;
+      for (let country of countries) {
+        cumulative += country.population / totalPopulation;
+        if (rand <= cumulative) {
+          selected = country;
+          break;
+        }
+      }
+      document.getElementById("result").innerHTML = `
+        <h2>第 ${count} 次投胎</h2>
+        <h3>你出生在：${selected.name}</h3>
+        <p>當地人口：約 ${(selected.population / 1000000).toFixed(1)} 百萬人</p>
+        <p>佔全球人口 ${(selected.population / totalPopulation * 100).toFixed(2)}%</p>
+        <p><strong>生活狀況：</strong>${selected.info}</p>
+      `;
+      if (!map) {
+        map = L.map('map').setView([selected.lat, selected.lon], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        marker = L.marker([selected.lat, selected.lon]).addTo(map);
+      } else {
+        map.setView([selected.lat, selected.lon], 4);
+        marker.setLatLng([selected.lat, selected.lon]);
+      }
+    }
+  </script>
+</body>
+</html>

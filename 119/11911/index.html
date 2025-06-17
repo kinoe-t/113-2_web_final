@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>倒數計時器</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+      background-size: cover;
+      color: #333;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 40px;
+      border-radius: 16px;
+      text-align: center;
+      width: 90%;
+      max-width: 480px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    .select-group {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      width: 100%;
+      border: 1px solid #ccc;
+    }
+
+    #countdown-display {
+      font-size: 56px;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #333;
+    }
+
+    #progress-bar {
+      height: 12px;
+      width: 100%;
+      background: #dfe6e9;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    #progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #81c784, #4db6ac);
+      transition: width 1s linear;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #start-btn { background-color: #4caf50; color: white; }
+    #pause-btn { background-color: #ffeb3b; color: #333; }
+    #reset-btn { background-color: #f44336; color: white; }
+
+    #finished-message {
+      font-size: 48px;
+      font-weight: bold;
+      color: #2e7d32;
+      background: #dcedc8;
+      border: 2px dashed #81c784;
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 12px;
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      #countdown-display { font-size: 42px; }
+      #finished-message { font-size: 32px; padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>倒數計時器</h1>
+
+    <div class="select-group">
+      <div>
+        <label>小時</label><br>
+        <select id="hours"></select>
+      </div>
+      <div>
+        <label>分鐘</label><br>
+        <select id="minutes"></select>
+      </div>
+      <div>
+        <label>秒</label><br>
+        <select id="seconds"></select>
+      </div>
+    </div>
+
+    <div id="countdown-display">00:00:00</div>
+
+    <div id="progress-bar">
+      <div id="progress"></div>
+    </div>
+
+    <div>
+      <button id="start-btn" onclick="startCountdown()">開始</button>
+      <button id="pause-btn" onclick="pauseCountdown()" disabled>暫停</button>
+      <button id="reset-btn" onclick="resetCountdown()" disabled>重設</button>
+    </div>
+
+    <div id="finished-message">⏰ 時間到</div>
+  </div>
+
+  <script>
+    const hoursEl = document.getElementById("hours");
+    const minutesEl = document.getElementById("minutes");
+    const secondsEl = document.getElementById("seconds");
+    const displayEl = document.getElementById("countdown-display");
+    const finishedMsg = document.getElementById("finished-message");
+    const progressEl = document.getElementById("progress");
+    const startBtn = document.getElementById("start-btn");
+    const pauseBtn = document.getElementById("pause-btn");
+    const resetBtn = document.getElementById("reset-btn");
+
+    let totalSeconds = 0;
+    let remainingSeconds = 0;
+    let interval = null;
+    let isPaused = false;
+
+    function populateSelect(id, max) {
+      for (let i = 0; i <= max; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.text = i.toString().padStart(2, "0");
+        id.appendChild(option);
+      }
+    }
+
+    window.onload = () => {
+      populateSelect(hoursEl, 23);
+      populateSelect(minutesEl, 59);
+      populateSelect(secondsEl, 59);
+    };
+
+    function startCountdown() {
+      const h = parseInt(hoursEl.value);
+      const m = parseInt(minutesEl.value);
+      const s = parseInt(secondsEl.value);
+      totalSeconds = h * 3600 + m * 60 + s;
+
+      if (totalSeconds <= 0) {
+        alert("請選擇大於 0 的時間");
+        return;
+      }
+
+      remainingSeconds = totalSeconds;
+      updateDisplay();
+      updateProgress();
+
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
+      resetBtn.disabled = false;
+      finishedMsg.style.display = "none";
+      isPaused = false;
+      pauseBtn.textContent = "暫停";
+
+      interval = setInterval(() => {
+        if (!isPaused && remainingSeconds > 0) {
+          remainingSeconds--;
+          updateDisplay();
+          updateProgress();
+
+          if (remainingSeconds <= 0) {
+            clearInterval(interval);
+            finishedMsg.style.display = "block";
+            pauseBtn.disabled = true;
+            startBtn.disabled = true;
+          }
+        }
+      }, 1000);
+    }
+
+    function pauseCountdown() {
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? "繼續" : "暫停";
+    }
+
+    function resetCountdown() {
+      clearInterval(interval);
+      remainingSeconds = 0;
+      updateDisplay();
+      updateProgress();
+      finishedMsg.style.display = "none";
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      pauseBtn.textContent = "暫停";
+      resetBtn.disabled = true;
+    }
+
+    function updateDisplay() {
+      const hrs = Math.floor(remainingSeconds / 3600);
+      const mins = Math.floor((remainingSeconds % 3600) / 60);
+      const secs = remainingSeconds % 60;
+      displayEl.textContent =
+        `${hrs.toString().padStart(2, '0')}:` +
+        `${mins.toString().padStart(2, '0')}:` +
+        `${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateProgress() {
+      if (totalSeconds === 0) {
+        progressEl.style.width = "0%";
+        return;
+      }
+      const percent = ((totalSeconds - remainingSeconds) / totalSeconds) * 100;
+      progressEl.style.width = `${percent}%`;
+    }
+  </script>
+</body>
+</html>

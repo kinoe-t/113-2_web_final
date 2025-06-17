@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>轉盤遊戲</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    .screen {
+      display: none;
+      padding: 20px;
+    }
+    .active {
+      display: block;
+    }
+    .input-group {
+      margin-top: 20px;
+    }
+    .input-wrapper {
+      margin: 5px;
+    }
+    .input-wrapper input {
+      padding: 10px;
+      width: 200px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .btn-add {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .btn-next {
+      background-color: red;
+      color: white;
+      font-weight: bold;
+    }
+    .btn-start {
+      background-color: #2196F3;
+      color: white;
+    }
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      margin: 30px auto;
+      position: relative;
+      border: 10px solid #fff;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+    .arrow {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid #333;
+      margin: 0 auto;
+      margin-top: -10px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="setupScreen" class="screen active">
+    <h1>輸入轉盤選項</h1>
+    <button class="btn" id="addInputBtn">填寫選項</button>
+    <div class="input-group" id="inputGroup"></div>
+    <button class="btn btn-next" id="nextBtn">×</button>
+  </div>
+
+  <div id="wheelScreen" class="screen">
+    <h1>轉盤</h1>
+    <div class="arrow"></div>
+    <div id="wheel"><canvas id="wheelCanvas" width="300" height="300"></canvas></div>
+    <button class="btn btn-start" id="spinBtn">開始轉</button>
+  </div>
+
+  <script>
+    const addInputBtn = document.getElementById('addInputBtn');
+    const inputGroup = document.getElementById('inputGroup');
+    const nextBtn = document.getElementById('nextBtn');
+    const setupScreen = document.getElementById('setupScreen');
+    const wheelScreen = document.getElementById('wheelScreen');
+    const spinBtn = document.getElementById('spinBtn');
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    let options = [];
+    let colors = [];
+    let angle = 0;
+    let isSpinning = false;
+
+    addInputBtn.addEventListener('click', () => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'input-wrapper';
+      wrapper.innerHTML = `<input type="text" placeholder="輸入選項">
+                           <button class="btn btn-add">+</button>`;
+      inputGroup.appendChild(wrapper);
+
+      wrapper.querySelector('.btn-add').addEventListener('click', () => {
+        const newWrapper = wrapper.cloneNode(true);
+        inputGroup.appendChild(newWrapper);
+        newWrapper.querySelector('.btn-add').addEventListener('click', () => {
+          addInputBtn.click();
+        });
+      });
+    });
+
+    nextBtn.addEventListener('click', () => {
+      const inputs = inputGroup.querySelectorAll('input');
+      options = Array.from(inputs).map(input => input.value).filter(v => v.trim() !== '');
+      if (options.length === 0) {
+        alert('請至少輸入一個選項！');
+        return;
+      }
+      generateRandomColors(options.length);
+      setupScreen.classList.remove('active');
+      wheelScreen.classList.add('active');
+      drawWheel();
+    });
+
+    function generateRandomColors(n) {
+      colors = [];
+      for (let i = 0; i < n; i++) {
+        const hue = Math.floor(Math.random() * 360);
+        const color = `hsl(${hue}, 85%, 70%)`; // 明亮飽和的顏色
+        colors.push(color);
+      }
+    }
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const radius = canvas.width / 2;
+      const sliceAngle = 2 * Math.PI / options.length;
+
+      for (let i = 0; i < options.length; i++) {
+        const startAngle = i * sliceAngle;
+        ctx.beginPath();
+        ctx.moveTo(radius, radius);
+        ctx.fillStyle = colors[i];
+        ctx.arc(radius, radius, radius, startAngle, startAngle + sliceAngle);
+        ctx.fill();
+
+        // 文字
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(startAngle + sliceAngle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#000';
+        ctx.font = '16px sans-serif';
+        ctx.fillText(options[i], radius - 10, 5);
+        ctx.restore();
+      }
+    }
+
+    spinBtn.addEventListener('click', () => {
+      if (isSpinning) return;
+      isSpinning = true;
+      const extraSpin = Math.random() * 360;
+      const totalRotation = 360 * 5 + extraSpin;
+      const duration = 5000;
+
+      canvas.style.transition = `transform ${duration}ms ease-out`;
+      canvas.style.transform = `rotate(${totalRotation + angle}deg)`;
+      angle += totalRotation;
+
+      setTimeout(() => {
+        const normalizedAngle = angle % 360;
+        const sliceAngle = 360 / options.length;
+        const index = Math.floor((360 - normalizedAngle + sliceAngle / 2) % 360 / sliceAngle);
+        alert(`結果是：${options[index]}`);
+        isSpinning = false;
+      }, duration);
+    });
+  </script>
+
+</body>
+</html>

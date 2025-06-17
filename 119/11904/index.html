@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>狗狗貪吃蛇</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #f0f0f0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #fff;
+    }
+    #message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 80px;
+      color: red;
+      font-weight: bold;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="800"></canvas>
+  <div id="message"></div>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const boundaryRadius = 300;
+    const dogSize = 10;
+    const dogSpeed = 2;
+    const boneCountToWin = 20;
+    let direction = 'right';
+    let dog = [{ x: centerX, y: centerY }];
+    let bones = [];
+    let hazards = [];
+    let score = 0;
+    let gameOver = false;
+
+    function randomPositionInCircle() {
+      let angle = Math.random() * 2 * Math.PI;
+      let radius = Math.random() * (boundaryRadius - 20);
+      return {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+      };
+    }
+
+    function spawnBones(count) {
+      for (let i = 0; i < count; i++) {
+        bones.push(randomPositionInCircle());
+      }
+    }
+
+    function spawnHazards(count) {
+      for (let i = 0; i < count; i++) {
+        hazards.push(randomPositionInCircle());
+      }
+    }
+
+    function drawCircleBoundary() {
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, boundaryRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+    }
+
+    function drawDog() {
+      ctx.fillStyle = 'brown';
+      for (let part of dog) {
+        ctx.beginPath();
+        ctx.arc(part.x, part.y, dogSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawBones() {
+      ctx.fillStyle = 'gray';
+      for (let bone of bones) {
+        ctx.beginPath();
+        ctx.arc(bone.x, bone.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawHazards() {
+      ctx.fillStyle = 'red';
+      ctx.font = '20px sans-serif';
+      for (let hazard of hazards) {
+        ctx.fillText('搖曳山', hazard.x, hazard.y);
+      }
+    }
+
+    function updateDogPosition() {
+      let head = { ...dog[0] };
+      switch (direction) {
+        case 'up': head.y -= dogSpeed; break;
+        case 'down': head.y += dogSpeed; break;
+        case 'left': head.x -= dogSpeed; break;
+        case 'right': head.x += dogSpeed; break;
+      }
+      dog.unshift(head);
+      dog.pop();
+    }
+
+    function checkCollision() {
+      let head = dog[0];
+      let distFromCenter = Math.hypot(head.x - centerX, head.y - centerY);
+      if (distFromCenter > boundaryRadius) {
+        endGame('死狗');
+      }
+
+      for (let hazard of hazards) {
+        if (Math.hypot(hazard.x - head.x, hazard.y - head.y) < 15) {
+          endGame('死狗');
+        }
+      }
+
+      for (let i = 0; i < bones.length; i++) {
+        if (Math.hypot(bones[i].x - head.x, bones[i].y - head.y) < 15) {
+          bones.splice(i, 1);
+          dog.push({ ...dog[dog.length - 1] });
+          score++;
+          break;
+        }
+      }
+
+      if (score >= boneCountToWin) {
+        endGame('強逼逼');
+      }
+    }
+
+    function endGame(message) {
+      gameOver = true;
+      document.getElementById('message').textContent = message;
+      document.getElementById('message').style.display = 'block';
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawCircleBoundary();
+      updateDogPosition();
+      checkCollision();
+      drawBones();
+      drawHazards();
+      drawDog();
+      requestAnimationFrame(gameLoop);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowUp': direction = 'up'; break;
+        case 'ArrowDown': direction = 'down'; break;
+        case 'ArrowLeft': direction = 'left'; break;
+        case 'ArrowRight': direction = 'right'; break;
+      }
+    });
+
+    spawnBones(30);
+    spawnHazards(10);
+    gameLoop();
+  </script>
+</body>
+</html>

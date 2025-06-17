@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小恐龍遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      overflow: hidden;
+    }
+    #game {
+      position: relative;
+      width: 800px;
+      height: 200px;
+      margin: 50px auto;
+      background-color: #fff;
+      border: 2px solid #333;
+      overflow: hidden;
+    }
+    #dino {
+      position: absolute;
+      bottom: 0;
+      left: 50px;
+      width: 40px;
+      height: 40px;
+      background-color: #4CAF50;
+      border-radius: 5px;
+    }
+    .obstacle {
+      position: absolute;
+      bottom: 0;
+      width: 20px;
+      height: 40px;
+      background-color: #8B4513;
+      left: 800px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="dino"></div>
+  </div>
+
+  <script>
+    const dino = document.getElementById('dino');
+    const game = document.getElementById('game');
+    let isJumping = false;
+    let position = 0;
+    let nextObstacleHeight = 40; // 初始高度
+
+    document.addEventListener('keydown', function(e) {
+      if (e.code === 'Space' && !isJumping) {
+        jump(nextObstacleHeight * 2);
+      }
+    });
+
+    function jump(jumpHeight) {
+      isJumping = true;
+      let jumpStart = null;
+      const durationUp = 150; // 上升時間：150ms
+      const durationDown = 300; // 降落時間：300ms
+
+      function animateJump(timestamp) {
+        if (!jumpStart) jumpStart = timestamp;
+        let elapsed = timestamp - jumpStart;
+
+        if (elapsed < durationUp) {
+          // 上升階段
+          position = (elapsed / durationUp) * jumpHeight;
+          dino.style.bottom = position + 'px';
+          requestAnimationFrame(animateJump);
+        } else if (elapsed < durationUp + durationDown) {
+          // 降落階段
+          let t = elapsed - durationUp;
+          position = jumpHeight * (1 - t / durationDown);
+          dino.style.bottom = position + 'px';
+          requestAnimationFrame(animateJump);
+        } else {
+          // 結束
+          position = 0;
+          dino.style.bottom = '0px';
+          isJumping = false;
+        }
+      }
+
+      requestAnimationFrame(animateJump);
+    }
+
+    function createObstacle() {
+      const obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle');
+      
+      // 隨機設定障礙物高度並記錄給跳躍用
+      const height = Math.floor(Math.random() * 30) + 30; // 30~60px
+      obstacle.style.height = height + 'px';
+      nextObstacleHeight = height;
+
+      game.appendChild(obstacle);
+      let obstaclePosition = 800;
+
+      let timer = setInterval(() => {
+        if (obstaclePosition < 0) {
+          clearInterval(timer);
+          game.removeChild(obstacle);
+        } else if (
+          obstaclePosition > 50 && obstaclePosition < 90 && position < nextObstacleHeight
+        ) {
+          alert('遊戲結束！請重新整理頁面再玩一次');
+          clearInterval(timer);
+          window.location.reload();
+        }
+        obstaclePosition -= 10;
+        obstacle.style.left = obstaclePosition + 'px';
+      }, 20);
+
+      setTimeout(createObstacle, Math.random() * 2000 + 1000);
+    }
+
+    createObstacle();
+  </script>
+</body>
+</html>
+
+
+

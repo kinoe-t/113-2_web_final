@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>小狗過馬路</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #a0d8f1;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 10px;
+    }
+
+    #gameContainer {
+      margin: 0 auto;
+      width: 400px;
+      height: 500px;
+      position: relative;
+      background: #ffffff;
+      border: 3px solid #444;
+      overflow: hidden;
+    }
+
+    .lane {
+      width: 100%;
+      height: 100px;
+      position: relative;
+    }
+
+    .road {
+      background: #333;
+    }
+
+    .zebra {
+      width: 100%;
+      height: 10px;
+      background: repeating-linear-gradient(
+        to right,
+        white,
+        white 10px,
+        transparent 10px,
+        transparent 20px
+      );
+      position: absolute;
+      top: 45px;
+    }
+
+    #cat {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      left: 180px;
+      bottom: 0;
+      z-index: 10;
+      transition: bottom 0.2s;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/616/616408.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .car {
+      width: 60px;
+      height: 40px;
+      background: red;
+      position: absolute;
+      bottom: 0;
+      left: -70px;
+      z-index: 5;
+      border-radius: 5px;
+    }
+
+    #controls {
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 0 5px;
+      font-size: 16px;
+    }
+
+    #gameOver, #gameWin {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      flex-direction: column;
+    }
+
+    #gameOver img, #gameWin img {
+      width: 250px;
+      height: auto;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    #gameOverText {
+      color: white;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <h1>小狗過馬路</h1>
+  <div id="gameContainer">
+    <div id="cat"></div>
+
+    <!-- 成功與失敗 -->
+    <div id="gameOver">
+      <img src="https://p3-pc-sign.douyinpic.com/tos-cn-i-0813c001/o8GIAA8uD8A5czAgQ9fnNjeTIIBAIHlZWAXbCE~tplv-dy-aweme-images:q75.webp?biz_tag=aweme_images&from=327834062&lk3s=138a59ce&s=PackSourceEnum_SEARCH&sc=image&se=false&x-expires=1750921200&x-signature=MKp9HHbZ6Zl%2B%2B%2FjogztYrnomP2E%3D" alt="失敗">
+      <div id="gameOverText">出局！請按重來。</div>
+    </div>
+
+    <div id="gameWin">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMwhUrukj9aavQgt9-J_3TuIqKGu1pwqIQSg&s" alt="成功">
+      <div style="color: white; font-size: 24px;">你成功過馬路了！</div>
+    </div>
+
+    <!-- 遊戲場景 -->
+    <div class="lane" data-lane="4" style="background: #8bc34a;"></div>
+    <div class="lane road" data-lane="3"><div class="zebra"></div></div>
+    <div class="lane road" data-lane="2"><div class="zebra"></div></div>
+    <div class="lane road" data-lane="1"><div class="zebra"></div></div>
+    <div class="lane road" data-lane="0"><div class="zebra"></div></div>
+  </div>
+
+  <div id="controls">
+    <button onclick="startGame()">開始</button>
+    <button onclick="resetGame()">重來</button>
+  </div>
+
+  <script>
+    const gameContainer = document.getElementById('gameContainer');
+    const cat = document.getElementById('cat');
+    const gameOver = document.getElementById('gameOver');
+    const gameWin = document.getElementById('gameWin');
+
+    let carInterval;
+    let isGameOver = false;
+    let catLane = 0;
+
+    function startGame() {
+      resetGame();
+      document.addEventListener('keydown', handleKey);
+      carInterval = setInterval(spawnCar, 500); // 更高車流量
+    }
+
+    function resetGame() {
+      isGameOver = false;
+      gameOver.style.display = 'none';
+      gameWin.style.display = 'none';
+      catLane = 0;
+      moveCat();
+      const cars = document.querySelectorAll('.car');
+      cars.forEach(car => car.remove());
+      clearInterval(carInterval);
+      document.removeEventListener('keydown', handleKey);
+    }
+
+    function handleKey(e) {
+      if (isGameOver) return;
+      if (e.key === 'ArrowUp') {
+        if (catLane < 4) {
+          catLane++;
+          moveCat();
+          if (catLane === 4) {
+            winGame();
+          }
+        }
+      }
+    }
+
+    function moveCat() {
+      cat.style.bottom = (catLane * 100) + 'px';
+    }
+
+    function spawnCar() {
+      const lane = Math.floor(Math.random() * 4); // 0~3
+      const car = document.createElement('div');
+      car.classList.add('car');
+      car.dataset.lane = lane;
+      car.style.bottom = (lane * 100) + 'px';
+      gameContainer.appendChild(car);
+
+      let pos = -70;
+      const speed = Math.random() * 2 + 2;
+
+      function moveCar() {
+        if (isGameOver) {
+          car.remove();
+          return;
+        }
+
+        pos += speed;
+        car.style.left = pos + 'px';
+
+        // 碰撞偵測
+        const catRect = cat.getBoundingClientRect();
+        const carRect = car.getBoundingClientRect();
+
+        if (
+          catLane == lane &&
+          catRect.left < carRect.right &&
+          catRect.right > carRect.left
+        ) {
+          endGame();
+        }
+
+        if (pos < 500) {
+          requestAnimationFrame(moveCar);
+        } else {
+          car.remove();
+        }
+      }
+
+      requestAnimationFrame(moveCar);
+    }
+
+    function endGame() {
+      isGameOver = true;
+      gameOver.style.display = 'flex';
+      clearInterval(carInterval);
+      document.removeEventListener('keydown', handleKey);
+    }
+
+    function winGame() {
+      isGameOver = true;
+      gameWin.style.display = 'flex';
+      clearInterval(carInterval);
+      document.removeEventListener('keydown', handleKey);
+    }
+  </script>
+</body>
+</html>
+
+

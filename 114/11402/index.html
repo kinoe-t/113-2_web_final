@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日塔羅運勢</title>
+<style>
+html,body{
+  margin:0;padding:0;height:100%;
+  font-family:"Segoe UI","Noto Sans TC",sans-serif;
+  overflow:hidden;background:radial-gradient(circle at top,#1b2735 0%,#090a0f 100%);
+  color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:2rem;overflow-y:auto;overflow-x:hidden;position:relative;
+}
+.stars,.stars2,.stars3{
+  pointer-events:none;position:fixed;top:0;left:0;width:200%;height:200%;
+  background-repeat:repeat;background-size:contain;z-index:0;
+}
+.stars {background-image:radial-gradient(#fff 1px,transparent 1px);animation:mystars 110s linear infinite;opacity:.22;}
+.stars2{background-image:radial-gradient(#7af 1px,transparent 1px);animation:mystars 160s linear infinite reverse;opacity:.15;}
+.stars3{background-image:radial-gradient(#0ff 1px,transparent 1px);animation:mystars 210s linear infinite;opacity:.1;}
+@keyframes mystars{to{transform:translate(-50%,-50%);}}
+
+h1{z-index:1;font-size:2.1rem;text-align:center;margin-bottom:.5rem;}
+#guide-text{
+  z-index:1;margin:1rem 0 2.2rem;font-size:1.2rem;font-weight:500;
+  animation:blink 1.5s ease-in-out infinite alternate;color:#fff9;
+}
+@keyframes blink{0%{opacity:1;}100%{opacity:0.4;}}
+
+#card-container{
+  z-index:1;display:none;margin-top:1.2rem;padding:2rem;
+  background:rgba(255,255,255,.07);backdrop-filter:blur(10px);
+  border-radius:24px;box-shadow:0 10px 30px rgba(0,0,0,.55);
+  text-align:center;max-width:92vw;
+}
+#card-img{width:260px;max-width:80vw;border-radius:12px;box-shadow:0 14px 28px rgba(0,0,0,.55);}
+#card-name{margin-top:1.3rem;font-size:1.45rem;font-weight:700;}
+#card-meaning{margin-top:.9rem;font-size:1.1rem;line-height:1.7;max-width:420px;margin:0 auto;}
+
+#deck-row{
+  z-index:1;display:flex;gap:16px;justify-content:center;
+  flex-wrap:nowrap;margin:0 0 1rem;overflow-x:auto;padding-bottom:1rem;width:100%;
+  transition:all 0.3s ease;
+}
+.card-back{
+  flex:0 0 140px;height:220px;border-radius:14px;cursor:pointer;
+  position:relative;transform-origin:center;
+  box-shadow:0 8px 20px rgba(0,0,0,.45);
+  transition:transform .3s,box-shadow .3s;
+  background:
+    conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg 15deg,#ffffff40 15deg 30deg,
+      transparent 30deg 45deg,#ffffff40 45deg 60deg,
+      transparent 60deg 75deg,#ffffff40 75deg 90deg,
+      transparent 90deg 360deg),
+    radial-gradient(circle at 50% 45%,rgba(255,255,255,.25) 0%,rgba(255,255,255,0) 60%),
+    linear-gradient(135deg,#4b2e83 0%,#2d0e5d 40%,#281152 60%,#8327d2 100%);
+  background-blend-mode:overlay,overlay,normal;
+}
+.card-back:hover{
+  transform:translateY(-14px) scale(1.06);
+  box-shadow:0 16px 36px rgba(0,0,0,.6);
+}
+
+#deck-row.initial .card-back {
+  flex:0 0 160px;
+  height:250px;
+  transition:all 0.3s ease;
+}
+#deck-row::-webkit-scrollbar{height:6px;}
+#deck-row::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:3px;}
+</style>
+</head>
+<body>
+  <div class="stars"></div><div class="stars2"></div><div class="stars3"></div>
+
+  <h1>今日塔羅運勢</h1>
+  <div id="guide-text">請點選一張牌來揭示今日運勢 🔮</div>
+
+  <div id="card-container">
+    <img id="card-img" alt="塔羅牌圖片">
+    <div id="card-name"></div>
+    <div id="card-meaning"></div>
+  </div>
+
+  <div id="deck-row" class="initial">
+    <div class="card-back"></div>
+    <div class="card-back"></div>
+    <div class="card-back"></div>
+    <div class="card-back"></div>
+    <div class="card-back"></div>
+    <div class="card-back"></div>
+    <div class="card-back"></div>
+  </div>
+
+<script>
+const cards = [
+  {name:"愚者 • The Fool ",            img:"https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_00_Fool.jpg",           meaning:"冒險與新開始：帶著信任迎向未知，保持開放的心態。"},
+  {name:"魔術師 • The Magician ",      img:"https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg",       meaning:"掌握資源與創造力：相信自己，將想法化為行動。"},
+  {name:"女祭司 • The High Priestess ",img:"https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg",meaning:"直覺與內在智慧：靜下心傾聽潛意識的聲音。"},
+  {name:"女皇 • The Empress ",         img:"https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg",         meaning:"豐盛與滋養：關注身心健康，滋養你的創造力。"},
+  {name:"皇帝 • The Emperor ",         img:"https://upload.wikimedia.org/wikipedia/commons/c/c3/RWS_Tarot_04_Emperor.jpg",         meaning:"結構與穩定：建立規劃，展現領導與自律。"},
+  {name:"教皇 • The Hierophant ",      img:"https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg",      meaning:"傳統與學習：向經驗豐富的人請益，遵循正統方法。"},
+  {name:"戀人 • The Lovers ",          img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/The_Lovers.jpg",                  meaning:"選擇與和諧：平衡理性與感性，做出真心的選擇。"},
+  {name:"戰車 • The Chariot ",         img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/RWS_Tarot_07_Chariot.jpg",        meaning:"意志力與勝利：鎖定目標，全速前行並保持控制。"},
+  {name:"力量 • Strength ",            img:"https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg",        meaning:"內在力量與耐心：溫柔而堅定地克服挑戰。"},
+  {name:"隱者 • The Hermit ",          img:"https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg",          meaning:"內省與指引：暫時抽離，尋找屬於自己的真理。"},
+  {name:"命運之輪 • Wheel of Fortune ",img:"https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg",meaning:"轉變與契機：接受人生循環，把握好運來臨。"},
+  {name:"正義 • Justice ",           img:"https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg",         meaning:"公平與因果：以客觀態度審視，維護平衡。"},
+  {name:"倒吊人 • The Hanged Man ",   img:"https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg",     meaning:"轉換觀點：暫停腳步，用新的角度看世界。"},
+  {name:"死神 • Death ",              img:"https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg",           meaning:"結束與重生：放下舊有，迎接改變的新生。"},
+  {name:"節制 • Temperance ",         img:"https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg",      meaning:"平衡與整合：協調不同元素，水到渠成。"},
+  {name:"惡魔 • The Devil ",          img:"https://upload.wikimedia.org/wikipedia/commons/3/36/The_Devil.jpg",                    meaning:"束縛與慾望：看清執念，找回自主權。"},
+  {name:"高塔 • The Tower ",          img:"https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg",           meaning:"突發巨變：舊有結構崩毀，重建帶來覺醒。"},
+  {name:"星星 • The Star ",           img:"https://upload.wikimedia.org/wikipedia/commons/7/70/The_Star.jpg",                     meaning:"希望與靈感：心懷信念，讓光明指引方向。"},
+  {name:"月亮 • The Moon ",           img:"https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg",            meaning:"潛意識與迷霧：面對不確定，信任直覺。"},
+  {name:"太陽 • The Sun ",            img:"https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg",             meaning:"喜悅與成功：正面能量帶來成就與歡笑。"},
+  {name:"審判 • Judgement ",          img:"https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg",        meaning:"覺醒與召喚：回顧過去，邁向更高層次。"},
+  {name:"世界 • The World ",          img:"https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg",           meaning:"完成與整合：旅程圓滿，開啟新循環。"}
+];
+
+document.querySelectorAll('.card-back').forEach(card=>{
+  card.addEventListener('click',()=>{
+    const c = cards[Math.floor(Math.random()*cards.length)];
+    document.getElementById('card-img').src = c.img;
+    document.getElementById('card-img').alt = c.name;
+    document.getElementById('card-name').textContent = c.name;
+    document.getElementById('card-meaning').textContent = c.meaning;
+    document.getElementById('card-container').style.display='block';
+    document.getElementById('guide-text').style.display='none';
+    document.getElementById('deck-row').classList.remove('initial');
+  });
+});
+</script>
+</body>
+</html>

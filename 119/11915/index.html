@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>正能量小天地</title>
+  <style>
+    :root {
+      --bg-main: #f6f4f1;
+      --card-bg: #fffaf3;
+      --accent: #c7a17a;
+      --accent-dark: #b08a65;
+      --text-color: #4a3f35;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background-color: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: var(--accent-dark);
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    button:hover {
+      background-color: var(--accent-dark);
+    }
+
+    #quote {
+      font-size: 1.2rem;
+      line-height: 1.8;
+      margin-top: 1.5rem;
+      min-height: 4rem;
+      color: #5a463a;
+    }
+
+    .footer-note {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <!-- 第一層：歡迎畫面 -->
+  <div id="intro-screen" class="screen active">
+    <h1>你今天過得還好嗎？</h1>
+    <p>無論答案是或否，讓我來傳遞一些正能量給努力生活的你吧！</p>
+    <button onclick="goToMain()">進入正能量小天地</button>
+  </div>
+
+  <!-- 第二層：鼓勵語介面 -->
+  <div id="main-screen" class="screen">
+    <h1>🌿 一句溫柔的鼓勵</h1>
+    <div id="quote">按下按鈕，收到屬於你的話語。</div>
+    <button onclick="generateQuote()">💌 給我一句鼓勵</button>
+    <div class="footer-note">溫柔是力量，願你溫柔且堅定。</div>
+  </div>
+
+  <script>
+    const quotes = [
+      "不是因為不夠好才失敗的。只是運氣，只是偶然。",
+      "即使現在什麼都看不到，也不要否定自己的存在。",
+      "已經走了很遠了，已經很努力了。",
+      "即使路途艱辛，也要相信自己有能力走過去。",
+      "無論風雨多大，請保持內心的光芒永遠不滅。",
+      "相信自己的選擇，不要懷疑自己的價值。",
+      "給自己一個微笑，今天也是值得被肯定的一天。",
+      "你比想像中堅強，也更值得被愛。",
+      "今天就算不完美，明天依然有機會重新開始。",
+      "生活的每一步都算數，別小看自己走過的路。"
+    ];
+
+    function goToMain() {
+      document.getElementById('intro-screen').classList.remove('active');
+      document.getElementById('main-screen').classList.add('active');
+    }
+
+    function generateQuote() {
+      const index = Math.floor(Math.random() * quotes.length);
+      document.getElementById('quote').textContent = quotes[index];
+    }
+  </script>
+</body>
+</html>
+
+

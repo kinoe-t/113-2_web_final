@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>隨機幹片轉盤</title>
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 10px solid #d99898;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    .segment {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      transform-origin: 100% 100%;
+      background-color: #8ebeeb;
+      border-right: 2px solid #85d69e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    #pointer {
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 30px solid rgb(235, 172, 221);
+      position: absolute;
+      top: -30px;
+      left: calc(50% - 15px);
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      background-color: #b583d6;
+      color: rgb(255, 255, 255);
+      border-radius: 8px;
+    }
+    a {
+      color: #822b46;
+    }
+  </style>
+</head>
+<body>
+
+<h1>抽一個幹片看看！</h1>
+<div id="wheel-container" style="position: relative;">
+  <div id="pointer"></div>
+  <div id="wheel"></div>
+</div>
+<button onclick="spin()">開始抽籤</button>
+<div id="result"></div>
+
+<script>
+  const memes = [
+    { name: '?', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1' },
+    { name: '?', url: 'https://www.youtube.com/watch?v=G2NngxegUBc' },
+    { name: '?', url: 'https://www.youtube.com/watch?v=1GG3YQ0P5_Y' },
+    { name: '?', url: 'https://www.youtube.com/watch?v=zzfQwXEqYaI' },
+    { name: '?', url: 'https://www.instagram.com/reel/xxx' },
+    { name: '???', url: 'https://example.com/weird-meme' },
+    // 你可以自由增加更多幹片網址
+  ];
+
+  const wheel = document.getElementById('wheel');
+  let anglePerSegment = 360 / memes.length;
+  let currentRotation = 0;
+
+  function drawWheel() {
+    wheel.innerHTML = '';
+    memes.forEach((meme, i) => {
+      const segment = document.createElement('div');
+      segment.className = 'segment';
+      segment.style.transform = `rotate(${i * anglePerSegment}deg) translateX(-100%)`;
+      segment.style.backgroundColor = `hsl(${i * 360 / memes.length}, 80%, 70%)`;
+      segment.innerHTML = `<div style="transform: rotate(${anglePerSegment / 2}deg); width: 100%; word-break: break-word;">${meme.name}</div>`;
+      wheel.appendChild(segment);
+    });
+  }
+
+  function spin() {
+    const randomIndex = Math.floor(Math.random() * memes.length);
+    const extraSpins = 5; // 多轉幾圈
+    const degrees = 360 * extraSpins + (360 - randomIndex * anglePerSegment - anglePerSegment / 2);
+    currentRotation += degrees;
+    wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+    // 顯示結果
+    setTimeout(() => {
+      const result = memes[randomIndex];
+      document.getElementById('result').innerHTML =
+        `你抽到了：<strong>${result.name}</strong><br><a href="${result.url}" target="_blank">👉 點我看幹片</a>`;
+    }, 4200); // 與 transition 時間相匹配
+  }
+
+  drawWheel();
+</script>
+
+</body>
+</html>

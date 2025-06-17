@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>跳跳Tempo邏輯遊戲</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+    
+    body {
+      background: linear-gradient(to bottom right, #ffe0f0, #e0f7fa);
+      font-family: 'Noto Sans TC', sans-serif;
+      text-align: center;
+      padding: 30px;
+      color: #444;
+    }
+
+    h1 {
+      color: #ff80ab;
+      font-size: 40px;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 2px #fff;
+    }
+
+    #question {
+      font-size: 28px;
+      margin: 40px auto 10px;
+      max-width: 80%;
+      background: #ffffffcc;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #timer {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #ffb74d;
+    }
+
+    #choices {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+      gap: 100px;
+    }
+
+    .icon {
+      font-size: 48px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 50%;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .icon:hover {
+      transform: scale(1.1);
+      cursor: pointer;
+    }
+
+    #score {
+      font-size: 22px;
+      color: #66bb6a;
+      background: #e8f5e9;
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #result {
+      font-size: 22px;
+      color: #ff7043;
+      margin-top: 20px;
+      min-height: 30px;
+    }
+
+    #end-screen {
+      display: none;
+      margin-top: 50px;
+    }
+
+    #end-screen h2 {
+      font-size: 32px;
+      color: #ff80ab;
+      margin-bottom: 20px;
+    }
+
+    #retry {
+      font-size: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      background-color: #ffb74d;
+      color: white;
+      cursor: pointer;
+    }
+
+    #retry:hover {
+      background-color: #ffa726;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 跳跳Tempo 邏輯遊戲</h1>
+  <div id="score">目前得分：0</div>
+  <div id="question">按左右方向鍵來開始遊戲！</div>
+  <div id="timer"></div>
+  <div id="choices">
+    <div class="icon">⭕ 左鍵（對）</div>
+    <div class="icon">❌ 右鍵（錯）</div>
+  </div>
+  <div id="result"></div>
+  <div id="end-screen">
+    <h2>🎉 恭喜通關！</h2>
+    <p id="final-score"></p>
+    <button id="retry">再挑戰一次！</button>
+  </div>
+
+  <audio id="correct-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_d9b5b08d8d.mp3"></audio>
+  <audio id="wrong-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_2283e3b117.mp3"></audio>
+
+  <script>
+    const questions = [
+      { text: '一週有七天，星期天是最後一天。', answer: true },
+      { text: '所有的偶數都可以被3整除。', answer: false },
+      { text: '太陽是從東邊升起的。', answer: true },
+      { text: '冰比水還熱。', answer: false },
+      { text: '鯊魚是哺乳類。', answer: false },
+      { text: '人有五根手指頭。', answer: true },
+      { text: '月亮會發光。', answer: false },
+      { text: '0 是正數。', answer: false },
+      { text: '紅燈停、綠燈行。', answer: true },
+      { text: '電風扇可以當冷氣用。', answer: false },
+      { text: '今天沒帶傘 → 下雨了？', answer: false },
+      { text: '會叫 → 是狗？', answer: false },
+      { text: '我想動 → 沒吃太飽？', answer: true },
+      { text: '小強不在 → 小美在？', answer: false },
+      { text: '你請我吃飯 → 我考滿分？', answer: false },
+      { text: '飛機會飛 → 是鳥？', answer: false },
+      { text: '哥哥的哥哥是我弟弟。', answer: false },
+      { text: '小明不是學生 → 不上課？', answer: false },
+      { text: '我從沒說謊，這句話我也沒說過。', answer: false },
+      { text: '現在是明天的昨天。', answer: true },
+      { text: '不是所有人喜歡香菜 → 有人不喜歡。', answer: true },
+      { text: '明天我會贏除非我輸。', answer: true },
+      { text: '小王的媽媽有三個小孩：小一、小二，第三個是？', answer: true }
+    ];
+
+    let score = 0;
+    let askedIndices = new Set();
+    let currentIndex = -1;
+    let timer;
+    let timeLeft = 7;
+
+    const questionEl = document.getElementById("question");
+    const scoreEl = document.getElementById("score");
+    const resultEl = document.getElementById("result");
+    const timerEl = document.getElementById("timer");
+    const correctSound = document.getElementById("correct-sound");
+    const wrongSound = document.getElementById("wrong-sound");
+    const endScreen = document.getElementById("end-screen");
+    const finalScoreEl = document.getElementById("final-score");
+    const retryBtn = document.getElementById("retry");
+
+    function startTimer() {
+      timeLeft = 7;
+      timerEl.textContent = `⏳ 倒數：${timeLeft} 秒`;
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `⏳ 倒數：${timeLeft} 秒`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          resultEl.textContent = "⏰ 超時未答！-1分";
+          wrongSound.play();
+          score -= 1;
+          scoreEl.textContent = `目前得分：${score}`;
+          setTimeout(nextQuestion, 1000);
+        }
+      }, 1000);
+    }
+
+    function nextQuestion() {
+      clearInterval(timer);
+      if (askedIndices.size === questions.length) {
+        endGame();
+        return;
+      }
+
+      do {
+        currentIndex = Math.floor(Math.random() * questions.length);
+      } while (askedIndices.has(currentIndex));
+
+      askedIndices.add(currentIndex);
+      questionEl.textContent = questions[currentIndex].text;
+      resultEl.textContent = "";
+      startTimer();
+    }
+
+    function checkAnswer(userAnswer) {
+      clearInterval(timer);
+      const correct = questions[currentIndex].answer;
+      if (userAnswer === correct) {
+        score += 3;
+        resultEl.textContent = "✅ 答對了！+3分";
+        correctSound.play();
+      } else {
+        score -= 1;
+        resultEl.textContent = "❌ 答錯了！-1分";
+        wrongSound.play();
+      }
+      scoreEl.textContent = `目前得分：${score}`;
+      setTimeout(nextQuestion, 1000);
+    }
+
+    function endGame() {
+      questionEl.style.display = 'none';
+      timerEl.style.display = 'none';
+      document.getElementById("choices").style.display = 'none';
+      resultEl.style.display = 'none';
+      scoreEl.style.display = 'none';
+      endScreen.style.display = 'block';
+      finalScoreEl.textContent = `你的總分是：${score} 分！`;
+    }
+
+    retryBtn.addEventListener("click", () => {
+      score = 0;
+      askedIndices.clear();
+      questionEl.style.display = 'block';
+      timerEl.style.display = 'block';
+      document.getElementById("choices").style.display = 'flex';
+      resultEl.style.display = 'block';
+      scoreEl.style.display = 'inline-block';
+      endScreen.style.display = 'none';
+      scoreEl.textContent = `目前得分：${score}`;
+      nextQuestion();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") {
+        checkAnswer(true);
+      } else if (e.key === "ArrowRight") {
+        checkAnswer(false);
+      }
+    });
+
+    nextQuestion();
+  </script>
+</body>
+</html>

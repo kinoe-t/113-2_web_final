@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>猜數字遊戲</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      width: 80%;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    #resultImage {
+      margin-top: 20px;
+      max-width: 100%;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>猜數字遊戲</h1>
+    <p>猜一個 0 到 300 之間的數字</p>
+    <input type="number" id="guessInput" min="0" max="300" />
+    <br />
+    <button onclick="checkGuess()">猜！</button>
+    <div class="message" id="message"></div>
+    <img id="resultImage" src="" alt="提示圖片" />
+  </div>
+
+  <script>
+    const answer = Math.floor(Math.random() * 301); // 0~300 的整數
+    let attempts = 0;
+
+    const correctImg = "https://memeprod.sgp1.digitaloceanspaces.com/user-wtf/1586074371728.jpg";
+    const tooHighImg = "https://memeprod.ap-south-1.linodeobjects.com/user-template/52da0951946f41e0e0e9d9f30063c0fb.png";
+    const tooLowImg = "https://memeprod.sgp1.digitaloceanspaces.com/user-wtf/1582287363235.jpg";
+
+    function checkGuess() {
+      const guess = parseInt(document.getElementById("guessInput").value);
+      const message = document.getElementById("message");
+      const image = document.getElementById("resultImage");
+
+      if (isNaN(guess) || guess < 0 || guess > 300) {
+        message.textContent = "請輸入一個介於 0 到 300 之間的有效數字。";
+        image.style.display = "none";
+        return;
+      }
+
+      attempts++;
+
+      if (guess === answer) {
+        message.textContent = `🎉 恭喜你猜對了！答案是 ${answer}，你總共猜了 ${attempts} 次。`;
+        image.src = correctImg;
+        image.style.display = "block";
+      } else if (guess < answer) {
+        message.textContent = "太小了，再試一次！";
+        image.src = tooLowImg;
+        image.style.display = "block";
+      } else {
+        message.textContent = "太大了，再試一次！";
+        image.src = tooHighImg;
+        image.style.display = "block";
+      }
+    }
+
+    // 按下 Enter 提交猜測
+    document.getElementById("guessInput").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        checkGuess();
+      }
+    });
+  </script>
+</body>
+</html>

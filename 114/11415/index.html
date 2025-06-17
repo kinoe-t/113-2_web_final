@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>偶像小卡抽籤（動畫版）</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to bottom, #fff0f5, #e6f2ff);
+      text-align: center;
+      padding: 50px 20px;
+      margin: 0;
+    }
+    h1 {
+      color: #cc3366;
+    }
+    #card-box {
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border: 2px dashed #cc3366;
+      border-radius: 15px;
+      width: 90vw;
+      max-width: 500px;
+      min-height: 380px;
+      font-size: 1.4em;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    #card-name, #card-img {
+      transition: opacity 0.5s ease;
+      opacity: 1;
+    }
+    #card-img {
+      width: 320px;
+      height: 320px;
+      margin-top: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      object-fit: cover;
+      display: block;
+    }
+    button {
+      background-color: #cc3366;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #aa0044;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎴 偶像小卡抽籤（動畫版）🎴</h1>
+  <div id="card-box">
+    <div id="card-name"></div>
+    <img id="card-img" src="" alt="" />
+  </div>
+  <button id="draw-btn">抽一張！</button>
+
+  <script>
+    const cards = [
+      { name: "JENNIE", image: "https://media.karousell.com/media/photos/products/2023/9/11/wts_read_description_first_bla_1694403578_7274ce0e_progressive.jpg" },
+      { name: "JISOO", image: "https://pbs.twimg.com/media/FwuGCxYWYAAd7k1.jpg:large" },
+      { name: "FELIX", image: "https://i.pinimg.com/564x/dc/77/d7/dc77d7ff279f0665e1164b97577ee358.jpg" },
+      { name: "LISA", image: "https://pbs.twimg.com/media/E8lGqFRVUAoOarS.jpg" },
+      { name: "HYUNJIN", image: "https://i.pinimg.com/736x/70/1c/3e/701c3ee9274c2c9404adb8867c51031a.jpg" },
+      { name: "ROSÉ", image: "https://i.pinimg.com/736x/8c/83/80/8c83804146e9f2454311b7ab67087c30.jpg" },
+      { name: "JYP", image: "https://hips.hearstapps.com/hmg-prod/images/producer-jy-park-at-a-press-conference-to-discuss-rains-news-photo-1596090270.jpg?crop=1xw:1xh;center,top&resize=980:*" },
+      { name: "JEONGHAN", image: "https://i.pinimg.com/736x/cc/e9/e4/cce9e420a455442f0a91d2528a30957d.jpg" },
+      { name: "SANA", image: "https://i.pinimg.com/736x/4b/32/56/4b32563e1204ddb1431d7572b53bee18.jpg" },
+      { name: "JAEHYUN", image: "https://i.pinimg.com/736x/44/36/0b/44360b8673821bd86c3f5d287152df9a.jpg" },
+      { name: "LEEHAN", image: "https://i.pinimg.com/736x/fb/07/d9/fb07d902316065fe295d71a7a42789a8.jpg" },
+      { name: "SEUNGRI", image: "https://i.pinimg.com/564x/94/77/a8/9477a82ada8ea09a26d7edef7e3239df.jpg" },
+      { name: "GD", image: "https://i.pinimg.com/236x/c6/18/11/c6181180e69ba00967ec756645d1503b.jpg" },
+      { name: "TAEYANG", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnrA9biQeBNk4xqr4e7lP0piXaJ7SAbEuDqkRJKJSvWqOjr-xGoSu-e37vqO1_ODOD3s0&usqp=CAU" },
+      { name: "TOP", image: "https://upload.wikimedia.org/wikipedia/commons/4/47/T.O.P_-_0.TO.10_in_Seoul_-_2.jpg" },
+      { name: "DAESUNG", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIg1I-i_-__A5dYdBhVyt8qpPVUgbAG77Rw&s" }
+    ];
+
+    const cardNameEl = document.getElementById('card-name');
+    const cardImgEl = document.getElementById('card-img');
+    const drawBtn = document.getElementById('draw-btn');
+
+    let lastIndex = 0; // 預設第一張顯示
+
+    // 初始化先顯示第一張
+    function init() {
+      const firstCard = cards[0];
+      cardNameEl.textContent = `你抽到了：「${firstCard.name.toUpperCase()}」`;
+      cardImgEl.src = firstCard.image;
+      cardImgEl.alt = firstCard.name.toUpperCase();
+      cardImgEl.style.opacity = 1;
+      cardImgEl.style.display = "block";
+    }
+
+    function fadeOut(element) {
+      return new Promise(resolve => {
+        element.style.opacity = 0;
+        setTimeout(resolve, 500);
+      });
+    }
+
+    function fadeIn(element) {
+      return new Promise(resolve => {
+        element.style.opacity = 1;
+        setTimeout(resolve, 500);
+      });
+    }
+
+    async function drawCard() {
+      drawBtn.disabled = true;
+
+      await Promise.all([
+        fadeOut(cardNameEl),
+        fadeOut(cardImgEl)
+      ]);
+
+      let index;
+      do {
+        index = Math.floor(Math.random() * cards.length);
+      } while (index === lastIndex && cards.length > 1);
+      lastIndex = index;
+
+      const card = cards[index];
+      cardNameEl.textContent = `你抽到了：「${card.name.toUpperCase()}」`;
+      cardImgEl.src = card.image;
+      cardImgEl.alt = card.name.toUpperCase();
+
+      await Promise.all([
+        fadeIn(cardNameEl),
+        fadeIn(cardImgEl)
+      ]);
+
+      drawBtn.disabled = false;
+    }
+
+    drawBtn.addEventListener('click', drawCard);
+
+    init();
+  </script>
+</body>
+</html>
+
+
+

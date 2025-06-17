@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>釣魚遊戲</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    #start-screen, #end-screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to bottom, #87ceeb 0%, #1e90ff 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 10;
+    }
+    #start-button, #restart-button {
+      padding: 20px 40px;
+      font-size: 24px;
+      cursor: pointer;
+      border: none;
+      background-color: #ffcc00;
+      border-radius: 10px;
+    }
+    #game {
+      background: linear-gradient(to bottom, #87ceeb 0%, #1e90ff 100%);
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+    #hook {
+      width: 40px;
+      height: 0;
+      background: url('https://i.imgur.com/HJvC99P.png') no-repeat center center;
+      background-size: contain;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .fish {
+      width: 60px;
+      height: 40px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: absolute;
+    }
+    #score, #timer {
+      position: absolute;
+      top: 10px;
+      font-size: 24px;
+      color: white;
+      z-index: 5;
+      padding: 0 20px;
+    }
+    #score {
+      left: 0;
+    }
+    #timer {
+      right: 0;
+    }
+  </style>
+</head>
+<body>
+<div id="start-screen">
+  <button id="start-button">開始遊戲</button>
+</div>
+
+<div id="game" style="display: none;">
+  <div id="score">釣到的魚: 0</div>
+  <div id="timer">60</div>
+  <div id="hook"></div>
+</div>
+
+<div id="end-screen" style="display: none; background-color: rgba(0,0,0,0.8); color: white;">
+  <h1>時間到!</h1>
+  <p id="final-score"></p>
+  <button id="restart-button">再玩一次</button>
+</div>
+
+<audio id="bg-music" loop autoplay>
+  <source src="https://files.catbox.moe/m5x3av.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+  const startBtn = document.getElementById('start-button');
+  const restartBtn = document.getElementById('restart-button');
+  const startScreen = document.getElementById('start-screen');
+  const game = document.getElementById('game');
+  const hook = document.getElementById('hook');
+  const timer = document.getElementById('timer');
+  const scoreText = document.getElementById('score');
+  const endScreen = document.getElementById('end-screen');
+  const finalScore = document.getElementById('final-score');
+  const bgMusic = document.getElementById('bg-music');
+
+  let score = 0;
+  let timeLeft = 60;
+  let gameInterval;
+  let hookInterval;
+  let hookHeight = 0;
+  let catching = false;
+
+  const fishImages = [
+    'https://i.imgur.com/KT1s04d.png', // 小尼莫
+    'https://i.imgur.com/6XzBumP.png', // 多莉
+    'https://i.imgur.com/hZsTZYO.png', // 鯊魚布魯斯
+    'https://i.imgur.com/4gQrlIl.png'  // 海龜
+  ];
+
+  function startGame() {
+    startScreen.style.display = 'none';
+    game.style.display = 'block';
+    score = 0;
+    timeLeft = 60;
+    scoreText.textContent = '釣到的魚: 0';
+    timer.textContent = '60';
+    hook.style.height = '0px';
+    spawnFish();
+
+    gameInterval = setInterval(() => {
+      timeLeft--;
+      timer.textContent = timeLeft;
+      if (timeLeft <= 0) {
+        endGame();
+      }
+    }, 1000);
+  }
+
+  function endGame() {
+    clearInterval(gameInterval);
+    clearInterval(hookInterval);
+    document.querySelectorAll('.fish').forEach(fish => fish.remove());
+    endScreen.style.display = 'flex';
+    finalScore.textContent = `你釣到了 ${score} 條魚！`;
+  }
+
+  function spawnFish() {
+    setInterval(() => {
+      const fish = document.createElement('div');
+      fish.classList.add('fish');
+      fish.style.top = Math.random() * 400 + 100 + 'px';
+      fish.style.left = '-60px';
+      const img = fishImages[Math.floor(Math.random() * fishImages.length)];
+      fish.style.backgroundImage = `url('${img}')`;
+      document.getElementById('game').appendChild(fish);
+
+      let pos = -60;
+      const move = setInterval(() => {
+        pos += 2;
+        fish.style.left = pos + 'px';
+        if (pos > window.innerWidth) {
+          clearInterval(move);
+          fish.remove();
+        }
+      }, 30);
+    }, 1200);
+  }
+
+  function checkCatch() {
+    const hookBottom = hook.getBoundingClientRect().bottom;
+    document.querySelectorAll('.fish').forEach(fish => {
+      const rect = fish.getBoundingClientRect();
+      if (
+        rect.top < hookBottom &&
+        rect.bottom > hookBottom &&
+        Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) < 30
+      ) {
+        fish.remove();
+        score++;
+        scoreText.textContent = `釣到的魚: ${score}`;
+      }
+    });
+  }
+
+  function moveHookDown() {
+    if (catching) return;
+    catching = true;
+    hookHeight = 0;
+    hookInterval = setInterval(() => {
+      hookHeight += 5;
+      hook.style.height = hookHeight + 'px';
+      checkCatch();
+      if (hookHeight >= window.innerHeight) {
+        clearInterval(hookInterval);
+        retractHook();
+      }
+    }, 30);
+  }
+
+  function retractHook() {
+    hookInterval = setInterval(() => {
+      hookHeight -= 5;
+      hook.style.height = hookHeight + 'px';
+      checkCatch();
+      if (hookHeight <= 0) {
+        clearInterval(hookInterval);
+        catching = false;
+      }
+    }, 30);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') {
+      moveHookDown();
+    }
+  });
+
+  startBtn.onclick = () => {
+    bgMusic.play();
+    startGame();
+  };
+
+  restartBtn.onclick = () => {
+    endScreen.style.display = 'none';
+    startGame();
+  };
+</script>
+</body>
+</html>

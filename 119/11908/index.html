@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>2048 遊戲</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #fef3e2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: #d35400;
+    }
+
+    #game {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-template-rows: repeat(4, 100px);
+      gap: 10px;
+      background: #fae5d3;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .tile {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      border-radius: 8px;
+      color: #fff;
+      animation: pop 0.2s;
+      transition: transform 0.3s ease, left 0.3s ease, top 0.3s ease;
+      position: absolute;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .t0 { background: #eee4da; color: transparent; }
+    .t2 { background: #fdd5b1; }
+    .t4 { background: #fbc28b; }
+    .t8 { background: #f5a76e; }
+    .t16 { background: #f48c5d; }
+    .t32 { background: #f37449; }
+    .t64 { background: #f55e3b; }
+    .t128 { background: #ea4c1d; }
+    .t256 { background: #d84315; }
+    .t512 { background: #bf360c; }
+    .t1024 { background: #a33305; }
+    .t2048 { background: #8b2e00; }
+
+    #scoreboard {
+      margin-bottom: 20px;
+    }
+
+    #scoreboard span {
+      margin: 0 15px;
+      font-weight: bold;
+      color: #d35400;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #e67e22;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #fireworks {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <h1>2048 遊戲</h1>
+  <div id="scoreboard">
+    <span>分數: <span id="score">0</span></span>
+    <span>最高分: <span id="best">0</span></span>
+  </div>
+  <div id="game"></div>
+  <canvas id="fireworks"></canvas>
+  <button onclick="resetGame()">重新開始</button>
+
+  <script>
+    let board = [];
+    let score = 0;
+
+    function getBest() {
+      return parseInt(localStorage.getItem("2048-best") || "0");
+    }
+
+    function update() {
+      const game = document.getElementById("game");
+      game.innerHTML = "";
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const val = board[r][c];
+          if (val !== 0) {
+            const tile = document.createElement("div");
+            tile.className = "tile t" + val;
+            tile.textContent = val;
+            tile.style.left = `${c * 110}px`;
+            tile.style.top = `${r * 110}px`;
+            game.appendChild(tile);
+            if (val === 512) launchFireworks();
+          }
+        }
+      }
+      document.getElementById("score").textContent = score;
+      document.getElementById("best").textContent = Math.max(score, getBest());
+      localStorage.setItem("2048-best", Math.max(score, getBest()));
+    }
+
+    function resetGame() {
+      board = Array.from({ length: 4 }, () => Array(4).fill(0));
+      score = 0;
+      addTile();
+      addTile();
+      update();
+    }
+
+    function addTile() {
+      const empty = [];
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (board[r][c] === 0) empty.push([r, c]);
+        }
+      }
+      if (empty.length > 0) {
+        const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+        board[r][c] = Math.random() < 0.9 ? 2 : 4;
+      }
+    }
+
+    function move(direction) {
+      let moved = false;
+      function slide(row) {
+        let arr = row.filter(val => val);
+        for (let i = 0; i < arr.length - 1; i++) {
+          if (arr[i] === arr[i + 1]) {
+            arr[i] *= 2;
+            score += arr[i];
+            arr[i + 1] = 0;
+          }
+        }
+        return arr.filter(val => val).concat(Array(4 - arr.filter(val => val).length).fill(0));
+      }
+      let newBoard = Array.from({ length: 4 }, () => Array(4).fill(0));
+      if (direction === 0) { // 上
+        for (let c = 0; c < 4; c++) {
+          const col = [board[0][c], board[1][c], board[2][c], board[3][c]];
+          const newCol = slide(col);
+          for (let r = 0; r < 4; r++) {
+            newBoard[r][c] = newCol[r];
+            if (board[r][c] !== newCol[r]) moved = true;
+          }
+        }
+      } else if (direction === 1) { // 右
+        for (let r = 0; r < 4; r++) {
+          const row = [...board[r]].reverse();
+          const newRow = slide(row).reverse();
+          newBoard[r] = newRow;
+          if (board[r].toString() !== newRow.toString()) moved = true;
+        }
+      } else if (direction === 2) { // 下
+        for (let c = 0; c < 4; c++) {
+          const col = [board[3][c], board[2][c], board[1][c], board[0][c]];
+          const newCol = slide(col).reverse();
+          for (let r = 0; r < 4; r++) {
+            newBoard[r][c] = newCol[r];
+            if (board[r][c] !== newCol[r]) moved = true;
+          }
+        }
+      } else if (direction === 3) { // 左
+        for (let r = 0; r < 4; r++) {
+          const row = [...board[r]];
+          const newRow = slide(row);
+          newBoard[r] = newRow;
+          if (board[r].toString() !== newRow.toString()) moved = true;
+        }
+      }
+      if (moved) {
+        board = newBoard;
+        addTile();
+        update();
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "ArrowUp": move(0); break;
+        case "ArrowRight": move(1); break;
+        case "ArrowDown": move(2); break;
+        case "ArrowLeft": move(3); break;
+      }
+    });
+
+    function launchFireworks() {
+      const canvas = document.getElementById("fireworks");
+      const ctx = canvas.getContext("2d");
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      let particles = [];
+      for (let i = 0; i < 100; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 10,
+          vy: (Math.random() - 0.5) * 10,
+          radius: Math.random() * 3 + 2,
+          color: `hsl(${Math.random() * 360}, 100%, 70%)`
+        });
+      }
+
+      let count = 0;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.radius *= 0.96;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        });
+        count++;
+        if (count < 60) requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    window.onload = resetGame;
+  </script>
+</body>
+</html>

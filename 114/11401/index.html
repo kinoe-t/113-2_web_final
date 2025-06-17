@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>1A2B 猜數字遊戲</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+    }
+    #log {
+      margin-top: 20px;
+      white-space: pre-line;
+      background: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<h1>1A2B 猜數字遊戲</h1>
+<p>請輸入不重複的四位數字：</p>
+<input type="text" id="guessInput" maxlength="4">
+<button onclick="makeGuess()">猜！</button>
+<button onclick="restartGame()">重新開始</button>
+
+<div id="log"></div>
+
+<script>
+  let answer = '';
+  let attempts = 0;
+
+  function generateAnswer() {
+    const digits = '0123456789'.split('');
+    answer = '';
+    while (answer.length < 4) {
+      const index = Math.floor(Math.random() * digits.length);
+      const digit = digits.splice(index, 1)[0];
+      answer += digit;
+    }
+    console.log("答案是：" + answer); // 可以在這裡看答案（測試用）
+  }
+
+  function makeGuess() {
+    const input = document.getElementById('guessInput');
+    const guess = input.value.trim();
+
+    if (!/^\d{4}$/.test(guess) || new Set(guess).size !== 4) {
+      alert("請輸入不重複的四位數字！");
+      return;
+    }
+
+    attempts++;
+    let A = 0, B = 0;
+
+    for (let i = 0; i < 4; i++) {
+      if (guess[i] === answer[i]) {
+        A++;
+      } else if (answer.includes(guess[i])) {
+        B++;
+      }
+    }
+
+    const logDiv = document.getElementById('log');
+    logDiv.innerText += `第 ${attempts} 次猜 ${guess}： ${A}A${B}B\n`;
+
+    if (A === 4) {
+      alert(`🎉 恭喜你猜對了！答案是 ${answer}，共猜了 ${attempts} 次。`);
+    }
+
+    input.value = '';
+    input.focus();
+  }
+
+  function restartGame() {
+    attempts = 0;
+    document.getElementById('log').innerText = '';
+    generateAnswer();
+    document.getElementById('guessInput').value = '';
+    document.getElementById('guessInput').focus();
+  }
+
+  generateAnswer(); // 初始化遊戲
+</script>
+
+
+</body>
+</html>
+
