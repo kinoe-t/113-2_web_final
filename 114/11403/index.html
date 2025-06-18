@@ -8,221 +8,164 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      font-family: sans-serif;
-    }
-    #start-screen, #end-screen {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(to bottom, #87ceeb 0%, #1e90ff 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 10;
-    }
-    #start-button, #restart-button {
-      padding: 20px 40px;
-      font-size: 24px;
-      cursor: pointer;
-      border: none;
-      background-color: #ffcc00;
-      border-radius: 10px;
-    }
-    #game {
-      background: linear-gradient(to bottom, #87ceeb 0%, #1e90ff 100%);
       width: 100vw;
       height: 100vh;
-      position: relative;
-      overflow: hidden;
     }
-    #hook {
-      width: 40px;
-      height: 0;
-      background: url('https://i.imgur.com/HJvC99P.png') no-repeat center center;
-      background-size: contain;
+    #startScreen, #endScreen {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      background: url('ocean.jpg') no-repeat center center;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 2;
+    }
+    #gameCanvas {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      background: url('ocean.jpg') no-repeat center center;
+      background-size: cover;
       position: absolute;
       top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .fish {
-      width: 60px;
-      height: 40px;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      position: absolute;
-    }
-    #score, #timer {
-      position: absolute;
-      top: 10px;
-      font-size: 24px;
-      color: white;
-      z-index: 5;
-      padding: 0 20px;
-    }
-    #score {
       left: 0;
     }
-    #timer {
-      right: 0;
+    button {
+      font-size: 24px;
+      padding: 15px 30px;
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      background-color: #007bff;
+      color: white;
     }
+    #scoreDisplay, #timerDisplay {
+      position: absolute;
+      font-size: 20px;
+      color: white;
+      z-index: 3;
+    }
+    #scoreDisplay { top: 10px; left: 10px; }
+    #timerDisplay { top: 10px; right: 10px; }
   </style>
 </head>
 <body>
-<div id="start-screen">
-  <button id="start-button">開始遊戲</button>
-</div>
+  <div id="startScreen">
+    <h1 style="color: white;">🎣 釣魚遊戲</h1>
+    <button onclick="startGame()">開始遊戲</button>
+  </div>
+  <div id="endScreen" style="display:none; flex-direction: column;">
+    <h1 style="color: white;">⏰ 時間到!</h1>
+    <p id="finalScore" style="color:white; font-size:24px;"></p>
+    <button onclick="location.reload()">再玩一次</button>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="scoreDisplay">得分: 0</div>
+  <div id="timerDisplay">時間: 60</div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-<div id="game" style="display: none;">
-  <div id="score">釣到的魚: 0</div>
-  <div id="timer">60</div>
-  <div id="hook"></div>
-</div>
+    const fishTypes = [
+      { color: "orange", score: 1 },
+      { color: "darkblue", score: 2 },
+      { color: "green", score: 3 },
+      { color: "red", score: -1 }
+    ];
 
-<div id="end-screen" style="display: none; background-color: rgba(0,0,0,0.8); color: white;">
-  <h1>時間到!</h1>
-  <p id="final-score"></p>
-  <button id="restart-button">再玩一次</button>
-</div>
+    let fishes = [];
+    let hookY = 0;
+    let hookDirection = 0;
+    let hookX;
+    let score = 0;
+    let timeLeft = 60;
+    let gameInterval;
+    let fishRadius = 20;
 
-<audio id="bg-music" loop autoplay>
-  <source src="https://files.catbox.moe/m5x3av.mp3" type="audio/mpeg">
-</audio>
-
-<script>
-  const startBtn = document.getElementById('start-button');
-  const restartBtn = document.getElementById('restart-button');
-  const startScreen = document.getElementById('start-screen');
-  const game = document.getElementById('game');
-  const hook = document.getElementById('hook');
-  const timer = document.getElementById('timer');
-  const scoreText = document.getElementById('score');
-  const endScreen = document.getElementById('end-screen');
-  const finalScore = document.getElementById('final-score');
-  const bgMusic = document.getElementById('bg-music');
-
-  let score = 0;
-  let timeLeft = 60;
-  let gameInterval;
-  let hookInterval;
-  let hookHeight = 0;
-  let catching = false;
-
-  const fishImages = [
-    'https://i.imgur.com/KT1s04d.png', // 小尼莫
-    'https://i.imgur.com/6XzBumP.png', // 多莉
-    'https://i.imgur.com/hZsTZYO.png', // 鯊魚布魯斯
-    'https://i.imgur.com/4gQrlIl.png'  // 海龜
-  ];
-
-  function startGame() {
-    startScreen.style.display = 'none';
-    game.style.display = 'block';
-    score = 0;
-    timeLeft = 60;
-    scoreText.textContent = '釣到的魚: 0';
-    timer.textContent = '60';
-    hook.style.height = '0px';
-    spawnFish();
-
-    gameInterval = setInterval(() => {
-      timeLeft--;
-      timer.textContent = timeLeft;
-      if (timeLeft <= 0) {
-        endGame();
-      }
-    }, 1000);
-  }
-
-  function endGame() {
-    clearInterval(gameInterval);
-    clearInterval(hookInterval);
-    document.querySelectorAll('.fish').forEach(fish => fish.remove());
-    endScreen.style.display = 'flex';
-    finalScore.textContent = `你釣到了 ${score} 條魚！`;
-  }
-
-  function spawnFish() {
-    setInterval(() => {
-      const fish = document.createElement('div');
-      fish.classList.add('fish');
-      fish.style.top = Math.random() * 400 + 100 + 'px';
-      fish.style.left = '-60px';
-      const img = fishImages[Math.floor(Math.random() * fishImages.length)];
-      fish.style.backgroundImage = `url('${img}')`;
-      document.getElementById('game').appendChild(fish);
-
-      let pos = -60;
-      const move = setInterval(() => {
-        pos += 2;
-        fish.style.left = pos + 'px';
-        if (pos > window.innerWidth) {
-          clearInterval(move);
-          fish.remove();
-        }
-      }, 30);
-    }, 1200);
-  }
-
-  function checkCatch() {
-    const hookBottom = hook.getBoundingClientRect().bottom;
-    document.querySelectorAll('.fish').forEach(fish => {
-      const rect = fish.getBoundingClientRect();
-      if (
-        rect.top < hookBottom &&
-        rect.bottom > hookBottom &&
-        Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) < 30
-      ) {
-        fish.remove();
-        score++;
-        scoreText.textContent = `釣到的魚: ${score}`;
-      }
-    });
-  }
-
-  function moveHookDown() {
-    if (catching) return;
-    catching = true;
-    hookHeight = 0;
-    hookInterval = setInterval(() => {
-      hookHeight += 5;
-      hook.style.height = hookHeight + 'px';
-      checkCatch();
-      if (hookHeight >= window.innerHeight) {
-        clearInterval(hookInterval);
-        retractHook();
-      }
-    }, 30);
-  }
-
-  function retractHook() {
-    hookInterval = setInterval(() => {
-      hookHeight -= 5;
-      hook.style.height = hookHeight + 'px';
-      checkCatch();
-      if (hookHeight <= 0) {
-        clearInterval(hookInterval);
-        catching = false;
-      }
-    }, 30);
-  }
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowDown') {
-      moveHookDown();
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      hookX = canvas.width / 2;
     }
-  });
 
-  startBtn.onclick = () => {
-    bgMusic.play();
-    startGame();
-  };
+    window.addEventListener('resize', resizeCanvas);
 
-  restartBtn.onclick = () => {
-    endScreen.style.display = 'none';
-    startGame();
-  };
-</script>
+    function startGame() {
+      document.getElementById("startScreen").style.display = "none";
+      document.getElementById("gameCanvas").style.display = "block";
+      resizeCanvas();
+      generateFish();
+      gameInterval = setInterval(gameLoop, 1000 / 60);
+      setInterval(() => {
+        timeLeft--;
+        document.getElementById("timerDisplay").innerText = "時間: " + timeLeft;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+      window.addEventListener("keydown", handleKey);
+    }
+
+    function generateFish() {
+      setInterval(() => {
+        const type = Math.floor(Math.random() * fishTypes.length);
+        fishes.push({
+          x: -30,
+          y: Math.random() * (canvas.height - 100) + 50,
+          speed: Math.random() * 2 + 1,
+          type: type
+        });
+      }, 1000);
+    }
+
+    function handleKey(e) {
+      if (e.key === "ArrowDown" && hookDirection === 0) {
+        hookDirection = 1;
+      } else if (e.key === "ArrowUp" && hookDirection === 1) {
+        hookDirection = 0;
+      }
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      fishes.forEach((fish) => { fish.x += fish.speed; });
+      fishes.forEach((fish) => {
+        ctx.beginPath();
+        ctx.arc(fish.x, fish.y, fishRadius, 0, Math.PI * 2);
+        ctx.fillStyle = fishTypes[fish.type].color;
+        ctx.fill();
+      });
+      if (hookDirection === 1) {
+        hookY += 5;
+        if (hookY >= canvas.height - 50) hookDirection = 0;
+      } else {
+        hookY -= 5;
+        if (hookY <= 0) hookY = 0;
+      }
+      // 改為繪製黑色長柱體作為魚鉤
+      ctx.fillStyle = "black";
+      ctx.fillRect(hookX - 2, 0, 4, hookY);
+
+      fishes = fishes.filter((fish) => {
+        const dx = hookX - fish.x;
+        const dy = hookY - fish.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < fishRadius + 10) {
+          score += fishTypes[fish.type].score;
+          document.getElementById("scoreDisplay").innerText = "得分: " + score;
+          return false;
+        }
+        return fish.x < canvas.width + fishRadius;
+      });
+    }
+
+    function endGame() {
+      clearInterval(gameInterval);
+      document.getElementById("gameCanvas").style.display = "none";
+      document.getElementById("endScreen").style.display = "flex";
+      document.getElementById("finalScore").innerText = "你釣到的總得分為: " + score;
+    }
+  </script>
 </body>
 </html>
