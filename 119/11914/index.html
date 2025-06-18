@@ -1,73 +1,73 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>抽出你的一輩子</title>
+  <meta charset="UTF-8" />
+  <title>抽出你的職業天命</title>
   <style>
     body {
       font-family: "Microsoft JhengHei", sans-serif;
-      background: linear-gradient(to bottom, #ffe6f0, #ffffff);
       text-align: center;
       padding: 50px;
+      background: linear-gradient(to right, #fceabb, #f8b500);
     }
-
     h1 {
-      color: #c94f7c;
+      font-size: 2em;
+      color: #333;
     }
-
-    #draw-btn {
-      background-color: #ff99bb;
-      color: white;
+    #start {
+      font-size: 1.2em;
+      padding: 10px 20px;
       border: none;
-      padding: 15px 30px;
-      font-size: 20px;
+      background-color: #ff6f61;
+      color: white;
       border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      margin-top: 20px;
     }
-
-    #draw-btn:hover {
-      background-color: #ff77a9;
+    #machine {
+      font-size: 2em;
+      margin-top: 40px;
+      color: #555;
     }
-
-    #card-container {
+    #result {
+      font-size: 1.5em;
       margin-top: 30px;
-    }
-
-    #card-img {
-      max-width: 300px;
-      border-radius: 20px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-      display: none;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-
-  <h1>抽出你的一輩子</h1>
-  <button id="draw-btn">點我開始抽卡！</button>
-
-  <div id="card-container">
-    <img id="card-img" src="" alt="抽出的小卡">
-  </div>
+  <h1>抽出你的職業天命！</h1>
+  <button id="start">開始抽卡</button>
+  <div id="machine" style="display:none;">🎰 抽卡中...</div>
+  <div id="result" style="display:none;"></div>
 
   <script>
-    const cardImages = [
-    https://www.google.com/url?sa=i&url=https%3A%2F%2Fhk.news.yahoo.com%2Fiu-%25E6%259D%258E%25E7%259F%25A5%25E6%2581%25A9-%25E9%2587%2591%25E5%258F%25A5-%25E9%259F%2593%25E5%259C%258B-010041270.html&psig=AOvVaw0spnRYPaguvxhJhx-7F-Ww&ust=1749865382411000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCJjZ9oaj7Y0DFQAAAAAdAAAAABAE
+    const startBtn = document.getElementById("start");
+    const machine = document.getElementById("machine");
+    const result = document.getElementById("result");
+
+    const careers = [
+      "歌手", "科學家", "作家", "醫生", "工程師", "藝術家", "老師",
+      "舞者", "企業家", "建築師", "律師", "演員", "廚師", "攝影師", "漫畫家"
     ];
 
-    const drawBtn = document.getElementById("draw-btn");
-    const cardImg = document.getElementById("card-img");
+    startBtn.addEventListener("click", () => {
+      machine.style.display = "block";
+      result.style.display = "none";
+      startBtn.disabled = true;
+      startBtn.textContent = "抽中中...";
 
-    drawBtn.addEventListener("click", () => {
-      const randomIndex = Math.floor(Math.random() * cardImages.length);
-      const selectedImg = cardImages[randomIndex];
-
-      cardImg.src = selectedImg;
-      cardImg.style.display = "block";
-      drawBtn.textContent = "再抽一次";
+      setTimeout(() => {
+        const index = Math.floor(Math.random() * careers.length);
+        const chosen = careers[index];
+        machine.style.display = "none";
+        result.textContent = `你的職業天命是：${chosen}！`;
+        result.style.display = "block";
+        startBtn.disabled = false;
+        startBtn.textContent = "再抽一次！";
+      }, 3000);
     });
   </script>
-
 </body>
 </html>
