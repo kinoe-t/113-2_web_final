@@ -1,0 +1,305 @@
+<!-- 儲存為 sudoku.html 並用瀏覽器開啟 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>粉紫數獨遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #fbe4ff, #f3d1f4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 420px;
+      position: relative;
+    }
+
+    h1 {
+      color: #a64ac9;
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: auto;
+      margin-bottom: 1rem;
+    }
+
+    td {
+      border: 1px solid #d4a5e2;
+      width: 45px;
+      height: 45px;
+      position: relative;
+    }
+
+    .cell {
+      width: 100%;
+      height: 100%;
+      font-size: 1.2rem;
+      text-align: center;
+      background-color: #fff0fb;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cell.fixed {
+      background-color: #eed0f5;
+      color: #7a1f7a;
+      pointer-events: none;
+    }
+
+    .selected {
+      background-color: #d8fcd8 !important;
+    }
+
+    .highlight {
+      background-color: gold !important;
+    }
+
+    .invalid {
+      background-color: #f8bcbc !important;
+    }
+
+    .btn {
+      background-color: #d48fd9;
+      border: none;
+      color: white;
+      padding: 0.6rem 1rem;
+      margin: 0.3rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #b66fb7;
+    }
+
+    #timer {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      color: #a64ac9;
+      font-weight: bold;
+    }
+
+    #end-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #a64ac9;
+      border-radius: 20px;
+      display: none;
+      z-index: 10;
+    }
+
+    #end-screen button {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="timer">00:00</div>
+    <h1>粉紫數獨遊戲</h1>
+    <table id="sudoku-board"></table>
+    <button class="btn" onclick="resetBoard()">清除</button>
+    <div id="end-screen">
+      <div>恭喜完成！🎉</div>
+      <button class="btn" onclick="newGame()">再來一局</button>
+      <button class="btn" onclick="window.close()">退出</button>
+    </div>
+  </div>
+
+  <script>
+    let timerInterval;
+    let seconds = 0;
+    let selectedCell = null;
+    let originalBoard = [];
+    let currentBoard = [];
+    const boardElement = document.getElementById("sudoku-board");
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      seconds = 0;
+      document.getElementById("timer").textContent = formatTime(seconds);
+      timerInterval = setInterval(() => {
+        seconds++;
+        document.getElementById("timer").textContent = formatTime(seconds);
+      }, 1000);
+    }
+
+    function generateSudoku() {
+      const base = [
+        [5,3,0, 0,7,0, 0,0,0],
+        [6,0,0, 1,9,5, 0,0,0],
+        [0,9,8, 0,0,0, 0,6,0],
+        [8,0,0, 0,6,0, 0,0,3],
+        [4,0,0, 8,0,3, 0,0,1],
+        [7,0,0, 0,2,0, 0,0,6],
+        [0,6,0, 0,0,0, 2,8,0],
+        [0,0,0, 4,1,9, 0,0,5],
+        [0,0,0, 0,8,0, 0,7,9]
+      ];
+      return JSON.parse(JSON.stringify(base));
+    }
+
+    function isValidPlacement(board, row, col, num) {
+      for (let i = 0; i < 9; i++) {
+        if (board[row][i] === num) return false;
+        if (board[i][col] === num) return false;
+        const boxRow = 3 * Math.floor(row / 3) + Math.floor(i / 3);
+        const boxCol = 3 * Math.floor(col / 3) + i % 3;
+        if (board[boxRow][boxCol] === num) return false;
+      }
+      return true;
+    }
+
+    function createBoard() {
+      originalBoard = generateSudoku();
+      currentBoard = JSON.parse(JSON.stringify(originalBoard));
+      boardElement.innerHTML = "";
+      for (let row = 0; row < 9; row++) {
+        const tr = document.createElement("tr");
+        for (let col = 0; col < 9; col++) {
+          const td = document.createElement("td");
+          if (row % 3 === 0) td.style.borderTop = "2px solid #a64ac9";
+          if (col % 3 === 0) td.style.borderLeft = "2px solid #a64ac9";
+          if (row === 8) td.style.borderBottom = "2px solid #a64ac9";
+          if (col === 8) td.style.borderRight = "2px solid #a64ac9";
+
+          const div = document.createElement("div");
+          div.classList.add("cell");
+          div.dataset.row = row;
+          div.dataset.col = col;
+
+          if (originalBoard[row][col] !== 0) {
+            div.textContent = originalBoard[row][col];
+            div.classList.add("fixed");
+          } else {
+            div.addEventListener("click", () => selectCell(div));
+          }
+
+          td.appendChild(div);
+          tr.appendChild(td);
+        }
+        boardElement.appendChild(tr);
+      }
+    }
+
+    function selectCell(cell) {
+      if (selectedCell) selectedCell.classList.remove("selected");
+      selectedCell = cell;
+      cell.classList.add("selected");
+    }
+
+    function resetBoard() {
+      createBoard();
+      startTimer();
+      document.getElementById("end-screen").style.display = "none";
+    }
+
+    function newGame() {
+      resetBoard();
+    }
+
+    function checkComplete() {
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (currentBoard[r][c] === 0 || !isValidPlacement(currentBoard, r, c, currentBoard[r][c])) {
+            return;
+          }
+        }
+      }
+      document.getElementById("end-screen").style.display = "flex";
+      clearInterval(timerInterval);
+    }
+
+    function highlightCells(coords) {
+      coords.forEach(([r, c]) => {
+        const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+        if (cell) cell.classList.add("highlight");
+      });
+    }
+
+    function checkHighlights() {
+      const isCorrect = (cells) => {
+        const nums = cells.map(([r, c]) => currentBoard[r][c]).filter(n => n !== 0);
+        return nums.length === 9 && new Set(nums).size === 9;
+      };
+
+      document.querySelectorAll(".cell").forEach(c => c.classList.remove("highlight"));
+      for (let i = 0; i < 9; i++) {
+        const row = [], col = [], box = [];
+        for (let j = 0; j < 9; j++) {
+          row.push([i, j]);
+          col.push([j, i]);
+          box.push([3 * Math.floor(i / 3) + Math.floor(j / 3), 3 * (i % 3) + j % 3]);
+        }
+        if (isCorrect(row)) highlightCells(row);
+        if (isCorrect(col)) highlightCells(col);
+        if (isCorrect(box)) highlightCells(box);
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!selectedCell) return;
+      const row = +selectedCell.dataset.row;
+      const col = +selectedCell.dataset.col;
+      if (originalBoard[row][col] !== 0) return;
+
+      if (e.key >= '1' && e.key <= '9') {
+        const val = +e.key;
+        if (isValidPlacement(currentBoard, row, col, val)) {
+          selectedCell.textContent = val;
+          currentBoard[row][col] = val;
+          checkHighlights();
+          checkComplete();
+        } else {
+          selectedCell.classList.add("invalid");
+          setTimeout(() => selectedCell.classList.remove("invalid"), 500);
+        }
+      }
+
+      if (e.key === "Backspace" || e.key === "Delete") {
+        selectedCell.textContent = "";
+        currentBoard[row][col] = 0;
+        checkHighlights();
+      }
+    });
+
+    createBoard();
+    startTimer();
+  </script>
+</body>
+</html>
