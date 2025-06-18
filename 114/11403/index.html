@@ -1,171 +1,153 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>釣魚遊戲</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
+      font-family: "Arial", sans-serif;
+      background: linear-gradient(to top, #87ceeb, #ffffff);
       overflow: hidden;
-      width: 100vw;
-      height: 100vh;
     }
-    #startScreen, #endScreen {
-      position: absolute;
+    #game-container {
+      position: relative;
       width: 100vw;
       height: 100vh;
-      background: url('ocean.jpg') no-repeat center center;
-      background-size: cover;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      z-index: 2;
+      overflow: hidden;
     }
-    #gameCanvas {
-      display: none;
-      width: 100vw;
-      height: 100vh;
-      background: url('ocean.jpg') no-repeat center center;
-      background-size: cover;
+    #hook {
       position: absolute;
+      width: 50px;
+      height: auto;
       top: 0;
-      left: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: top 0.3s;
     }
-    button {
-      font-size: 24px;
-      padding: 15px 30px;
-      cursor: pointer;
-      border: none;
-      border-radius: 10px;
-      background-color: #007bff;
-      color: white;
-    }
-    #scoreDisplay, #timerDisplay {
+    .fish {
       position: absolute;
-      font-size: 20px;
-      color: white;
-      z-index: 3;
+      width: 80px;
+      height: auto;
+      animation: swim 6s linear infinite;
     }
-    #scoreDisplay { top: 10px; left: 10px; }
-    #timerDisplay { top: 10px; right: 10px; }
+    @keyframes swim {
+      from {
+        left: -100px;
+      }
+      to {
+        left: 110%;
+      }
+    }
+    #start-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      z-index: 10;
+    }
+    #score-board {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 18px;
+      background: rgba(255,255,255,0.7);
+      padding: 10px;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
-  <div id="startScreen">
-    <h1 style="color: white;">🎣 釣魚遊戲</h1>
-    <button onclick="startGame()">開始遊戲</button>
+  <div id="game-container">
+    <button id="start-button">開始釣魚</button>
+    <div id="score-board">分數：0<br>時間：60</div>
+    <img src="hook.jpg" id="hook" />
+    <audio id="bg-music" loop>
+      <source src="relax.mp3" type="audio/mpeg" />
+      您的瀏覽器不支援音樂播放。
+    </audio>
   </div>
-  <div id="endScreen" style="display:none; flex-direction: column;">
-    <h1 style="color: white;">⏰ 時間到!</h1>
-    <p id="finalScore" style="color:white; font-size:24px;"></p>
-    <button onclick="location.reload()">再玩一次</button>
-  </div>
-  <canvas id="gameCanvas"></canvas>
-  <div id="scoreDisplay">得分: 0</div>
-  <div id="timerDisplay">時間: 60</div>
+
   <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const startBtn = document.getElementById('start-button');
+    const hook = document.getElementById('hook');
+    const container = document.getElementById('game-container');
+    const scoreBoard = document.getElementById('score-board');
+    const music = document.getElementById('bg-music');
 
     const fishTypes = [
-      { color: "orange", score: 1 },
-      { color: "darkblue", score: 2 },
-      { color: "green", score: 3 },
-      { color: "red", score: -1 }
+      { src: '尼莫.jpg', score: 1 },
+      { src: '多莉.jpg', score: 2 },
+      { src: '海龜.jpg', score: 3 },
+      { src: '神仙魚.jpg', score: -1 }
     ];
 
-    let fishes = [];
-    let hookY = 0;
-    let hookDirection = 0;
-    let hookX;
     let score = 0;
     let timeLeft = 60;
-    let gameInterval;
-    let fishRadius = 20;
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      hookX = canvas.width / 2;
-    }
-
-    window.addEventListener('resize', resizeCanvas);
+    let gameInterval, timerInterval;
 
     function startGame() {
-      document.getElementById("startScreen").style.display = "none";
-      document.getElementById("gameCanvas").style.display = "block";
-      resizeCanvas();
-      generateFish();
-      gameInterval = setInterval(gameLoop, 1000 / 60);
-      setInterval(() => {
+      score = 0;
+      timeLeft = 60;
+      updateScoreBoard();
+      music.play();
+      hook.style.top = '50%';
+
+      gameInterval = setInterval(spawnFish, 1200);
+      timerInterval = setInterval(() => {
         timeLeft--;
-        document.getElementById("timerDisplay").innerText = "時間: " + timeLeft;
-        if (timeLeft <= 0) endGame();
-      }, 1000);
-      window.addEventListener("keydown", handleKey);
-    }
-
-    function generateFish() {
-      setInterval(() => {
-        const type = Math.floor(Math.random() * fishTypes.length);
-        fishes.push({
-          x: -30,
-          y: Math.random() * (canvas.height - 100) + 50,
-          speed: Math.random() * 2 + 1,
-          type: type
-        });
-      }, 1000);
-    }
-
-    function handleKey(e) {
-      if (e.key === "ArrowDown" && hookDirection === 0) {
-        hookDirection = 1;
-      } else if (e.key === "ArrowUp" && hookDirection === 1) {
-        hookDirection = 0;
-      }
-    }
-
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      fishes.forEach((fish) => { fish.x += fish.speed; });
-      fishes.forEach((fish) => {
-        ctx.beginPath();
-        ctx.arc(fish.x, fish.y, fishRadius, 0, Math.PI * 2);
-        ctx.fillStyle = fishTypes[fish.type].color;
-        ctx.fill();
-      });
-      if (hookDirection === 1) {
-        hookY += 5;
-        if (hookY >= canvas.height - 50) hookDirection = 0;
-      } else {
-        hookY -= 5;
-        if (hookY <= 0) hookY = 0;
-      }
-      // 改為繪製黑色長柱體作為魚鉤
-      ctx.fillStyle = "black";
-      ctx.fillRect(hookX - 2, 0, 4, hookY);
-
-      fishes = fishes.filter((fish) => {
-        const dx = hookX - fish.x;
-        const dy = hookY - fish.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < fishRadius + 10) {
-          score += fishTypes[fish.type].score;
-          document.getElementById("scoreDisplay").innerText = "得分: " + score;
-          return false;
+        updateScoreBoard();
+        if (timeLeft <= 0) {
+          endGame();
         }
-        return fish.x < canvas.width + fishRadius;
-      });
+      }, 1000);
     }
 
     function endGame() {
       clearInterval(gameInterval);
-      document.getElementById("gameCanvas").style.display = "none";
-      document.getElementById("endScreen").style.display = "flex";
-      document.getElementById("finalScore").innerText = "你釣到的總得分為: " + score;
+      clearInterval(timerInterval);
+      music.pause();
+      alert(`時間到！你的分數是 ${score}`);
+      document.querySelectorAll('.fish').forEach(f => f.remove());
     }
+
+    function updateScoreBoard() {
+      scoreBoard.innerHTML = `分數：${score}<br>時間：${timeLeft}`;
+    }
+
+    function spawnFish() {
+      const fishData = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+      const fish = document.createElement('img');
+      fish.src = fishData.src;
+      fish.className = 'fish';
+      fish.style.top = `${Math.random() * 80 + 10}%`;
+      container.appendChild(fish);
+
+      // 移除游出畫面的魚
+      setTimeout(() => fish.remove(), 7000);
+
+      // 點擊魚鉤時判斷有無魚在範圍
+      fish.addEventListener('click', () => {
+        const hookRect = hook.getBoundingClientRect();
+        const fishRect = fish.getBoundingClientRect();
+        if (Math.abs(fishRect.top - hookRect.top) < 40 && Math.abs(fishRect.left - hookRect.left) < 40) {
+          score += fishData.score;
+          updateScoreBoard();
+          fish.remove();
+        }
+      });
+    }
+
+    // 點擊畫面移動魚鉤
+    container.addEventListener('click', (e) => {
+      const y = e.clientY;
+      hook.style.top = `${y}px`;
+    });
+
+    startBtn.addEventListener('click', () => {
+      startGame();
+    });
   </script>
 </body>
 </html>
