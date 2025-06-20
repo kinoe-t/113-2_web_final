@@ -1,354 +1,163 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>配對抽籤與故事生成</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap');
-  body {
-    margin: 0; padding: 0;
-    font-family: 'Noto Sans TC', sans-serif;
-    background: linear-gradient(135deg, #0D1B2A, #1B263B);
-    color: #ECEFF4;
-    min-height: 100vh;
-  }
-  .container {
-    max-width: 720px;
-    margin: 40px auto;
-    background: rgba(15, 30, 60, 0.85);
-    padding: 30px 36px;
-    border-radius: 18px;
-    box-shadow: 0 12px 40px rgba(5, 30, 80, 0.7);
-    user-select: none;
-  }
-  h1 {
-    text-align: center;
-    font-weight: 700;
-    font-size: 2.4rem;
-    margin-bottom: 25px;
-    letter-spacing: 1.2px;
-    color: #A3BE8C;
-  }
-  label {
-    display: block;
-    margin-top: 20px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: #D8DEE9;
-  }
-  textarea, select, input[type="text"] {
-    width: 100%;
-    margin-top: 6px;
-    padding: 12px 14px;
-    font-size: 1rem;
-    border-radius: 10px;
-    border: 2px solid #4C566A;
-    background-color: #2E3440;
-    color: #ECEFF4;
-    resize: vertical;
-    box-sizing: border-box;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  }
-  textarea::placeholder, input::placeholder {
-    color: #7E8998;
-  }
-  textarea:focus, select:focus, input[type="text"]:focus {
-    outline: none;
-    border-color: #88C0D0;
-    box-shadow: 0 0 8px #81A1C1;
-    background-color: #3B4252;
-  }
-  #pairBtn {
-    margin-top: 28px;
-    background-color: #88C0D0;
-    border: none;
-    color: #2E3440;
-    font-weight: 700;
-    font-size: 1.3rem;
-    padding: 16px 0;
-    width: 100%;
-    border-radius: 14px;
-    cursor: pointer;
-    box-shadow: 0 6px 16px rgba(136, 192, 208, 0.7);
-    transition: background-color 0.25s ease, color 0.25s ease;
-    user-select: none;
-  }
-  #pairBtn:hover {
-    background-color: #81A1C1;
-    color: #ECEFF4;
-    box-shadow: 0 8px 20px rgba(129, 161, 193, 0.9);
-  }
-  #result {
-    margin-top: 30px;
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-align: center;
-    color: #A3BE8C;
-    min-height: 42px;
-    white-space: pre-wrap;
-  }
-  #storyText {
-    margin-top: 24px;
-    padding: 20px;
-    background: #3B4252;
-    border-radius: 12px;
-    max-height: 380px;
-    overflow-y: auto;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: #E5E9F0;
-    white-space: pre-wrap;
-    user-select: text;
-  }
-  #historyContainer {
-    margin-top: 32px;
-  }
-  #historyTitle {
-    font-weight: 700;
-    font-size: 1.3rem;
-    color: #8FBCBB;
-  }
-  #historyList {
-    margin-top: 12px;
-    max-height: 200px;
-    overflow-y: auto;
-    background: #2E3440;
-    border-radius: 10px;
-    padding: 14px 18px;
-    list-style-type: none;
-  }
-  #historyList li {
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-    color: #D8DEE9;
-  }
-  /* scrollbar for story and history */
-  #storyText::-webkit-scrollbar,
-  #historyList::-webkit-scrollbar {
-    width: 8px;
-  }
-  #storyText::-webkit-scrollbar-thumb,
-  #historyList::-webkit-scrollbar-thumb {
-    background-color: #81A1C1;
-    border-radius: 10px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>命運配對生成器</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: "Helvetica Neue", sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      margin-top: 40px;
+      font-size: 2.5em;
+      color: #fff;
+    }
+    textarea, select, button {
+      margin-top: 10px;
+      font-size: 1em;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      width: 300px;
+      background-color: #1e1e1e;
+      color: #fff;
+    }
+    textarea {
+      height: 120px;
+      resize: none;
+    }
+    button {
+      background-color: #444;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #666;
+    }
+    .result {
+      background-color: #1a1a1a;
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 15px;
+      width: 80%;
+      max-width: 800px;
+      white-space: pre-line;
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1>配對抽籤＋故事生成器</h1>
-
-  <label for="names">請輸入名字（用換行或逗號分隔）</label>
-  <textarea id="names" rows="4" placeholder="例如：小明,小華,小美,小強"></textarea>
-
-  <label for="theme">故事主題</label>
+  <h1>命運配對生成器</h1>
+  <textarea id="names" placeholder="請輸入名字，以逗號或換行分隔"></textarea>
+  <br />
   <select id="theme">
-    <option value="愛情">愛情</option>
+    <option value="浪漫">浪漫</option>
     <option value="冒險">冒險</option>
     <option value="懸疑">懸疑</option>
+    <option value="奇幻">奇幻</option>
+    <option value="校園">校園</option>
+    <option value="科幻">科幻</option>
+    <option value="歷史">歷史</option>
+    <option value="日常">日常</option>
   </select>
-
-  <label for="style">故事風格</label>
+  <br />
   <select id="style">
-    <option value="浪漫唯美">浪漫唯美</option>
-    <option value="神秘詭譎">神秘詭譎</option>
-    <option value="輕鬆幽默">輕鬆幽默</option>
+    <option value="甜美">甜美</option>
+    <option value="戲劇">戲劇</option>
+    <option value="搞笑">搞笑</option>
+    <option value="詩意">詩意</option>
+    <option value="黑暗">黑暗</option>
+    <option value="寫實">寫實</option>
+    <option value="憂鬱">憂鬱</option>
   </select>
-
-  <label for="setting">背景地點</label>
-  <select id="setting">
-    <option value="都市">都市</option>
-    <option value="森林">森林</option>
+  <br />
+  <select id="location">
     <option value="海邊">海邊</option>
+    <option value="圖書館">圖書館</option>
+    <option value="山上">山上</option>
+    <option value="咖啡廳">咖啡廳</option>
+    <option value="學校">學校</option>
+    <option value="火車上">火車上</option>
+    <option value="演唱會">演唱會</option>
+    <option value="天台">天台</option>
   </select>
-
-  <label for="relationship">人物關係</label>
+  <br />
   <select id="relationship">
     <option value="陌生人">陌生人</option>
+    <option value="同學">同學</option>
     <option value="青梅竹馬">青梅竹馬</option>
-    <option value="網友初見面">網友初見面</option>
+    <option value="死對頭">死對頭</option>
+    <option value="單戀中">單戀中</option>
+    <option value="兄妹">兄妹</option>
+    <option value="隊友">隊友</option>
+    <option value="前任">前任</option>
   </select>
-
-  <label for="twist">劇情轉折</label>
+  <br />
   <select id="twist">
-    <option value="有超能力">有超能力</option>
-    <option value="外星人亂入">外星人亂入</option>
-    <option value="突然告白">突然告白</option>
-    <option value="有人昏倒了">有人昏倒了</option>
-    <option value="失憶了">失憶了</option>
-    <option value="沒轉折">沒轉折</option>
+    <option value="背叛">背叛</option>
+    <option value="重逢">重逢</option>
+    <option value="犧牲">犧牲</option>
+    <option value="身份揭露">身份揭露</option>
+    <option value="獲得能力">獲得能力</option>
+    <option value="事故">事故</option>
+    <option value="告白">告白</option>
+    <option value="分離">分離</option>
   </select>
+  <br />
+  <button onclick="startPairing()">開始配對</button>
 
-  <button id="pairBtn" type="button">開始配對＋生成故事</button>
+  <div class="result" id="result"></div>
 
-  <div id="result"></div>
-  <pre id="storyText"></pre>
+  <script>
+    function generateStory(name1, name2, theme, style, location, relationship, twist) {
+      let story = `【主題：${theme}】【風格：${style}】【地點：${location}】【關係：${relationship}】【轉折：${twist}】\n\n`;
 
-  <div id="historyContainer">
-    <div id="historyTitle">最近配對紀錄（最多10筆）</div>
-    <ul id="historyList"></ul>
-  </div>
-</div>
+      story += `在${location}的某個午後，${name1}與${name2}以${relationship}的身份意外重逢。\n`;
+      story += `初見時，他們彼此間有些尷尬與拘謹，過去的回憶與未說出口的話語讓氣氛微妙又緊張。\n`;
+      story += `隨著時間流逝，他們開始慢慢敞開心扉，分享彼此這段時間的生活與心境，偶爾會心一笑，關係也漸漸融洽起來。\n\n`;
 
-<script>
-  // 範例故事段落，可自由擴充
-  const storyParagraphs = {
-    "愛情": {
-      "浪漫唯美": [
-        "那天晚上，城市的燈光點綴著天際，兩人的目光在擁擠的人潮中悄然相遇，心跳開始加速。",
-        "她輕輕握住他的手，感覺到彼此的溫度，彷彿時間也為此停頓。",
-        "海風吹過，他們的髮絲微微飛揚，故事在此刻悄悄展開。",
-        "星空下，承諾成為兩人心底最溫暖的秘密。",
-        "每一次相視，都是未說出口的愛意。"
-      ],
-      "神秘詭譎": [
-        "深夜裡的電話聲響起，帶著一絲詭譎的氣息。",
-        "陰影中，他們交換著秘密，彼此的過去像迷霧般朦朧。",
-        "一道閃電劃破天空，揭開了不為人知的真相。",
-        "她眼中閃爍著謎樣的光芒，讓人難以捉摸。",
-        "故事的背後藏著一段難以言喻的陰謀。"
-      ],
-      "輕鬆幽默": [
-        "他尷尬地笑著，手裡捧著一束奇怪的花，想給她驚喜。",
-        "兩人打趣著對方的糗事，笑聲充滿整個房間。",
-        "意外的烤肉失敗，卻成了甜蜜的回憶。",
-        "他假裝生氣，她卻忍不住偷笑，氣氛溫馨又有趣。",
-        "在錯誤中找到對方的真心，是最美好的巧合。"
-      ]
-    },
-    "冒險": {
-      "浪漫唯美": [
-        "他們攜手踏上未知的旅程，沿途風景如詩如畫。",
-        "月光灑下銀白色的光輝，指引著他們前行。",
-        "每一次挑戰，都是彼此信任的考驗。",
-        "在荒野中，共享篝火的溫暖與故事。",
-        "冒險不只是征服，更是心靈的交流。"
-      ],
-      "神秘詭譎": [
-        "迷霧籠罩的森林，藏著無數謎團與危機。",
-        "他們小心翼翼地探索，腳步聲在寂靜中迴盪。",
-        "突如其來的怪異聲響，讓人毛骨悚然。",
-        "黑暗中，誰是真正的盟友誰是敵人？",
-        "生死一瞬間，真相浮出水面。"
-      ],
-      "輕鬆幽默": [
-        "誤入迷宮的兩人開始抱怨起地圖的準確度。",
-        "滑稽的陷阱一再讓他們狼狽不堪，卻樂在其中。",
-        "他試著裝勇敢，卻常常跌倒逗得她大笑。",
-        "冒險途中遇到奇怪生物，成了意外的夥伴。",
-        "兩人嘻嘻哈哈，把危機當作最好的笑料。"
-      ]
-    },
-    "懸疑": {
-      "浪漫唯美": [
-        "在煙霧繚繞的夜晚，他們肩並肩尋找真相。",
-        "每個謎團的背後，都藏著細膩的情感。",
-        "暗巷裡的燈光閃爍，映出他們深情的眼神。",
-        "秘密漸漸解開，愛意也隨之澄清。",
-        "他們的羈絆，在危險中越發牢不可破。"
-      ],
-      "神秘詭譎": [
-        "古老的書頁翻動，帶出詭異的符號與預言。",
-        "陰影中的身影似乎無處不在，令人心驚膽戰。",
-        "線索拼湊出一個令人毛骨悚然的故事。",
-        "他們小心翼翼地揭開層層迷霧，恐懼與期待並存。",
-        "真相就在眼前，卻越來越模糊。"
-      ],
-      "輕鬆幽默": [
-        "偵探總是忘記帶放大鏡，成了笑柄。",
-        "他們用不合邏輯的推理破解奇怪案件，讓人哭笑不得。",
-        "幽默的對話緩和緊張氣氛。",
-        "意外的線索出現，讓案件峰迴路轉。",
-        "破案過程充滿趣味與笑聲。"
-      ]
+      story += `某日，一件突如其來的事件打破了原有的平靜——${twist}。\n`;
+      story += `這件事迫使他們不得不重新思考彼此的立場和未來，感情經歷了考驗，也讓彼此的內心更加豐富與複雜。\n`;
+      story += `他們嘗試溝通與理解，盡管困難重重，但心底的情感絲毫沒有減少，反而在磨合中更加堅定。\n\n`;
+
+      story += `隨著故事逐步推進，${name1}與${name2}在${location}的景色見證著他們從陌生到熟悉，從分歧到包容。\n`;
+      story += `這段經歷不僅改變了他們的關係，也深刻影響了他們對人生與愛情的看法。\n`;
+      story += `他們明白，無論結果如何，曾經相伴的時光都是珍貴的禮物。\n\n`;
+
+      story += `最後，在那個充滿回憶的${location}，他們靜靜地坐著，沒有多餘言語，心中卻知道，這段故事將會一直延續下去，以各自不同的方式繼續影響彼此的生命。\n`;
+
+      return story;
     }
-  };
 
-  const settingTexts = {
-    "都市": "高樓林立，霓虹閃爍，繁忙卻充滿機會。",
-    "森林": "綠意盎然，鳥語花香，隱藏著自然的神秘。",
-    "海邊": "海浪拍打岸邊，鹹風帶來自由與浪漫。"
-  };
+    function startPairing() {
+      const namesRaw = document.getElementById("names").value;
+      const theme = document.getElementById("theme").value;
+      const style = document.getElementById("style").value;
+      const location = document.getElementById("location").value;
+      const relationship = document.getElementById("relationship").value;
+      const twist = document.getElementById("twist").value;
+      const names = namesRaw.split(/[\,\n]/).map(n => n.trim()).filter(n => n);
 
-  const relationshipTexts = {
-    "陌生人": "見面，眼神交會瞬間，命運開始悄悄改變。",
-    "青梅竹馬": "從小一起長大，彼此熟悉到不需言語，卻也有說不出口的秘密。",
-    "網友初見面": "線上的熟悉在現實中化為真實，尷尬與期待交織。"
-  };
+      if (names.length < 2) {
+        alert("請輸入至少兩個名字");
+        return;
+      }
 
-  const twistTexts = {
-    "有超能力": "某個瞬間，隱藏在他們身上的超能力覺醒，改變了一切。",
-    "外星人亂入": "一位來自外太空的神秘人突然加入，使故事變得不可思議。",
-    "突然告白": "意料之外的告白像閃電般劈開沉默的天空。",
-    "有人昏倒了": "突如其來的昏倒事件帶來一連串意想不到的後果。",
-    "失憶了": "重要的記憶被抹去，兩人努力尋回過去的碎片。",
-    "沒轉折": "日常平凡卻溫暖，故事如涓涓細流緩緩流淌。"
-  };
+      const shuffled = names.sort(() => 0.5 - Math.random());
+      const [name1, name2] = shuffled;
 
-  function parseNames(input) {
-    return input.split(/[\n,，]+/).map(n => n.trim()).filter(n => n.length > 0);
-  }
+      const story = generateStory(name1, name2, theme, style, location, relationship, twist);
 
-  function shuffleArray(arr) {
-    let array = arr.slice();
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+      document.getElementById("result").innerText = `✨ 配對結果：${name1} ❤ ${name2}\n\n📖 故事：\n${story}`;
     }
-    return array;
-  }
-
-  function generateStory(pair, theme, style, setting, relationship, twist) {
-    let paras = storyParagraphs[theme][style];
-    paras = paras || ["這是一段神秘的故事開始。"];
-    let chosenParas = shuffleArray(paras).slice(0,5);
-
-    let story = `故事主題：${theme} / 風格：${style}\n背景地點：${setting}，${settingTexts[setting]}\n人物關係：${relationship}，${relationshipTexts[relationship]}\n劇情轉折：${twist}，${twistTexts[twist]}\n\n`;
-    story += `配對人物：${pair[0]} ❤ ${pair[1]}\n\n`;
-
-    chosenParas.forEach((p,i) => {
-      story += `第${i+1}章：\n${p}\n\n`;
-    });
-
-    while(story.length < 1000){
-      story += chosenParas[Math.floor(Math.random()*chosenParas.length)] + "\n\n";
-    }
-    return story;
-  }
-
-  document.getElementById('pairBtn').addEventListener('click', () => {
-    const namesInput = document.getElementById('names').value;
-    const names = parseNames(namesInput);
-    if(names.length < 2) {
-      alert('請至少輸入兩個名字');
-      return;
-    }
-    const theme = document.getElementById('theme').value;
-    const style = document.getElementById('style').value;
-    const setting = document.getElementById('setting').value;
-    const relationship = document.getElementById('relationship').value;
-    const twist = document.getElementById('twist').value;
-
-    let shuffled = shuffleArray(names);
-    const pair = shuffled.slice(0,2);
-
-    const resultDiv = document.getElementById('result');
-    resultDiv.textContent = `配對成功！\n${pair[0]} ❤️ ${pair[1]}`;
-
-    const story = generateStory(pair, theme, style, setting, relationship, twist);
-    const storyDiv = document.getElementById('storyText');
-    storyDiv.textContent = story;
-
-    const historyList = document.getElementById('historyList');
-    const li = document.createElement('li');
-    li.textContent = `${pair[0]} & ${pair[1]} － 主題：${theme}，風格：${style}，地點：${setting}`;
-    historyList.prepend(li);
-    if(historyList.childElementCount > 10){
-      historyList.removeChild(historyList.lastChild);
-    }
-  });
-</script>
-
+  </script>
 </body>
 </html>

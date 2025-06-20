@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>今日愛情運勢</title>
+  <meta charset="UTF-8" />
+  <title>雙人愛情配對運勢（含禁忌事項）</title>
   <style>
     body {
       font-family: "微軟正黑體", sans-serif;
@@ -13,6 +13,10 @@
       padding: 20px;
     }
     h1 { color: #d6336c; }
+    label {
+      display: inline-block;
+      margin: 5px 10px;
+    }
     input, select, button {
       padding: 8px;
       margin: 5px;
@@ -29,6 +33,9 @@
       border-radius: 10px;
       background: #fff;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
     }
     .btn {
       background: #ff6699;
@@ -54,25 +61,61 @@
       0% { transform: rotate(0deg);}
       100% { transform: rotate(360deg);}
     }
+    .forbidden {
+      margin-top: 15px;
+      color: #b00020;
+      font-weight: bold;
+      background: #ffe6e6;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #b00020;
+    }
   </style>
 </head>
 <body>
-  <h1>🌸 今日愛情運勢 🌸</h1>
-  <label>生日：<input type="date" id="birth"></label>
-  <button class="btn" onclick="showLuck()">查看運勢</button>
+  <h1>🌸 雙人愛情配對運勢（含禁忌事項）🌸</h1>
+
+  <div>
+    <label>你的生日：<input type="date" id="birth1" /></label>
+    <label>你的性別：
+      <select id="gender1">
+        <option value="">請選擇</option>
+        <option value="男">男</option>
+        <option value="女">女</option>
+        <option value="其他">其他</option>
+      </select>
+    </label>
+  </div>
+  <div>
+    <label>對方生日：<input type="date" id="birth2" /></label>
+    <label>對方性別：
+      <select id="gender2">
+        <option value="">請選擇</option>
+        <option value="男">男</option>
+        <option value="女">女</option>
+        <option value="其他">其他</option>
+      </select>
+    </label>
+  </div>
+
+  <button class="btn" onclick="showLuck()">查看運勢 & 配對</button>
 
   <div class="result" id="result" style="display:none;">
-    <div id="starSign"></div>
+    <div id="starSign1"></div>
     <div id="loveScore"></div>
     <div id="advice"></div>
     <div id="color"></div>
     <div id="item"></div>
     <div class="fortune" id="quote"></div>
+    <div id="starSign2"></div>
+    <div id="matchResult"></div>
+    <div class="forbidden" id="forbidden"></div>
+
     <button class="btn" onclick="spin()">簡單占卜</button>
     <div class="spinner" id="spinner" style="display:none;"></div>
     <br><br>
-    <a class="btn" href="https://line.me" target="_blank">分享到 LINE</a>
-    <a class="btn" href="https://www.facebook.com/sharer/sharer.php?u=https://example.com" target="_blank">分享到 FB</a>
+    <a class="btn" href="https://line.me" target="_blank" rel="noopener noreferrer">分享到 LINE</a>
+    <a class="btn" href="https://www.facebook.com/sharer/sharer.php?u=https://example.com" target="_blank" rel="noopener noreferrer">分享到 FB</a>
   </div>
 
   <script>
@@ -85,15 +128,44 @@
       return day < dates[month-1] ? signs[month-1] : signs[month];
     }
 
+    // 禁忌事項範例，key為星座1_性別1-星座2_性別2 (雙向寫入)
+    const forbiddenMap = {
+      "牡羊_男-巨蟹_女": "牡羊男與巨蟹女易因情緒不合產生摩擦，注意溝通。",
+      "巨蟹_女-牡羊_男": "巨蟹女與牡羊男易因情緒不合產生摩擦，注意溝通。",
+      "天秤_女-天蠍_男": "天秤女與天蠍男需要尊重彼此隱私，否則易有誤會。",
+      "天蠍_男-天秤_女": "天蠍男與天秤女需要尊重彼此隱私，否則易有誤會。",
+      "雙子_男-雙魚_女": "雙子男與雙魚女想法差異大，要多包容彼此。",
+      "雙魚_女-雙子_男": "雙魚女與雙子男想法差異大，要多包容彼此。"
+    };
+
+    function getForbidden(star1, gender1, star2, gender2) {
+      if(!star1 || !gender1 || !star2 || !gender2) return "";
+      let key1 = `${star1}_${gender1}-${star2}_${gender2}`;
+      let key2 = `${star2}_${gender2}-${star1}_${gender1}`;
+      if(forbiddenMap[key1]) return forbiddenMap[key1];
+      if(forbiddenMap[key2]) return forbiddenMap[key2];
+      return "恭喜！你們的配對沒有明顯禁忌，可以安心發展。";
+    }
+
     function showLuck(){
-      const birth = document.getElementById("birth").value;
-      if(!birth) { alert("請輸入生日！"); return; }
-      const date = new Date(birth);
-      const zodiac = getZodiac(date.getMonth()+1, date.getDate());
-      document.getElementById("starSign").innerHTML = "你的星座是：" + zodiac;
+      const birth1 = document.getElementById("birth1").value;
+      const birth2 = document.getElementById("birth2").value;
+      const gender1 = document.getElementById("gender1").value;
+      const gender2 = document.getElementById("gender2").value;
+
+      if(!birth1 || !birth2) { alert("請輸入雙方生日！"); return; }
+      if(!gender1 || !gender2) { alert("請選擇雙方性別！"); return; }
+
+      const date1 = new Date(birth1);
+      const zodiac1 = getZodiac(date1.getMonth()+1, date1.getDate());
+      document.getElementById("starSign1").innerHTML = `你的星座是：${zodiac1}（${gender1}）`;
+
+      const date2 = new Date(birth2);
+      const zodiac2 = getZodiac(date2.getMonth()+1, date2.getDate());
+      document.getElementById("starSign2").innerHTML = `對方星座是：${zodiac2}（${gender2}）`;
 
       const score = Math.floor(Math.random()*5)+1;
-      document.getElementById("loveScore").innerHTML = "愛情指數：" + "❤️".repeat(score);
+      document.getElementById("loveScore").innerHTML = "今日愛情指數：" + "❤️".repeat(score);
 
       const advices = ["適合告白", "別太強求緣分", "耐心等好運", "今天多笑笑", "可嘗試主動出擊"];
       document.getElementById("advice").innerHTML = "建議：" + advices[Math.floor(Math.random()*advices.length)];
@@ -112,6 +184,14 @@
         "愛要及時，別讓遺憾說出口。"
       ];
       document.getElementById("quote").innerHTML = "💌 " + quotes[Math.floor(Math.random()*quotes.length)];
+
+      // 配對指數
+      const matchScore = Math.floor(Math.random() * 51) + 50;  // 50-100分
+      document.getElementById("matchResult").innerHTML = `你和 ${zodiac2} 的配對指數：${matchScore} 分 💖`;
+
+      // 禁忌事項
+      const forbiddenText = getForbidden(zodiac1, gender1, zodiac2, gender2);
+      document.getElementById("forbidden").innerText = forbiddenText;
 
       document.getElementById("result").style.display = "block";
     }
