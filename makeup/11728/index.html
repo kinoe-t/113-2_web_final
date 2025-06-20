@@ -1,157 +1,270 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2487.5">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000; min-height: 14.0px}
-    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'PingFang TC'; -webkit-text-stroke: #000000}
-    span.s1 {font-kerning: none}
-    span.s2 {font: 12.0px 'PingFang TC'; font-kerning: none}
-    span.s3 {font: 12.0px 'Apple Color Emoji'; font-kerning: none}
-    span.s4 {font: 12.0px Helvetica; font-kerning: none}
+
+  <meta charset="UTF-8">
+
+  <title>本日星座運勢</title>
+
+  <style>
+    body {
+
+      font-family: "Arial", sans-serif;
+
+      background: #fdf6f0;
+
+      color: #333;
+
+      padding: 2rem;
+
+      max-width: 600px;
+
+      margin: auto;
+
+    }
+
+    h1 {
+
+      text-align: center;
+
+      color: #e67e22;
+
+    }
+
+    label {
+
+      display: block;
+
+      margin: 1rem 0 0.3rem;
+
+    }
+
+    input[type="text"],
+    input[type="date"] {
+
+      width: 100%;
+
+      padding: 0.5rem;
+
+      border: 1px solid #ccc;
+
+      border-radius: 5px;
+
+    }
+
+    button {
+
+      margin-top: 1rem;
+
+      padding: 0.7rem;
+
+      width: 100%;
+
+      background-color: #e67e22;
+
+      color: white;
+
+      border: none;
+
+      border-radius: 5px;
+
+      font-size: 1rem;
+
+    }
+
+    .result {
+
+      margin-top: 2rem;
+
+      padding: 1rem;
+
+      background-color: #fff8ee;
+
+      border-left: 5px solid #e67e22;
+
+    }
+
+    .highlight {
+
+      color: #d35400;
+
+      font-weight: bold;
+
+    }
   </style>
+
 </head>
+
 <body>
-<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
-<p class="p1"><span class="s1">&lt;html lang="zh-Hant"&gt;</span></p>
-<p class="p1"><span class="s1">&lt;head&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;</span><span class="s2">本日星座運勢</span><span class="s1">&lt;/title&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;style&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>body {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>font-family: "Arial", sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>background: #fdf6f0;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>color: #333;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>padding: 2rem;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>max-width: 600px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>margin: auto;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>h1 {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>text-align: center;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>color: #e67e22;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>label {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>display: block;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>margin: 1rem 0 0.3rem;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>input[type="text"], input[type="date"] {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>width: 100%;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>padding: 0.5rem;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>border: 1px solid #ccc;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>border-radius: 5px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>button {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>margin-top: 1rem;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>padding: 0.7rem;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>width: 100%;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>background-color: #e67e22;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>color: white;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>border: none;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>border-radius: 5px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>font-size: 1rem;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.result {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>margin-top: 2rem;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>padding: 1rem;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>background-color: #fff8ee;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>border-left: 5px solid #e67e22;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.highlight {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>color: #d35400;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>font-weight: bold;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
-<p class="p1"><span class="s1">&lt;body&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h1&gt;</span><span class="s3">🔮</span><span class="s1"> </span><span class="s2">今日星座運勢</span><span class="s1"> </span><span class="s3">🔮</span><span class="s1">&lt;/h1&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- </span><span class="s2">使用者輸入區域</span><span class="s1"> --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;label for="nickname"&gt;</span><span class="s2">暱稱（選填）</span><span class="s1">:&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;input type="text" id="nickname" placeholder="</span><span class="s2">請輸入暱稱</span><span class="s1">"&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;label for="birthday"&gt;</span><span class="s2">生日（必填）</span><span class="s1">:&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;input type="date" id="birthday"&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;button onclick="showHoroscope()"&gt;</span><span class="s2">查詢運勢</span><span class="s1">&lt;/button&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- </span><span class="s2">顯示結果的區域</span><span class="s1"> --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="result" id="result" style="display:none"&gt;&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// </span><span class="s2">星座範圍與名稱</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const zodiacSigns = [</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">牡羊座</span><span class="s1">", start: "03-21", end: "04-19" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">金牛座</span><span class="s1">", start: "04-20", end: "05-20" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">雙子座</span><span class="s1">", start: "05-21", end: "06-20" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">巨蟹座</span><span class="s1">", start: "06-21", end: "07-22" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">獅子座</span><span class="s1">", start: "07-23", end: "08-22" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">處女座</span><span class="s1">", start: "08-23", end: "09-22" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">天秤座</span><span class="s1">", start: "09-23", end: "10-22" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">天蠍座</span><span class="s1">", start: "10-23", end: "11-21" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">射手座</span><span class="s1">", start: "11-22", end: "12-21" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">魔羯座</span><span class="s1">", start: "12-22", end: "01-19" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">水瓶座</span><span class="s1">", start: "01-20", end: "02-18" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{ name: "</span><span class="s2">雙魚座</span><span class="s1">", start: "02-19", end: "03-20" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>];</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// </span><span class="s2">隨機取樣函式</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>function randomPick(arr) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>return arr[Math.floor(Math.random() * arr.length)];</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">    </span>// </span><span class="s1">根據生日判斷星座</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>function getZodiacSign(birthday) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const monthDay = birthday.slice(5); // </span><span class="s2">取出</span><span class="s1"> MM-DD</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>for (const sign of zodiacSigns) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>(sign.start &lt;= monthDay &amp;&amp; monthDay &lt;= sign.end) ||</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>(sign.start &gt; sign.end &amp;&amp; (monthDay &gt;= sign.start || monthDay &lt;= sign.end))</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return sign.name;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>return "</span><span class="s2">未知</span><span class="s1">";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">    </span>// </span><span class="s1">主邏輯：顯示運勢</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>function showHoroscope() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const nickname = document.getElementById("nickname").value;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const birthday = document.getElementById("birthday").value;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const resultDiv = document.getElementById("result");</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (!birthday) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>alert("</span><span class="s2">請輸入生日</span><span class="s1">");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const sign = getZodiacSign(birthday);</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">      </span>// </span><span class="s1">以下為範例運勢資料，可根據實際需求調整或串接</span><span class="s4"> API</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const colors = ["</span><span class="s2">紅色</span><span class="s1">", "</span><span class="s2">藍色</span><span class="s1">", "</span><span class="s2">綠色</span><span class="s1">", "</span><span class="s2">黃色</span><span class="s1">", "</span><span class="s2">紫色</span><span class="s1">", "</span><span class="s2">橘色</span><span class="s1">", "</span><span class="s2">粉紅色</span><span class="s1">"];</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const directions = ["</span><span class="s2">東方</span><span class="s1">", "</span><span class="s2">西方</span><span class="s1">", "</span><span class="s2">南方</span><span class="s1">", "</span><span class="s2">北方</span><span class="s1">", "</span><span class="s2">東北</span><span class="s1">", "</span><span class="s2">東南</span><span class="s1">", "</span><span class="s2">西北</span><span class="s1">", "</span><span class="s2">西南</span><span class="s1">"];</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const fortunes = ["</span><span class="s2">超順利</span><span class="s1"> </span><span class="s3">✨</span><span class="s1">", "</span><span class="s2">普通平穩</span><span class="s1"> </span><span class="s3">🍃</span><span class="s1">", "</span><span class="s2">需多加注意</span><span class="s1"> </span><span class="s3">⚠️</span><span class="s1">", "</span><span class="s2">挑戰連連</span><span class="s1"> </span><span class="s3">💥</span><span class="s1">"];</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const categories = ["</span><span class="s2">學業運勢</span><span class="s1">", "</span><span class="s2">桃花運勢</span><span class="s1">", "</span><span class="s2">工作運勢</span><span class="s1">", "</span><span class="s2">財運運勢</span><span class="s1">"];</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const selectedCategories = categories.sort(() =&gt; 0.5 - Math.random()).slice(0, 2);</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// </span><span class="s2">建立運勢內容</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>let content = `&lt;p&gt;</span><span class="s2">親愛的</span><span class="s1"> &lt;span class="highlight"&gt;${nickname || "</span><span class="s2">使用者</span><span class="s1">"}&lt;/span&gt;</span><span class="s2">，你是</span><span class="s1"> &lt;span class="highlight"&gt;${sign}&lt;/span&gt;</span><span class="s2">！</span><span class="s1">&lt;/p&gt;`;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>content += `&lt;p&gt;</span><span class="s3">⭐</span><span class="s1"> </span><span class="s2">今日幸運色：</span><span class="s1">&lt;span class="highlight"&gt;${randomPick(colors)}&lt;/span&gt;&lt;/p&gt;`;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>for (const cat of selectedCategories) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>content += `&lt;p&gt;</span><span class="s3">🔹</span><span class="s1"> ${cat}</span><span class="s2">：</span><span class="s1">&lt;span class="highlight"&gt;${randomPick(fortunes)}&lt;/span&gt;&lt;/p&gt;`;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>content += `&lt;p&gt;</span><span class="s3">🧭</span><span class="s1"> </span><span class="s2">幸運方位：</span><span class="s1">&lt;span class="highlight"&gt;${randomPick(directions)}&lt;/span&gt;&lt;/p&gt;`;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>resultDiv.innerHTML = content;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>resultDiv.style.display = "block";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+
+  <h1>🔮 今日星座運勢 🔮</h1>
+
+
+
+  <!-- 使用者輸入區域 -->
+
+  <label for="nickname">暱稱（選填）:</label>
+
+  <input type="text" id="nickname" placeholder="請輸入暱稱">
+
+
+
+  <label for="birthday">生日（必填）:</label>
+
+  <input type="date" id="birthday">
+
+
+
+  <button onclick="showHoroscope()">查詢運勢</button>
+
+
+
+  <!-- 顯示結果的區域 -->
+
+  <div class="result" id="result" style="display:none"></div>
+
+
+
+  <script>
+
+    // 星座範圍與名稱
+
+    const zodiacSigns = [
+
+      { name: "牡羊座", start: "03-21", end: "04-19" },
+
+      { name: "金牛座", start: "04-20", end: "05-20" },
+
+      { name: "雙子座", start: "05-21", end: "06-20" },
+
+      { name: "巨蟹座", start: "06-21", end: "07-22" },
+
+      { name: "獅子座", start: "07-23", end: "08-22" },
+
+      { name: "處女座", start: "08-23", end: "09-22" },
+
+      { name: "天秤座", start: "09-23", end: "10-22" },
+
+      { name: "天蠍座", start: "10-23", end: "11-21" },
+
+      { name: "射手座", start: "11-22", end: "12-21" },
+
+      { name: "魔羯座", start: "12-22", end: "01-19" },
+
+      { name: "水瓶座", start: "01-20", end: "02-18" },
+
+      { name: "雙魚座", start: "02-19", end: "03-20" },
+
+    ];
+
+
+
+    // 隨機取樣函式
+
+    function randomPick(arr) {
+
+      return arr[Math.floor(Math.random() * arr.length)];
+
+    }
+
+
+
+    // 根據生日判斷星座
+
+    function getZodiacSign(birthday) {
+
+      const monthDay = birthday.slice(5); // 取出 MM-DD
+
+      for (const sign of zodiacSigns) {
+
+        if (
+
+          (sign.start <= monthDay && monthDay <= sign.end) ||
+
+          (sign.start > sign.end && (monthDay >= sign.start || monthDay <= sign.end))
+
+        ) {
+
+          return sign.name;
+
+        }
+
+      }
+
+      return "未知";
+
+    }
+
+
+
+    // 主邏輯：顯示運勢
+
+    function showHoroscope() {
+
+      const nickname = document.getElementById("nickname").value;
+
+      const birthday = document.getElementById("birthday").value;
+
+      const resultDiv = document.getElementById("result");
+
+
+
+      if (!birthday) {
+
+        alert("請輸入生日");
+
+        return;
+
+      }
+
+
+
+      const sign = getZodiacSign(birthday);
+
+
+
+      // 以下為範例運勢資料，可根據實際需求調整或串接 API
+
+      const colors = ["紅色", "藍色", "綠色", "黃色", "紫色", "橘色", "粉紅色"];
+
+      const directions = ["東方", "西方", "南方", "北方", "東北", "東南", "西北", "西南"];
+
+      const fortunes = ["超順利 ✨", "普通平穩 🍃", "需多加注意 ⚠️", "挑戰連連 💥"];
+
+
+
+      const categories = ["學業運勢", "桃花運勢", "工作運勢", "財運運勢"];
+
+      const selectedCategories = categories.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+
+
+      // 建立運勢內容
+
+      let content = `<p>親愛的 <span class="highlight">${nickname || "使用者"}</span>，你是 <span class="highlight">${sign}</span>！</p>`;
+
+      content += `<p>⭐ 今日幸運色：<span class="highlight">${randomPick(colors)}</span></p>`;
+
+      for (const cat of selectedCategories) {
+
+        content += `<p>🔹 ${cat}：<span class="highlight">${randomPick(fortunes)}</span></p>`;
+
+      }
+
+      content += `<p>🧭 幸運方位：<span class="highlight">${randomPick(directions)}</span></p>`;
+
+
+
+      resultDiv.innerHTML = content;
+
+      resultDiv.style.display = "block";
+
+    }
+
+  </script>
+
 </body>
+
 </html>
