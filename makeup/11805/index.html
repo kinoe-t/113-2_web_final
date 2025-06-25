@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日星座運勢</title>
+  <!-- 淺色系配色 -->
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card-bg: #ffffff;
+      --primary: #6c63ff;
+      --secondary: #ff8a65;
+      --text: #333333;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Noto Sans TC", Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem 1rem 6rem;
+    }
+
+    h1 {
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      letter-spacing: 2px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      max-width: 480px;
+      width: 100%;
+      transition: transform 0.2s ease;
+    }
+    .card:hover { transform: translateY(-4px); }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="date"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--primary);
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      outline: none;
+      background: #fafbff;
+    }
+
+    button {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1.1rem;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    button:hover { background: #5a53e6; }
+
+    #result {
+      margin-top: 2rem;
+      background: var(--card-bg);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+      padding: 2rem;
+      max-width: 560px;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    #result.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #result h2 {
+      color: var(--secondary);
+      margin-top: 0;
+    }
+
+    #result ul {
+      list-style: none;
+      padding: 0;
+      margin: 1rem 0 0 0;
+    }
+
+    #result li {
+      margin-bottom: 0.75rem;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    #result li::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 2rem 0 1rem;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    /* fireworks container fixed at bottom */
+    #fireworks-container {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔮 今日星座運勢</h1>
+  <div class="card">
+    <label for="birthday">請輸入您的生日：</label>
+    <input type="date" id="birthday" max="9999-12-31">
+    <button id="checkBtn">查看運勢</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div id="fireworks-container"></div>
+
+  <!-- Fireworks.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2.10.6/dist/index.min.js"></script>
+
+  <script>
+    // 星座日期區間定義
+    const zodiacRanges = [
+      { sign: "魔羯座", start: "01-01", end: "01-19" },
+      { sign: "水瓶座", start: "01-20", end: "02-18" },
+      { sign: "雙魚座", start: "02-19", end: "03-20" },
+      { sign: "牡羊座", start: "03-21", end: "04-19" },
+      { sign: "金牛座", start: "04-20", end: "05-20" },
+      { sign: "雙子座", start: "05-21", end: "06-20" },
+      { sign: "巨蟹座", start: "06-21", end: "07-22" },
+      { sign: "獅子座", start: "07-23", end: "08-22" },
+      { sign: "處女座", start: "08-23", end: "09-22" },
+      { sign: "天秤座", start: "09-23", end: "10-22" },
+      { sign: "天蠍座", start: "10-23", end: "11-21" },
+      { sign: "射手座", start: "11-22", end: "12-21" },
+      { sign: "魔羯座", start: "12-22", end: "12-31" }
+    ];
+
+    // 隨機選取輔助函式
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // 範例運勢資訊 (可自行擴充)
+    const romanceArr = [
+      "桃花盛開，今日魅力指數爆表！", "桃花平平，保持微笑好運來。", "注意爛桃花，心要定。"
+    ];
+    const careerArr = [
+      "事業運旺，適合提出新點子。", "穩紮穩打，耐心是關鍵。", "工作壓力大，記得放鬆。"
+    ];
+    const actionArr = [
+      "適合閱讀充電。", "適合運動健身。", "適合與好友相聚。"
+    ];
+    const tabooArr = [
+      "避免衝動消費。", "避免熬夜。", "避免與人爭執。"
+    ];
+
+    function getZodiac(monthDay) {
+      for (const z of zodiacRanges) {
+        if (monthDay >= z.start && monthDay <= z.end) {
+          return z.sign;
+        }
+      }
+      return ""; // fallback
+    }
+
+    // 火花效果控制
+    let fireworksInstance = null;
+    function launchFireworks() {
+      const container = document.getElementById("fireworks-container");
+      // 若已有實例，先停止
+      if (fireworksInstance) {
+        fireworksInstance.stop();
+        container.innerHTML = ""; // 清空舊 canvas
+      }
+      fireworksInstance = new Fireworks.Fireworks(container, {
+        autoresize: true,
+        speed: 2,
+        acceleration: 1.05,
+        friction: 0.97,
+        gravity: 1.5,
+        particles: 90,
+        traceParticles: 15,
+      });
+      fireworksInstance.start();
+      // 5 秒後停止
+      setTimeout(() => {
+        fireworksInstance.stop();
+      }, 5000);
+    }
+
+    // 生成運勢結果
+    function generateFortune(zodiac) {
+      return `
+        <h2>${zodiac} 今日運勢</h2>
+        <ul>
+          <li><strong>桃花：</strong>${pick(romanceArr)}</li>
+          <li><strong>事業：</strong>${pick(careerArr)}</li>
+          <li><strong>宜做：</strong>${pick(actionArr)}</li>
+          <li><strong>今日大忌：</strong>${pick(tabooArr)}</li>
+        </ul>
+      `;
+    }
+
+    document.getElementById("checkBtn").addEventListener("click", () => {
+      const birth = document.getElementById("birthday").value;
+      if (!birth) {
+        alert("請先輸入生日！");
+        return;
+      }
+      const monthDay = birth.slice(5); // 取 MM-DD
+      const zodiac = getZodiac(monthDay);
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = generateFortune(zodiac);
+      resultDiv.classList.add("show");
+      launchFireworks();
+    });
+  </script>
+
+  <footer>
+    &copy; 2025 星座小助手<br>
+    僅供娛樂參考
+  </footer>
+</body>
+</html>

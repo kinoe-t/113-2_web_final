@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>今日星座運勢分析</title>
+    <style>
+      :root {
+        --bg: #f9fafb;
+        --card: #ffffff;
+        --primary: #6366f1;
+        --secondary: #4f46e5;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --radius: 1rem;
+        --shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+          "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      header {
+        background: var(--primary);
+        color: #fff;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem 4rem 1rem;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 680px;
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        margin-top: 1rem;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+      }
+
+      select {
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        background: #fff;
+        min-width: 160px;
+      }
+
+      button {
+        padding: 0.6rem 1.25rem;
+        font-size: 1rem;
+        background: var(--secondary);
+        color: #fff;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      button:hover {
+        background: #4338ca;
+      }
+
+      h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.25rem;
+        color: var(--primary);
+        text-align: center;
+      }
+
+      .fortune-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+      }
+
+      .fortune-item {
+        background: #f3f4f6;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+      }
+
+      .fortune-item h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1rem;
+        color: var(--text);
+      }
+
+      .stars {
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        color: #fbbf24; /* yellow-400 */
+      }
+
+      footer {
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .reveal {
+        animation: fadeIn 0.4s ease forwards;
+      }
+    </style>
+  </head>
+  <body>
+    <header>今日星座運勢分析</header>
+
+    <main>
+      <div class="card">
+        <div class="controls">
+          <select id="signSelect">
+            <option value="" disabled selected>選擇您的星座</option>
+            <option value="牡羊座">牡羊座 (Aries)</option>
+            <option value="金牛座">金牛座 (Taurus)</option>
+            <option value="雙子座">雙子座 (Gemini)</option>
+            <option value="巨蟹座">巨蟹座 (Cancer)</option>
+            <option value="獅子座">獅子座 (Leo)</option>
+            <option value="處女座">處女座 (Virgo)</option>
+            <option value="天秤座">天秤座 (Libra)</option>
+            <option value="天蠍座">天蠍座 (Scorpio)</option>
+            <option value="射手座">射手座 (Sagittarius)</option>
+            <option value="魔羯座">魔羯座 (Capricorn)</option>
+            <option value="水瓶座">水瓶座 (Aquarius)</option>
+            <option value="雙魚座">雙魚座 (Pisces)</option>
+          </select>
+          <button id="analyzeBtn">分析今日運勢</button>
+        </div>
+
+        <div id="result" class="reveal" style="display: none"></div>
+      </div>
+    </main>
+
+    <footer>© <span id="year"></span> 星座小站 — 祝您有美好的一天！</footer>
+
+    <script>
+      (function () {
+        const fortunes = {
+          love: [
+            "浪漫邂逅正在接近，保持開放心態。",
+            "花時間與伴侶深度交流將增進感情。",
+            "單身者可多參加社交活動，愛情就在不遠處。",
+            "重視自身需求，愛情才能更加順遂。",
+            "今天稍作忍讓，感情更甜蜜。",
+          ],
+          career: [
+            "工作靈感湧現，適合提出新點子。",
+            "保持專注，可一次完成多項任務。",
+            "與同事合作順利，團隊效率提升。",
+            "需要耐心應對挑戰，堅持就是勝利。",
+            "嘗試學習新技能，為未來加分。",
+          ],
+          money: [
+            "財運穩定，可適度投資理財。",
+            "小心衝動購物，避免不必要支出。",
+            "可能有意外收入，留意機會。",
+            "制定預算計畫，讓財務更健康。",
+            "支出增加，務必謹慎管理金錢。",
+          ],
+          health: [
+            "精神飽滿，適合晨間運動。",
+            "注意飲食均衡，保持體力。",
+            "避免過度勞累，適時放鬆身心。",
+            "適合嘗試新的運動或瑜伽課程。",
+            "留意關節保護，避免運動傷害。",
+          ],
+          advice: [
+            "勇敢表達自己的想法。",
+            "保持微笑，幸運將加倍。",
+            "專注當下，腳踏實地。",
+            "別太苛求自己，適度放鬆。",
+            "相信直覺，找到最佳解答。",
+          ],
+        };
+
+        const starIcons = (n) => "★".repeat(n) + "☆".repeat(5 - n);
+
+        const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const resultEl = document.getElementById("result");
+        const yearEl = document.getElementById("year");
+        yearEl.textContent = new Date().getFullYear();
+
+        analyzeBtn.addEventListener("click", () => {
+          const sign = document.getElementById("signSelect").value;
+          if (!sign) {
+            alert("請先選擇星座！");
+            return;
+          }
+
+          // 隨機評分 1-5
+          const score = () => Math.floor(Math.random() * 5) + 1;
+
+          const data = {
+            overallScore: score(),
+            love: random(fortunes.love),
+            career: random(fortunes.career),
+            money: random(fortunes.money),
+            health: random(fortunes.health),
+            advice: random(fortunes.advice),
+          };
+
+          resultEl.innerHTML = `
+            <h2>${sign} 今日運勢</h2>
+            <div class="fortune-item" style="margin-bottom:1rem;">
+              <h3>整體運勢</h3>
+              <div class="stars">${starIcons(data.overallScore)}</div>
+              <p>${data.advice}</p>
+            </div>
+            <div class="fortune-grid">
+              <div class="fortune-item">
+                <h3>愛情</h3>
+                <div class="stars">${starIcons(score())}</div>
+                <p>${data.love}</p>
+              </div>
+              <div class="fortune-item">
+                <h3>事業</h3>
+                <div class="stars">${starIcons(score())}</div>
+                <p>${data.career}</p>
+              </div>
+              <div class="fortune-item">
+                <h3>財富</h3>
+                <div class="stars">${starIcons(score())}</div>
+                <p>${data.money}</p>
+              </div>
+              <div class="fortune-item">
+                <h3>健康</h3>
+                <div class="stars">${starIcons(score())}</div>
+                <p>${data.health}</p>
+              </div>
+            </div>`;
+
+          resultEl.style.display = "block";
+        });
+      })();
+    </script>
+  </body>
+</html>

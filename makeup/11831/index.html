@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>星座運勢分析</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+      backdrop-filter: brightness(0.9);
+    }
+
+    h1 {
+      margin-top: 30px;
+      text-shadow: 2px 2px 8px #000;
+    }
+
+    .stars {
+      font-size: 24px;
+      margin: 20px auto;
+    }
+
+    .input-box {
+      margin: 20px auto;
+      max-width: 300px;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #ffffffaa;
+      color: #333;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #fff;
+    }
+
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: rgba(0,0,0,0.6);
+      border-radius: 12px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .lucky-color {
+      width: 50px;
+      height: 50px;
+      margin: 10px auto;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .section {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>星座運勢分析</h1>
+
+  <div class="stars">
+    ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓
+  </div>
+
+  <div class="input-box">
+    <input type="date" id="birthdate" />
+    <select id="gender">
+      <option value="">選擇性別</option>
+      <option value="male">男性</option>
+      <option value="female">女性</option>
+    </select>
+    <button onclick="analyze()">確定</button>
+  </div>
+
+  <div class="result" id="resultBox" style="display: none;">
+    <h2 id="zodiacName">星座：</h2>
+    <div class="section" id="fortune">今日運勢：</div>
+    <div class="section">幸運色：</div>
+    <div class="lucky-color" id="luckyColor"></div>
+    <div class="section" id="doThings">宜：</div>
+    <div class="section" id="dontThings">忌：</div>
+  </div>
+
+  <script>
+    const zodiacSigns = [
+      { name: "牡羊座 ♈", start: "03-21", end: "04-19" },
+      { name: "金牛座 ♉", start: "04-20", end: "05-20" },
+      { name: "雙子座 ♊", start: "05-21", end: "06-20" },
+      { name: "巨蟹座 ♋", start: "06-21", end: "07-22" },
+      { name: "獅子座 ♌", start: "07-23", end: "08-22" },
+      { name: "處女座 ♍", start: "08-23", end: "09-22" },
+      { name: "天秤座 ♎", start: "09-23", end: "10-22" },
+      { name: "天蠍座 ♏", start: "10-23", end: "11-21" },
+      { name: "射手座 ♐", start: "11-22", end: "12-21" },
+      { name: "摩羯座 ♑", start: "12-22", end: "01-19" },
+      { name: "水瓶座 ♒", start: "01-20", end: "02-18" },
+      { name: "雙魚座 ♓", start: "02-19", end: "03-20" },
+    ];
+
+    const fortunes = [
+      "今天是適合冒險的一天！",
+      "請多傾聽內心的聲音。",
+      "感情運上升，有好事發生！",
+      "注意財務管理，量入為出。",
+      "與朋友互動將帶來驚喜。",
+      "保持耐心，機會即將來臨。",
+    ];
+
+    const luckyColors = ["#ffcc00", "#ff6666", "#66ccff", "#99ff99", "#ff99cc", "#ccccff"];
+
+    const doThings = [
+      "適合旅行", "適合交友", "適合創作", "適合表白", "適合閱讀", "適合購物"
+    ];
+
+    const dontThings = [
+      "避免爭吵", "避免過度消費", "避免熬夜", "避免遲到", "避免無意義的應酬"
+    ];
+
+    function getZodiac(month, day) {
+      const mmdd = (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day;
+      for (const z of zodiacSigns) {
+        if (z.start <= z.end) {
+          if (mmdd >= z.start && mmdd <= z.end) return z.name;
+        } else {
+          if (mmdd >= z.start || mmdd <= z.end) return z.name;
+        }
+      }
+      return "未知星座";
+    }
+
+    function analyze() {
+      const birth = document.getElementById("birthdate").value;
+      const gender = document.getElementById("gender").value;
+      if (!birth || !gender) {
+        alert("請輸入完整的生日與性別");
+        return;
+      }
+
+      const date = new Date(birth);
+      const zodiac = getZodiac(date.getMonth() + 1, date.getDate());
+      const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+      const luckyColor = luckyColors[Math.floor(Math.random() * luckyColors.length)];
+      const doThing = doThings[Math.floor(Math.random() * doThings.length)];
+      const dontThing = dontThings[Math.floor(Math.random() * dontThings.length)];
+
+      document.getElementById("zodiacName").textContent = `星座：${zodiac}`;
+      document.getElementById("fortune").textContent = `今日運勢：${fortune}`;
+      document.getElementById("luckyColor").style.backgroundColor = luckyColor;
+      document.getElementById("doThings").textContent = `宜：${doThing}`;
+      document.getElementById("dontThings").textContent = `忌：${dontThing}`;
+      document.getElementById("resultBox").style.display = "block";
+    }
+  </script>
+</body>
+</html>

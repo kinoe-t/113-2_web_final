@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>每日星座推薦生成器</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      padding: 2em;
+      max-width: 700px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    label, select, input, button {
+      display: block;
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .color-box {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border: 1px solid #ccc;
+      vertical-align: middle;
+    }
+    .song {
+      font-weight: bold;
+      color: #2980b9;
+    }
+    .quote {
+      font-style: italic;
+      color: #555;
+    }
+    #goodbye {
+      display: none;
+      text-align: center;
+      margin-top: 30px;
+      font-size: 1.2em;
+      color: #27ae60;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌟 每日星座推薦生成器 🔮</h1>
+
+  <label for="date">請輸入今日日期：</label>
+  <input type="date" id="date" />
+
+  <label for="zodiac">選擇你的星座：</label>
+  <select id="zodiac">
+    <option value="">-- 請選擇 --</option>
+    <option>牡羊座</option>
+    <option>金牛座</option>
+    <option>雙子座</option>
+    <option>巨蟹座</option>
+    <option>獅子座</option>
+    <option>處女座</option>
+    <option>天秤座</option>
+    <option>天蠍座</option>
+    <option>射手座</option>
+    <option>魔羯座</option>
+    <option>水瓶座</option>
+    <option>雙魚座</option>
+  </select>
+
+  <button id="generateBtn">生成今日建議</button>
+  <button id="exitBtn" style="background-color:#e74c3c; color:white; display:none;">結束</button>
+
+  <div id="result"></div>
+  <div id="goodbye">👋 感謝使用每日星座推薦生成器，祝你有美好的一天！</div>
+
+  <script>
+    const fortunes = [
+      "今天是你的幸運日，適合展開新計劃！",
+      "放慢腳步，傾聽內心的聲音。",
+      "今天適合與朋友聚會，交流能帶來靈感。",
+      "可能會遇到小挑戰，但別灰心，轉機將至！",
+      "充滿創意的一天，記得筆記你的靈感。",
+      "工作/學習運佳，適合專注處理待辦事項。",
+      "愛情運勢上升，可能會有浪漫的邂逅。",
+      "今天適合療癒與休息，好好寵愛自己。",
+      "財運不錯，有機會獲得意外之財。",
+      "今天適合勇敢表達自己的想法。",
+      "情緒起伏大，保持冷靜與理性面對。",
+      "人際關係融洽，合作將帶來好成果。"
+    ];
+
+    const songs = [
+      { title: "田馥甄 - 小幸運", mood: "平靜/療癒" },
+      { title: "周杰倫 - 晴天", mood: "懷舊/青春" },
+      { title: "IU - Blueming", mood: "戀愛/開心" },
+      { title: "YOASOBI - 群青", mood: "努力/成長" },
+      { title: "五月天 - 候鳥", mood: "探索/啟程" },
+      { title: "告五人 - 在這座城市遺失了你", mood: "感傷/深情" },
+      { title: "蔡依林 - Womxnly", mood: "自信/堅強" },
+      { title: "Coldplay - Viva La Vida", mood: "宏大/激勵" },
+      { title: "BTS - Dynamite", mood: "歡樂/舞動" },
+      { title: "茄子蛋 - 浪子回頭", mood: "台味/經典" },
+      { title: "陳綺貞 - 魚", mood: "孤獨/文藝" },
+      { title: "BLACKPINK - How You Like That", mood: "氣勢/霸氣" }
+    ];
+
+    const luckyColors = [
+      { name: "紅色", code: "#e74c3c", outfit: "可以穿一件紅色襯衫或紅色口紅，展現自信與魅力。" },
+      { name: "藍色", code: "#3498db", outfit: "試試藍色牛仔外套或海軍藍配件，提升穩定能量。" },
+      { name: "綠色", code: "#2ecc71", outfit: "穿上草綠色T恤或綠色長裙，讓心情煥然一新。" },
+      { name: "黃色", code: "#f1c40f", outfit: "一件亮黃色上衣或配件，為你帶來好運與陽光感。" },
+      { name: "粉色", code: "#ff9ff3", outfit: "搭配粉色連身裙或粉嫩系髮飾，提升戀愛運。" },
+      { name: "紫色", code: "#9b59b6", outfit: "穿紫色上衣或圍巾，展現神秘氣質與智慧。" },
+      { name: "白色", code: "#ecf0f1", outfit: "乾淨的白襯衫搭配牛仔褲，給人清新專業感。" },
+      { name: "黑色", code: "#2d3436", outfit: "全黑穿搭或黑色皮鞋，低調又有質感。" },
+      { name: "橘色", code: "#e67e22", outfit: "橘色T恤或小包包，讓你整天充滿活力與好心情。" }
+    ];
+
+    const characters = [
+      { name: "RIWOO（李常赫）", role: "BOYNEXTDOOR 主舞", quote: "做自己開心的事情最重要。", highlight: "舞台動作帥氣有型 超反差" },
+      { name: "JAEHYUN", role: "BOYNEXTDOOR 全能隊長", quote: "不要被愛分等級的世界打倒。", highlight: "Live 演出時穩定發揮" },
+      { name: "TAESAN", role: "BOYNEXTDOOR 創作擔當", quote: "錯過幸福只為了追求幸運是很可惜的事。", highlight: "rock愛好者" },
+      { name: "SUNGHO", role: "BOYNEXTDOOR Vocal", quote: "輕易地幸福的話就不是幸福了。", highlight: "高音擔當 太平洋肩寬" },
+      { name: "LEEHAN", role: "BOYNEXTDOOR 黑洞擔當", quote: "小魚的愛 不只七秒。", highlight: "魚博士" },
+      { name: "WOONHAK", role: "BOYNEXTDOOR 忙內", quote: "是大家讓微不足道的我 變成了特別的人。", highlight: "練習室版本展現舞台爆發力" },
+      { name: "HOSHI", role: "SEVENTEEN Performance Leader", quote: "虎視眈眈地追夢，是我每天的日常。", highlight: "〈HIT〉舞蹈爆發力超強" },
+      { name: "HYUNJIN", role: "Stray Kids 主舞", quote: "舞蹈是我表達情感的最佳方式。", highlight: "多變的舞台魅力" },
+      { name: "KAI", role: "EXO 主舞", quote: "舞蹈，是我和世界溝通的語言。", highlight: "〈Mmmh〉 Solo 性感與藝術兼具" },
+      { name: "宮脇咲良", role: "IZ*ONE 主唱", quote: "用音樂療癒自己和粉絲。", highlight: "聲音溫柔細膩" },
+      { name: "柾國", role: "BTS 主唱", quote: "用歌聲傳遞力量和愛。", highlight: "舞台魅力驚人" },
+      { name: "LISA", role: "BLACKPINK 主舞", quote: "舞蹈讓我感受到自由與力量。", highlight: "舞台穿透力強" }
+    ];
+
+    const flowers = [
+      { name: "薰衣草", language: "等待愛情的消息", description: "薰衣草的香氣讓人心情平靜，適合冥想與放鬆。" },
+      { name: "玫瑰", language: "愛與熱情", description: "玫瑰象徵愛情和美麗，是最經典的花語代表。" },
+      { name: "向日葵", language: "陽光與希望", description: "向日葵總是朝向陽光，代表樂觀與積極。" },
+      { name: "百合", language: "純潔與高雅", description: "百合花象徵純潔無瑕，常用於祝福場合。" },
+      { name: "櫻花", language: "生命短暫且美麗", description: "櫻花的花期短暫，提醒我們珍惜當下。" },
+      { name: "康乃馨", language: "母愛與感謝", description: "康乃馨代表母親的愛與溫暖。" },
+      { name: "鬱金香", language: "愛的宣言", description: "鬱金香象徵完美的愛情和幸福。" }
+    ];
+
+    function randomIndex(arr) {
+      return Math.floor(Math.random() * arr.length);
+    }
+
+    function generate() {
+      const dateInput = document.getElementById("date").value;
+      const zodiac = document.getElementById("zodiac").value;
+      const result = document.getElementById("result");
+      const exitBtn = document.getElementById("exitBtn");
+
+      if (!dateInput || !zodiac) {
+        alert("請輸入日期並選擇星座！");
+        return;
+      }
+
+      const fortune = fortunes[randomIndex(fortunes)];
+      const song = songs[randomIndex(songs)];
+      const color = luckyColors[randomIndex(luckyColors)];
+      const character = characters[randomIndex(characters)];
+      const flower = flowers[randomIndex(flowers)];
+
+      result.innerHTML = `
+        <div class="section">
+          <h2>📅 ${dateInput} — ${zodiac} 今日運勢</h2>
+          <p>${fortune}</p>
+        </div>
+        <div class="section">
+          <h3>🎵 幸運歌曲推薦</h3>
+          <p class="song">${song.title} — <em>${song.mood}</em></p>
+        </div>
+        <div class="section">
+          <h3>🎨 幸運色與穿搭建議</h3>
+          <p>
+            <span class="color-box" style="background-color: ${color.code}"></span>
+            <strong>${color.name}</strong><br/>
+            ${color.outfit}
+          </p>
+        </div>
+        <div class="section">
+          <h3>💫 今日推薦人物</h3>
+          <p><strong>${character.name}</strong> — ${character.role}</p>
+          <p class="quote">「${character.quote}」</p>
+          <p><em>特色：${character.highlight}</em></p>
+        </div>
+        <div class="section">
+          <h3>🌸 今日之花</h3>
+          <p><strong>${flower.name}</strong> — 花語：「${flower.language}」</p>
+          <p>${flower.description}</p>
+        </div>
+      `;
+
+      // 生成結果後顯示「結束」按鈕
+      exitBtn.style.display = 'block';
+    }
+
+    function exitApp() {
+      document.body.innerHTML = '<h1 id="goodbye">👋 感謝使用每日星座推薦生成器，祝你有美好的一天！</h1>';
+    }
+
+    document.getElementById("generateBtn").addEventListener("click", generate);
+    document.getElementById("exitBtn").addEventListener("click", exitApp);
+  </script>
+</body>
+</html>

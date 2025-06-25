@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星座運勢分析</title>
+  <style>
+    body {
+      background-color: #fdf6e3; /* 米白色 */
+      font-family: 'PMingLiU', '新細明體', serif;
+      color: #8B4513; /* 棕色 */
+      padding: 20px;
+    }
+    h1 {
+      color: #8B4513;
+      font-weight: bold;
+      text-align: center;
+    }
+    .input-section {
+      text-align: center;
+      margin: 30px 0;
+    }
+    label, input {
+      font-size: 16px;
+      margin: 5px;
+    }
+    .button {
+      margin-top: 15px;
+      padding: 8px 16px;
+      font-size: 16px;
+      background-color: #deb887;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:focus {
+      outline: 2px solid #8B4513;
+    }
+    .result {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 18px;
+    }
+    .stars {
+      color: gold;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>星座運勢分析</h1>
+  <div class="input-section">
+    <p>請輸入出生年月日</p>
+    <input type="number" id="year" placeholder="yyyy" min="1900" max="2100">
+    <input type="number" id="month" placeholder="mm" min="1" max="12">
+    <input type="number" id="day" placeholder="dd" min="1" max="31"><br>
+    <button class="button" onclick="analyzeHoroscope()" onkeyup="if(event.key===' '){analyzeHoroscope()}">確認</button>
+  </div>
+
+  <div id="result" class="result"></div>
+
+  <script>
+    function getZodiac(month, day) {
+      const signs = [
+        ['魔羯座', 19], ['水瓶座', 18], ['雙魚座', 20], ['牡羊座', 19],
+        ['金牛座', 20], ['雙子座', 20], ['巨蟹座', 22], ['獅子座', 22],
+        ['處女座', 22], ['天秤座', 23], ['天蠍座', 21], ['射手座', 21], ['魔羯座', 31]
+      ];
+      return (day <= signs[month - 1][1]) ? signs[month - 1][0] : signs[month][0];
+    }
+
+    function getRandomStars() {
+      return Math.floor(Math.random() * 5) + 1;
+    }
+
+    function renderStars(count) {
+      return '★'.repeat(count) + '☆'.repeat(5 - count);
+    }
+
+    function analyzeHoroscope() {
+      const year = parseInt(document.getElementById('year').value);
+      const month = parseInt(document.getElementById('month').value);
+      const day = parseInt(document.getElementById('day').value);
+
+      if (!year || !month || !day || month < 1 || month > 12 || day < 1 || day > 31) {
+        document.getElementById('result').innerHTML = '<p>請輸入正確的日期！</p>';
+        return;
+      }
+
+      const zodiac = getZodiac(month, day);
+      const love = getRandomStars();
+      const career = getRandomStars();
+      const study = getRandomStars();
+
+      const doThings = ['閱讀', '打掃', '寫日記', '表白', '運動', '學習新知'];
+      const avoidThings = ['熬夜', '衝動消費', '與人爭執', '過度用腦', '吃太多'];
+
+      const randomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+      document.getElementById('result').innerHTML = `
+        <p>你的星座是：<strong>${zodiac}</strong></p>
+        <p>今日宜：${randomItem(doThings)}　　不宜：${randomItem(avoidThings)}</p>
+        <p>愛情運：<span class="stars">${renderStars(love)}</span></p>
+        <p>事業運：<span class="stars">${renderStars(career)}</span></p>
+        <p>學業運：<span class="stars">${renderStars(study)}</span></p>
+      `;
+    }
+  </script>
+</body>
+</html>

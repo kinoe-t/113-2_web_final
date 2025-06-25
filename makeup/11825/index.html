@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日星座運勢</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        input[type="text"], button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+        }
+        .result h3 {
+            margin: 0;
+            color: #333;
+        }
+        .result p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>今日星座運勢</h1>
+        <label for="zodiac">請輸入您的星座：</label>
+        <input type="text" id="zodiac" placeholder="例如：牡羊座" />
+
+        <button id="submitBtn">查詢運勢</button>
+
+        <div class="result" id="result" style="display:none;">
+            <h3>今日運勢:</h3>
+            <p><strong>星座:</strong> <span id="zodiacName"></span></p>
+            <p><strong>運勢總分:</strong> <span id="score"></span></p>
+            <p><strong>幸運色:</strong> <span id="luckyColor"></span></p>
+            <p><strong>幸運數字:</strong> <span id="luckyNumber"></span></p>
+            <p><strong>戀愛運:</strong> <span id="love"></span></p>
+            <p><strong>事業運:</strong> <span id="career"></span></p>
+            <p><strong>學業運:</strong> <span id="study"></span></p>
+            <p><strong>財運:</strong> <span id="wealth"></span></p>
+            <p><strong>今日注意:</strong> <span id="warning"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // 定義所有星座的運勢資料
+        const horoscopeData = {
+            "牡羊座": {
+                score: 80,
+                luckyColor: "紅色",
+                luckyNumber: 7,
+                love: "你的戀愛運比較旺，但要小心過度表現自己的情緒。",
+                career: "今天有好的機會，適合主動爭取。",
+                study: "專注力較弱，需要避免分心。",
+                wealth: "財運尚可，但不宜投資過大風險。",
+                warning: "注意與人溝通時的語氣，避免衝突。"
+            },
+            "金牛座": {
+                score: 75,
+                luckyColor: "綠色",
+                luckyNumber: 5,
+                love: "感情上會有不錯的進展，單身的可能遇到合適的人。",
+                career: "職場上會有一些挑戰，但能順利應對。",
+                study: "學業有進步，但需要更多努力。",
+                wealth: "財運平穩，沒有太大起伏。",
+                warning: "今天應該保持冷靜，避免過於急躁。"
+            },
+            "雙子座": {
+                score: 90,
+                luckyColor: "黃色",
+                luckyNumber: 3,
+                love: "戀愛運強，單身者有機會遇到有趣的對象。",
+                career: "事業上非常順利，能夠獲得他人的認可。",
+                study: "學業上有很大的突破，能夠快速吸收新知識。",
+                wealth: "今天財運非常好，可能會有意外的收入。",
+                warning: "要注意休息，避免過度勞累。"
+            },
+            "巨蟹座": {
+                score: 70,
+                luckyColor: "藍色",
+                luckyNumber: 4,
+                love: "感情中有些波動，需要與對方坦誠相對。",
+                career: "事業運勢穩定，但難以有突破。",
+                study: "學業上要加強自律，保持專注。",
+                wealth: "財運平平，無大波動。",
+                warning: "情緒上可能會有些低落，請注意心理健康。"
+            },
+            "獅子座": {
+                score: 85,
+                luckyColor: "金色",
+                luckyNumber: 1,
+                love: "戀愛運勢很好，單身的你可能會遇到心儀對象。",
+                career: "事業上有很大的發展機會，適合勇敢嘗試。",
+                study: "學業上有不錯的進展，能夠獲得他人的認可。",
+                wealth: "財運旺盛，有可能會獲得額外的收入。",
+                warning: "注意過於衝動的決策，保持冷靜。"
+            },
+            "處女座": {
+                score: 78,
+                luckyColor: "灰色",
+                luckyNumber: 2,
+                love: "戀愛運勢中等，感情中會有一些誤會。",
+                career: "職場上需保持謙虛，避免過度自信。",
+                study: "學業運勢穩定，但要保持耐心。",
+                wealth: "財運較為穩定，無大起伏。",
+                warning: "要注意自己的情緒管理，避免焦慮。"
+            },
+            "天秤座": {
+                score: 76,
+                luckyColor: "白色",
+                luckyNumber: 6,
+                love: "戀愛上有些小波動，需要多花心思維護感情。",
+                career: "職場上有些挑戰，需要更加努力。",
+                study: "學業上能夠進步，但要避免過度分心。",
+                wealth: "財運穩定，但不建議做大規模投資。",
+                warning: "注意自己與他人的關係，避免衝突。"
+            },
+            "天蠍座": {
+                score: 88,
+                luckyColor: "黑色",
+                luckyNumber: 9,
+                love: "戀愛運非常好，單身者可能會遇到心儀對象。",
+                career: "事業上能夠達成很好的目標，收穫豐富。",
+                study: "學業上能夠有所突破，但需保持專注。",
+                wealth: "財運有些許波動，但整體較穩定。",
+                warning: "需要避免過度控制他人，保持謙遜。"
+            },
+            "射手座": {
+                score: 82,
+                luckyColor: "橙色",
+                luckyNumber: 8,
+                love: "戀愛運勢中等，單身的你需要更多社交活動。",
+                career: "事業上有進展，但要避免過於冒險。",
+                study: "學業上能夠穩步前進，保持耐心。",
+                wealth: "財運不錯，有意外收入的機會。",
+                warning: "注意身體狀況，避免過勞。"
+            },
+            "摩羯座": {
+                score: 72,
+                luckyColor: "深藍色",
+                luckyNumber: 4,
+                love: "感情上較為平穩，但需要與伴侶加強溝通。",
+                career: "事業上有一定挑戰，需多加努力。",
+                study: "學業上會有些阻礙，但能克服。",
+                wealth: "財運平穩，無太大波動。",
+                warning: "要注意避免過度壓力，保持健康。"
+            },
+            "水瓶座": {
+                score: 84,
+                luckyColor: "藍綠色",
+                luckyNumber: 11,
+                love: "戀愛上有些小波動，但總體上能夠順利發展。",
+                career: "事業上有機會突破現有瓶頸，迎來新挑戰。",
+                study: "學業上能夠發揮創意，並且收穫滿滿。",
+                wealth: "財運較好，有一些意外的財源。",
+                warning: "避免過度依賴他人，保持自信。"
+            },
+            "雙魚座": {
+                score: 75,
+                luckyColor: "紫色",
+                luckyNumber: 3,
+                love: "戀愛運平穩，感情中需注意自己過於依賴對方。",
+                career: "事業上會有一些挑戰，需提高自我管理能力。",
+                study: "學業上有些困難，需要付出更多的努力。",
+                wealth: "財運中等，沒有太大波動。",
+                warning: "注意保持冷靜，避免情緒化的決策。"
+            }
+        };
+
+        // 查詢星座運勢
+        document.getElementById("submitBtn").addEventListener("click", function() {
+            const zodiacInput = document.getElementById("zodiac").value.trim();
+            const zodiacName = zodiacInput.charAt(0).toUpperCase() + zodiacInput.slice(1).toLowerCase(); // 首字母大寫
+            const horoscope = horoscopeData[zodiacName];
+
+            if (horoscope) {
+                // 顯示運勢結果
+                document.getElementById("result").style.display = "block";
+                document.getElementById("zodiacName").textContent = zodiacName;
+                document.getElementById("score").textContent = horoscope.score;
+                document.getElementById("luckyColor").textContent = horoscope.luckyColor;
+                document.getElementById("luckyNumber").textContent = horoscope.luckyNumber;
+                document.getElementById("love").textContent = horoscope.love;
+                document.getElementById("career").textContent = horoscope.career;
+                document.getElementById("study").textContent = horoscope.study;
+                document.getElementById("wealth").textContent = horoscope.wealth;
+                document.getElementById("warning").textContent = horoscope.warning;
+            } else {
+                alert("請輸入正確的星座名稱！");
+            }
+        });
+    </script>
+
+</body>
+</html>

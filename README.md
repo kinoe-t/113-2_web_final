@@ -170,4 +170,13 @@
 
 ## Make up
 
+* https://kinoe-t.github.io/113-2_web_final/makeup/11534/index.html
+* https://kinoe-t.github.io/113-2_web_final/makeup/11608/index.html
+* https://kinoe-t.github.io/113-2_web_final/makeup/11624/index.html
+* https://kinoe-t.github.io/113-2_web_final/makeup/11631/index.html
 * https://kinoe-t.github.io/113-2_web_final/makeup/11728/index.html
+* https://kinoe-t.github.io/113-2_web_final/makeup/11805/index.html
+* https://kinoe-t.github.io/113-2_web_final/makeup/11809/index.html
+* https://kinoe-t.github.io/113-2_web_final/makeup/11825/index.html
+* https://kinoe-t.github.io/113-2_web_final/makeup/11831/index.html
+* https://kinoe-t.github.io/113-2_web_final/makeup/21238/index.html

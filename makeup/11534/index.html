@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>每日星座運勢</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #fdf6f0;
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    form {
+      margin-top: 2rem;
+    }
+
+    label, select, input {
+      font-size: 1rem;
+      margin: 0.5rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #ffa07a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .stars {
+      font-size: 1.5rem;
+      color: gold;
+    }
+
+    .confetti {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      background-color: red;
+      z-index: 9999;
+      opacity: 0.8;
+      animation: fall 2s linear forwards;
+      border-radius: 50%;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>每日星座運勢查詢</h1>
+  <form id="horoscopeForm">
+    <label for="date">日期：</label>
+    <input type="date" id="date" required />
+    <label for="sign">星座：</label>
+    <select id="sign" required>
+      <option value="">請選擇</option>
+      <option value="白羊座">白羊座</option>
+      <option value="金牛座">金牛座</option>
+      <option value="雙子座">雙子座</option>
+      <option value="巨蟹座">巨蟹座</option>
+      <option value="獅子座">獅子座</option>
+      <option value="處女座">處女座</option>
+      <option value="天秤座">天秤座</option>
+      <option value="天蠍座">天蠍座</option>
+      <option value="射手座">射手座</option>
+      <option value="摩羯座">摩羯座</option>
+      <option value="水瓶座">水瓶座</option>
+      <option value="雙魚座">雙魚座</option>
+    </select>
+    <button type="submit">查詢運勢</button>
+  </form>
+
+  <div class="result" id="result" style="display:none;">
+    <h2 id="resultTitle"></h2>
+    <div class="stars" id="starRating"></div>
+    <p id="detail"></p>
+  </div>
+
+  <script>
+    const fortunes = {
+      "白羊座": [
+        { stars: 5, detail: "今天你的魅力四射，桃花運旺盛，財運也有意外收穫，是個值得冒險的一天！" },
+        { stars: 3, detail: "普通的一天，注意與同事的溝通，桃花運平平但朋友運不錯。" },
+        { stars: 2, detail: "今天容易衝動行事，花錢需節制，戀愛方面要避免爭執。" }
+      ],
+      "金牛座": [
+        { stars: 4, detail: "財運不錯，可以考慮小額投資；感情上有穩定發展的機會。" },
+        { stars: 2, detail: "小心固執造成誤會，花錢要保守一點，感情需要更多包容。" },
+        { stars: 3, detail: "整體運勢中等，努力工作會有小成果，桃花運稍微低迷。" }
+      ]
+      // 可持續擴充其他星座
+    };
+
+    function getRandomFortune(sign) {
+      const list = fortunes[sign];
+      if (!list) return { stars: 3, detail: "今日星象變化平穩，建議保持平常心面對一切。" };
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function generateStars(num) {
+      return "★".repeat(num) + "☆".repeat(5 - num);
+    }
+
+    function throwConfetti() {
+      const colors = ["#ff5e57", "#fcd34d", "#34d399", "#60a5fa", "#a78bfa"];
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement("div");
+        confetti.classList.add("confetti");
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + "vw";
+        confetti.style.animationDuration = (1 + Math.random() * 1.5) + "s";
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 2000);
+      }
+    }
+
+    document.getElementById("horoscopeForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const date = document.getElementById("date").value;
+      const sign = document.getElementById("sign").value;
+      if (!date || !sign) return;
+
+      const fortune = getRandomFortune(sign);
+
+      document.getElementById("resultTitle").innerText = `${sign} - ${date} 的運勢`;
+      document.getElementById("starRating").innerText = generateStars(fortune.stars);
+      document.getElementById("detail").innerText = fortune.detail;
+      document.getElementById("result").style.display = "block";
+
+      if (fortune.stars === 5) {
+        throwConfetti();
+      }
+    });
+  </script>
+</body>
+</html>

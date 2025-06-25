@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>本日星座運勢</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(to bottom right, #ffe4ec, #fff0f5);
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      background-color: #ffffffee;
+      margin: 50px auto;
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(255, 192, 203, 0.3);
+      text-align: center;
+    }
+    h1 {
+      text-align: center;
+      color: #d63384;
+      font-size: 32px;
+      margin-bottom: 24px;
+    }
+    .decor {
+      font-size: 40px;
+      color: #f06292;
+      margin: 10px;
+    }
+    label {
+      display: block;
+      margin-top: 16px;
+      color: #b03060;
+      font-weight: bold;
+      text-align: left;
+    }
+    select,
+    input[type="color"] {
+      width: 100%;
+      padding: 8px 12px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #f8bbd0;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 24px;
+      width: 100%;
+      padding: 12px;
+      background-color: #f06292;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #ec407a;
+    }
+    #result {
+      background: #ffffff;
+      padding: 20px;
+      margin: 40px auto;
+      max-width: 600px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(255, 182, 193, 0.3);
+    }
+    h2 {
+      font-size: 22px;
+      color: #c2185b;
+    }
+    h3 {
+      font-size: 18px;
+      margin-top: 20px;
+      color: #ad1457;
+    }
+    .flower {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .flower div {
+      font-size: 60px;
+    }
+    .flower p {
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="decor">🔮✨🃏🌟</div>
+    <h1>今日星座運勢占卜</h1>
+    <p style="color:#b03060; font-weight:bold;">
+      輸入以下資料，一起探索你的命運之旅！
+    </p>
+
+    <label>性別：
+      <select id="gender">
+        <option value="male">男</option>
+        <option value="female">女</option>
+      </select>
+    </label>
+
+    <label>出生年：
+      <select id="year"></select>
+    </label>
+
+    <label>出生月：
+      <select id="month"></select>
+    </label>
+
+    <label>出生日：
+      <select id="day"></select>
+    </label>
+
+    <label>偏好顏色：
+      <input type="color" id="color" />
+    </label>
+
+    <button onclick="analyze()">本日運勢 🔮</button>
+    <div class="decor">♈♉♊♋♌♍♎♏♐♑♒♓</div>
+  </div>
+
+  <div id="result" style="display: none"></div>
+
+  <script>
+    const flowerList = [
+      { icon: "🌸", name: "櫻花", meaning: "生命短暫但美麗，珍惜當下。" },
+      { icon: "🌹", name: "玫瑰", meaning: "愛與熱情的象徵。" },
+      { icon: "🌻", name: "向日葵", meaning: "陽光與正能量。" },
+      { icon: "🌼", name: "雛菊", meaning: "純真與新希望。" },
+      { icon: "💐", name: "花束", meaning: "多彩多姿的人生。" },
+      { icon: "🌷", name: "鬱金香", meaning: "愛的表白與高貴。" },
+      { icon: "🌺", name: "芙蓉", meaning: "熱情洋溢與美麗。" },
+      { icon: "🥀", name: "凋零玫瑰", meaning: "美的脆弱與珍惜。" }
+    ];
+
+    const yearSel = document.getElementById("year");
+    for (let y = 1901; y <= new Date().getFullYear(); y++) {
+      yearSel.innerHTML += `<option value="${y}">${y}</option>`;
+    }
+
+    const monthSel = document.getElementById("month");
+    for (let m = 1; m <= 12; m++) {
+      monthSel.innerHTML += `<option value="${m}">${m}</option>`;
+    }
+
+    const daySel = document.getElementById("day");
+    for (let d = 1; d <= 31; d++) {
+      daySel.innerHTML += `<option value="${d}">${d}</option>`;
+    }
+
+    function getConstellation(month, day) {
+      if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "牡羊座";
+      if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "金牛座";
+      if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return "雙子座";
+      if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return "巨蟹座";
+      if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return "獅子座";
+      if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return "處女座";
+      if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return "天秤座";
+      if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return "天蠍座";
+      if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return "射手座";
+      if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return "魔羯座";
+      if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return "水瓶座";
+      if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return "雙魚座";
+      return "未知星座";
+    }
+
+    function analyze() {
+      const gender = document.getElementById("gender").value;
+      const year = parseInt(document.getElementById("year").value);
+      const month = parseInt(document.getElementById("month").value);
+      const day = parseInt(document.getElementById("day").value);
+      const color = document.getElementById("color").value;
+
+      const constellation = getConstellation(month, day);
+      const today = new Date().toLocaleDateString("zh-Hant-TW");
+
+      const love =
+        gender === "female"
+          ? "今天適合展現你的柔情與關懷。"
+          : "今天宜主動表達情感，增加親密度。";
+      const career =
+        year % 2 === 0
+          ? "專注是你今天的關鍵，別分心。"
+          : "創意將為你打開成功之門。";
+
+      const flower = flowerList[Math.floor(Math.random() * flowerList.length)];
+      const result = document.getElementById("result");
+      result.style.display = "block";
+      result.innerHTML = `
+        <h1 style="color:${color}; font-size: 30px; text-align:center;">
+          ${today}｜${constellation}
+        </h1>
+        <h2>感情運勢</h2>
+        <p>${love}</p>
+        <h2>事業／學業運勢</h2>
+        <p>${career}</p>
+        <div class="flower">
+          <div>${flower.icon}</div>
+          <h3>${flower.name}</h3>
+          <p>${flower.meaning}</p>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

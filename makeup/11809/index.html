@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>星座運勢網頁</title>
+<style>
+body {
+font-family: Arial, sans-serif;
+text-align: center;
+padding: 50px;
+background-color: #f9f9f9;
+}
+h1 {
+color: #333;
+}
+select, input[type="date"], button {
+padding: 10px;
+margin: 10px;
+font-size: 16px;
+}
+#result {
+margin-top: 30px;
+font-size: 18px;
+color: #555;
+}
+#image {
+margin-top: 20px;
+max-width: 400px;
+width: 100%;
+height: auto;
+}
+</style>
+</head>
+<body>
+
+<h1>🌟 今日星座運勢 🌟</h1>
+
+<label for="date">選擇今日日期：</label>
+<input type="date" id="date" />
+
+<br />
+
+<label for="zodiac">選擇星座：</label>
+<select id="zodiac">
+<option value="">請選擇</option>
+<option value="牡羊座">牡羊座</option>
+<option value="金牛座">金牛座</option>
+<option value="雙子座">雙子座</option>
+<option value="巨蟹座">巨蟹座</option>
+<option value="獅子座">獅子座</option>
+<option value="處女座">處女座</option>
+<option value="天秤座">天秤座</option>
+<option value="天蠍座">天蠍座</option>
+<option value="射手座">射手座</option>
+<option value="魔羯座">魔羯座</option>
+<option value="水瓶座">水瓶座</option>
+<option value="雙魚座">雙魚座</option>
+</select>
+
+<br />
+
+<button onclick="generateFortune()">看今日運勢</button>
+
+<div id="result"></div>
+<img id="image" src="" alt="星座圖片" style="display:none;" />
+
+<script>
+const fortunes = [
+"今天是你開啟新計畫的好日子，勇敢邁出第一步吧！",
+"留意身邊的人，意想不到的驚喜正在悄悄接近你。",
+"適合整理生活與工作，簡單的改變能帶來大不同。",
+"感情運佳，單身者有機會邂逅新朋友。",
+"注意休息與飲食，健康才是最大的財富。",
+"財運平穩，宜保守理財，切忌衝動消費。",
+"適合學習與成長，今天的努力會有回報。",
+"小心溝通誤會，說話前多想一想。",
+"創意爆發的一天，靈感源源不絕。",
+"適合與朋友聚會，分享快樂與愛。",
+"工作壓力可能較大，記得保持好心情。",
+"善用直覺，今天做決定時將特別有靈感。"
+];
+
+const images = [
+"img1.jpg", "img2.jpg", "img3.jpg", "img4.jpg", "img5.jpg",
+"img6.jpg", "img7.jpg", "img8.jpg", "img9.jpg", "img10.jpg",
+"img11.jpg", "img12.jpg", "img13.jpg", "img14.jpg", "img15.jpg"
+];
+
+function generateFortune() {
+const date = document.getElementById("date").value;
+const zodiac = document.getElementById("zodiac").value;
+
+if (!date || !zodiac) {
+alert("請先選擇日期和星座！");
+return;
+}
+
+const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+const randomImage = images[Math.floor(Math.random() * images.length)];
+
+document.getElementById("result").innerHTML = `
+<p><strong>${zodiac}</strong> 在 ${date} 的運勢是：</p>
+<p>"${randomFortune}"</p>
+`;
+
+const imageElement = document.getElementById("image");
+imageElement.src = randomImage;
+imageElement.style.display = "block";
+}
+</script>
+</body>
+</html>
